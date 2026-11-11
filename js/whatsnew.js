@@ -8,6 +8,12 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.9.5', date: '10/11/2026',
+    items: [
+      ['✉️', 'Τα μηνύματα προς πελάτες παίρνουν πλέον πάντα τα τρέχοντα στοιχεία του πελάτη και της εκδήλωσης, και έγιναν διορθώσεις σφαλμάτων.', 'Messages to clients now always use the current client and event details, plus bug fixes.'],
+    ],
+  },
+  {
     v: '1.9.4', date: '06/11/2026',
     items: [
       ['📄', 'Ενημερώθηκαν οι όροι χρήσης και η πολιτική απορρήτου, και έγιναν βελτιώσεις και διορθώσεις σφαλμάτων.', 'The terms of use and privacy policy were updated, plus improvements and bug fixes.'],

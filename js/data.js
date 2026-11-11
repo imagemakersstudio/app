@@ -499,6 +499,16 @@ export async function updateQueue(id, patch) {
   S.queue = S.queue.map((m) => (m.id === id ? data : m)); emit('message_queue');
   return data;
 }
+/** Ξαναγράφει ένα μήνυμα «Προς αποστολή» με τα τρέχοντα στοιχεία πελάτη/εκδήλωσης (αν δεν το άλλαξε κάποιος με το χέρι) */
+export async function refreshMessage(m) {
+  if (!m || m.status !== 'pending' || m.edited || !m.template_id) return m;
+  try {
+    const { data, error } = await sb.rpc('refresh_message', { p_id: m.id });
+    if (error || !data?.id) return m;
+    S.queue = S.queue.map((x) => (x.id === data.id ? data : x)); emit('message_queue');
+    return data;
+  } catch { return m; }
+}
 export async function saveTemplate(t) {
   const row = { name: t.name, trigger_type: t.trigger_type, offset_days: Number(t.offset_days) || 0, send_hour: Number(t.send_hour) || 0, threshold_pct: t.threshold_pct === '' || t.threshold_pct == null ? null : Number(t.threshold_pct), categories: t.categories || [], channels: t.channels || [], recipients: t.recipients || [], subject: t.subject || null, body: t.body, enabled: !!t.enabled };
   let data;

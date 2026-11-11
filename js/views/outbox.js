@@ -2,7 +2,7 @@
 //  Αυτοματοποιημένα μηνύματα προς πελάτες (ουρά & πρότυπα)
 // =====================================================================
 import { L, esc, icon, money, fmtDate, fmtTime, timeAgo, todayISO, daysBetween, lbl, opt, CATEGORIES, TRIGGERS, CHANNELS, METHODS, smsUrl, mailUrl, waUrl, viberUrl, copyText, sheet, toast, toastErr, confirmBox, segmented, initSegmented, busy } from '../core.js';
-import { S, eventView, coupleName, updateQueue, saveTemplate, deleteTemplate, runAutomations, business, profileName, allEventViews } from '../data.js';
+import { S, eventView, coupleName, updateQueue, refreshMessage, saveTemplate, deleteTemplate, runAutomations, business, profileName, allEventViews } from '../data.js';
 import { pageHead, emptyState, setTopActions, go } from '../layout.js';
 
 const st = { tab: 'pending' };
@@ -73,8 +73,9 @@ function templatesHTML() {
     <div class="banner mt">${icon('help')}<div><b>${esc(L('Πώς λειτουργεί', 'How it works'))}</b><span>${esc(L('Τη σωστή στιγμή (π.χ. 10 ημέρες πριν) η εφαρμογή ετοιμάζει το κείμενο με τα στοιχεία του ζευγαριού και στέλνει ειδοποίηση στους διαχειριστές που έχετε ορίσει. Ανοίγετε το μήνυμα και πατάτε SMS, Email ή WhatsApp — χωρίς χρεώσεις.', 'At the right time (e.g. 10 days before) the app prepares the text with the couple’s details and notifies the admins you chose. Open it and tap SMS, Email or WhatsApp — no charges.'))}</span></div></div>`;
 }
 
-function openMessage(m) {
-  if (!m) return;
+async function openMessage(m0) {
+  if (!m0) return;
+  const m = await refreshMessage(m0);
   const v = eventView(m.event_id);
   const t = S.templates.find((x) => x.id === m.template_id);
   const f = { body: m.body, subject: m.subject || '', to_phone: m.to_phone || v?.c?.phone1 || '', to_email: m.to_email || v?.c?.email1 || '' };
@@ -96,7 +97,7 @@ function openMessage(m) {
   const foot = m.status === 'pending' ? `<button class="btn" data-dismiss>${esc(L('Παράλειψη', 'Skip'))}</button><button class="btn success" data-done>${icon('check')} ${esc(L('Στάλθηκε', 'Mark as sent'))}</button>` : `<button class="btn" data-reopen>${icon('refresh')} ${esc(L('Επαναφορά σε «Προς αποστολή»', 'Back to “To send”'))}</button>`;
   const s = sheet({ title: L('Μήνυμα προς πελάτη', 'Message to client'), body, foot });
   const read = () => { s.body.querySelectorAll('[name]').forEach((i) => { f[i.name] = i.value; }); };
-  const persist = async () => { read(); if (f.body !== m.body || f.subject !== (m.subject || '') || f.to_phone !== (m.to_phone || '') || f.to_email !== (m.to_email || '')) { Object.assign(m, await updateQueue(m.id, { body: f.body, subject: f.subject, to_phone: f.to_phone, to_email: f.to_email })); } };
+  const persist = async () => { read(); if (f.body !== m.body || f.subject !== (m.subject || '') || f.to_phone !== (m.to_phone || '') || f.to_email !== (m.to_email || '')) { Object.assign(m, await updateQueue(m.id, { body: f.body, subject: f.subject, to_phone: f.to_phone, to_email: f.to_email, ...('edited' in m ? { edited: true } : {}) })); } };
   s.body.querySelectorAll('[name]').forEach((i) => i.addEventListener('change', () => persist().catch(() => {})));
   s.body.querySelectorAll('[data-send]').forEach((b) => b.addEventListener('click', async () => {
     read();
