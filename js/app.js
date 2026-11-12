@@ -1,6 +1,6 @@
 // =====================================================================
 //  IMAGE MAKERS · Studio Manager — εκκίνηση, πλοήγηση, διάταξη
-//  made by georgeousDev software solutions · gkararizosg@gmail.com
+//  Αναπτύσσεται με το Claude (Anthropic)
 // =====================================================================
 import { safeColor, L, esc, icon, $, $$, on, applyTheme, toast, hasLayer, closeAllLayers, debounce, initials, colorFor, lbl, ROLES, setLang, LANG } from './core.js';
 import { sb, S, configured, loadProfile, loadAll, startRealtime, stopRealtime, subscribe, isAdmin, isVideoAdmin, hasRole, setNotificationHandler, unreadCount, pendingMessages, newRequests, pendingUsers, pendingAppointments, staleAppointments, markRead, updateBadge, profileName, emit } from './data.js';
@@ -128,7 +128,7 @@ function shellHTML() {
           <span class="avatar" style="--c:${safeColor(p.color, p.id)}">${esc(initials(profileName(p)))}</span>
           <span class="who"><b>${esc(profileName(p))}</b><small>${esc(lbl(ROLES, p.role))}</small></span>
         </a>
-        <div class="credit">${legalLinks() ? `<div>${legalLinks()}</div>` : ''}made by <b>“georgeousDev”</b> software solutions · <a href="mailto:gkararizosg@gmail.com">gkararizosg@gmail.com</a></div>
+        <div class="credit">${legalLinks() ? `<div>${legalLinks()}</div>` : ''}${esc(L('Αναπτύσσεται με το Claude (Anthropic)', 'Developed with Claude (Anthropic)'))}</div>
       </div>
     </aside>
     <div class="scrim" id="scrim"></div>
