@@ -8,6 +8,12 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.9.9', date: '12/11/2026',
+    items: [
+      ['↔️', 'Φύλλα (Excel): η μπάρα για κύλιση δεξιά-αριστερά φαίνεται πλέον πάντα, και σε υπολογιστές με μικρότερη οθόνη: όταν ο πίνακας δεν χωράει, εμφανίζεται στο κάτω μέρος της οθόνης. Έγινε και πιο φαρδιά, για να πιάνεται εύκολα με το ποντίκι.', 'Sheets (Excel): the left-right scroll bar is now always visible, also on computers with smaller screens: when the table does not fit, it appears at the bottom of the screen. It is also wider, so it is easy to grab with the mouse.'],
+    ],
+  },
+  {
     v: '1.9.8', date: '12/11/2026',
     items: [
       ['🤖', 'Η εφαρμογή αναπτύσσεται και συντηρείται πλέον από την Image Makers με τη βοήθεια του Claude (Anthropic).', 'The app is now developed and maintained by Image Makers with the help of Claude (Anthropic).'],
