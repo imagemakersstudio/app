@@ -8,6 +8,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.9.8', date: '12/11/2026',
+    items: [
+      ['🤖', 'Η εφαρμογή αναπτύσσεται και συντηρείται πλέον από την Image Makers με τη βοήθεια του Claude (Anthropic).', 'The app is now developed and maintained by Image Makers with the help of Claude (Anthropic).'],
+      ['📄', 'Ενημερώθηκαν οι όροι χρήσης και η πολιτική απορρήτου (έκδοση 1.2).', 'The terms of use and privacy policy were updated (version 1.2).'],
+    ],
+  },
+  {
     v: '1.9.7', date: '12/11/2026',
     items: [
       ['📊', 'Κατάσταση Εργασιών: νέο κουμπί «Σύνοψη» δίπλα στο «Όλες». Ανοίγει δύο πίνακες δίπλα δίπλα, έναν για τις φωτογραφίες και έναν για το video, με πόσες εκδηλώσεις είναι σε κάθε στάδιο, το ποσοστό τους και (στις φωτογραφίες) πόσες έχουν πορτοκαλί ή κόκκινη καθυστέρηση. Ακολουθεί τη χρονιά και τον μήνα που έχετε επιλέξει. Πατώντας μια γραμμή εμφανίζονται από κάτω αυτές οι εκδηλώσεις.', 'Work status: new “Summary” button next to “All”. It opens two tables side by side, one for photos and one for video, showing how many events are in each stage, their percentage and (for photos) how many are orange or red. It follows the selected year and month. Tap a row to list those events below.'],
@@ -249,7 +256,7 @@ export const RELEASES = [
   },
 ];
 export const LATEST = RELEASES[0].v;
-const WATERMARK = 'georgeousDev Software Solutions - gkararizosg@gmail.com';
+const WATERMARK = 'Αναπτύσσεται με το Claude (Anthropic)';
 
 const releaseHTML = (r) => `<div class="wn-rel">
   <div class="wn-ver"><span class="pill accent">v${esc(r.v)}</span><span class="small muted">${esc(r.date)}</span></div>

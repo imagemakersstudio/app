@@ -216,9 +216,9 @@
 
 - Οι **Όροι χρήσης** και η **Πολιτική απορρήτου** βρίσκονται στο [legal.html](legal.html) και στις Ρυθμίσεις.
 - Υπεύθυνη για τα δεδομένα είναι η **Image Makers** · digital.imagemakers@gmail.com · 2410 550361.
-- Τεχνική υποστήριξη, αλλαγές και νέες λειτουργίες: κατόπιν συμφωνίας, στο gkararizosg@gmail.com.
+- Τεχνική υποστήριξη, αλλαγές και νέες λειτουργίες: από την Image Makers, με τη βοήθεια του **Claude** (Anthropic).
 
-> made by **“georgeousDev”** software solutions
+> Αναπτύσσεται με το **Claude** (Anthropic)
 
 ---
 
