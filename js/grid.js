@@ -39,6 +39,46 @@ function wheelPass(wrap) {
     window.scrollBy(0, dy);
   }, { passive: false });
 }
+/**
+ * Μπάρα κύλισης που μένει πάντα στο κάτω μέρος της οθόνης (όπως στο Google Sheets).
+ * Εμφανίζεται μόνο όταν ο πίνακας έχει κι άλλες στήλες δεξιά και η κανονική του μπάρα
+ * είναι κάτω από το όριο της οθόνης (μικρές οθόνες). Κινείται μαζί με τον πίνακα.
+ */
+const hbars = new Set();
+function hbarUpdate(h) {
+  const { wrap, bar, inner } = h;
+  if (!wrap.isConnected) { hbars.delete(h); h.ro?.disconnect(); return; }
+  inner.style.width = wrap.scrollWidth + 'px';
+  const tab = document.querySelector('.tabbar');
+  const tabH = tab && getComputedStyle(tab).display !== 'none' ? tab.offsetHeight : 0;
+  const r = wrap.getBoundingClientRect();
+  const bottomLimit = window.innerHeight - tabH;
+  const need = wrap.scrollWidth > wrap.clientWidth + 1 && r.top < bottomLimit - 40 && r.bottom > bottomLimit;
+  if (bar.hidden === need) bar.hidden = !need;
+  if (need && Math.abs(bar.scrollLeft - wrap.scrollLeft) > 1) { h.lock = true; bar.scrollLeft = wrap.scrollLeft; }
+}
+let hbarBound = false;
+function hbarAll() { hbars.forEach(hbarUpdate); }
+function floatingBar(wrap) {
+  const bar = document.createElement('div');
+  bar.className = 'xl-hbar'; bar.hidden = true; bar.setAttribute('aria-hidden', 'true');
+  const inner = document.createElement('div'); bar.appendChild(inner);
+  wrap.after(bar);
+  const h = { wrap, bar, inner, lock: false };
+  // συγχρονισμός: όποια από τις δύο μπάρες κινηθεί, ακολουθεί η άλλη
+  bar.addEventListener('scroll', () => { if (h.lock) { h.lock = false; return; } h.lock = true; wrap.scrollLeft = bar.scrollLeft; }, { passive: true });
+  wrap.addEventListener('scroll', () => { if (h.lock) { h.lock = false; return; } if (!bar.hidden) { h.lock = true; bar.scrollLeft = wrap.scrollLeft; } }, { passive: true });
+  if ('ResizeObserver' in window) { h.ro = new ResizeObserver(() => hbarUpdate(h)); h.ro.observe(wrap); const t = wrap.querySelector('table'); if (t) h.ro.observe(t); }
+  hbars.add(h);
+  if (!hbarBound) {
+    hbarBound = true;
+    let raf = 0;
+    const tick = () => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; hbarAll(); }); };
+    window.addEventListener('scroll', tick, { passive: true });
+    window.addEventListener('resize', tick);
+  }
+  requestAnimationFrame(() => hbarUpdate(h));
+}
 let fitBound = false;
 function bindFit() {
   if (fitBound) return; fitBound = true;
@@ -96,7 +136,7 @@ export function renderGrid(container, cols, opts) {
   container.innerHTML = html;
 
   const wrap = container.querySelector('.xl-wrap');
-  fitWrap(wrap); wheelPass(wrap);
+  fitWrap(wrap); wheelPass(wrap); floatingBar(wrap);
   wrap.scrollLeft = mem.scrollLeft; wrap.scrollTop = mem.scrollTop;
   wrap.addEventListener('scroll', () => { mem.scrollLeft = wrap.scrollLeft; mem.scrollTop = wrap.scrollTop; }, { passive: true });
 
