@@ -8,8 +8,49 @@ import { S, allEventViews, eventView, patchEvent, logSentMessage, yearsAvailable
 import { pageHead, emptyState, setTopActions } from '../layout.js';
 import { renderText } from './outbox.js';
 import { pickYear, yearOf, yearSelect, bindYear } from '../components.js';
+import { toneChip } from '../grid.js';
 
-const st = { year: null, q: '', filter: 'active', month: '', ph: '', vid: '' };
+const st = { year: null, q: '', filter: 'active', month: '', ph: '', vid: '', summary: false };
+
+/**
+ * Σύνοψη (stats panel): δύο πίνακες δίπλα δίπλα, Φωτογραφίες και Video.
+ * Μετράει όλες τις (μη ακυρωμένες) εκδηλώσεις της επιλεγμένης χρονιάς και του μήνα, αν έχει επιλεγεί.
+ * Πατώντας μια γραμμή εμφανίζονται από κάτω οι αντίστοιχες εκδηλώσεις.
+ */
+function summaryHTML(rows) {
+  const pct = (n, t) => (t ? Math.round((n / t) * 100) + '%' : '—');
+  const cell = (c, i, w) => `<td class="${i ? 'num' : ''}"><div class="c" style="--w:${i ? w : 230}px">${c}</div></td>`;
+  const tbl = (head, body, foot, w = 96) => `<div class="xl-wrap" style="max-height:none;min-height:0"><table class="xl wf-sum"><thead><tr class="h">${head.map((h, i) => { const [full, short] = Array.isArray(h) ? h : [h, h]; return `<th class="gc-plain" style="top:0;text-align:${i ? 'right' : 'left'}"><span class="hd-full">${esc(full)}</span><span class="hd-short">${esc(short)}</span></th>`; }).join('')}</tr></thead>
+    <tbody>${body.map((r) => `<tr class="${r.on ? 'on' : ''}" data-sum="${r.k}" data-v="${r.v}" title="${esc(L('Δείτε αυτές τις εκδηλώσεις', 'Show these events'))}">${r.cells.map((c, i) => cell(c, i, w)).join('')}</tr>`).join('')}</tbody>
+    <tfoot><tr>${foot.map((c, i) => cell(c, i, w)).join('')}</tr></tfoot></table></div>`;
+  const zero = (n, cls = '') => (n ? `<b class="${cls}">${n}</b>` : '<span class="muted">0</span>');
+
+  // Φωτογραφίες: όχι οι εκδηλώσεις «Μόνο βίντεο»
+  const ph = rows.filter((r) => r.v.e.coverage !== 'video');
+  const phRows = PHOTO_STATUS.map((o) => {
+    const list = ph.filter((r) => (r.v.e.photo_status || 'samples_todo') === o.v);
+    const warn = list.filter((r) => r.level === 'warn').length;
+    const late = list.filter((r) => r.level === 'late').length;
+    return { k: 'ph', v: o.v, on: st.ph === o.v, cells: [esc(L(o.el, o.en)), zero(list.length), pct(list.length, ph.length), zero(warn, 'wf-warn-t'), zero(late, 'wf-late-t')], warn, late };
+  });
+  // Video: όχι οι εκδηλώσεις «Μόνο φωτογραφία»
+  const vd = rows.filter((r) => r.v.e.coverage !== 'photo');
+  const vdRows = VIDEO_STATUS.map((o) => {
+    const n = vd.filter((r) => (r.v.e.video_status || 'not_ready') === o.v).length;
+    return { k: 'vid', v: o.v, on: st.vid === o.v, cells: [toneChip(o, false), zero(n), pct(n, vd.length)] };
+  });
+  const scope = `${st.year}${st.month ? ' · ' + MONTHS_EL_UP[Number(st.month) - 1] : ' · ' + L('όλοι οι μήνες', 'all months')}`;
+  return `<div class="wf-summary">
+    <div class="grid cols-2">
+      <div><div class="group-label" style="margin-top:0">📷 ${esc(L('Κατάσταση Φωτογραφιών', 'Photos status'))} <span class="muted">· ${esc(scope)}</span></div>
+        ${tbl([L('Στάδιο', 'Stage'), [L('Εκδηλώσεις', 'Events'), L('Πλήθος', 'Count')], '%', [L('Προσοχή', 'Attention'), L('Προσ.', 'Attn')], [L('Καθυστέρηση', 'Late'), L('Καθυστ.', 'Late')]], phRows,
+          [esc(L('Σύνολο', 'Total')), ph.length, ph.length ? '100%' : '—', phRows.reduce((n, r) => n + r.warn, 0), phRows.reduce((n, r) => n + r.late, 0)], 92)}</div>
+      <div><div class="group-label" style="margin-top:0">🎥 ${esc(L('Κατάσταση Video', 'Video status'))} <span class="muted">· ${esc(scope)}</span></div>
+        ${tbl([L('Κατάσταση', 'Status'), [L('Εκδηλώσεις', 'Events'), L('Πλήθος', 'Count')], '%'], vdRows, [esc(L('Σύνολο', 'Total')), vd.length, vd.length ? '100%' : '—'], 110)}</div>
+    </div>
+    <div class="small muted mt-s">${esc(L('Μετράνε όλες οι εκδηλώσεις της χρονιάς (εκτός από τις ακυρωμένες). Οι «Μόνο βίντεο» δεν μετράνε στις φωτογραφίες και οι «Μόνο φωτογραφία» στο video. Πατήστε μια γραμμή για να δείτε αυτές τις εκδηλώσεις.', 'All events of the year count (except cancelled). “Video only” events do not count in photos and “Photo only” do not count in video. Tap a row to see those events.'))}</div>
+  </div>`;
+}
 
 /** Πόσες ημέρες είναι το έργο στο τρέχον στάδιο και τι χρώμα παίρνει */
 export function wfLevel(e, today = todayISO()) {
@@ -53,7 +94,7 @@ export function renderWorkflow(root) {
 
   let html = pageHead(L('Κατάσταση Εργασιών', 'Work status'), { sub: esc(L('Φωτογραφίες και video κάθε εκδήλωσης. Ό,τι αλλάζετε εδώ αλλάζει αυτόματα και στο Excel και στο Dimitris.', 'Photos and video for every event. Changes here update the Excel and Dimitris automatically.')) });
   html += `<div class="sheet-toolbar"><div class="search">${icon('search')}<input class="input" id="wq" type="search" placeholder="${esc(L('Αναζήτηση…', 'Search…'))}" value="${esc(st.q)}"></div>
-    <div class="chips">${[['active', L('Σε εξέλιξη', 'In progress')], ['late', L('Καθυστερήσεις', 'Delays')], ['done', L('Παραδόθηκαν', 'Delivered')], ['all', L('Όλες', 'All')]].map(([k, t]) => `<button class="chip ${st.filter === k ? 'on' : ''}" data-f="${k}">${esc(t)} <b>${count(k)}</b></button>`).join('')}</div>
+    <div class="chips">${[['active', L('Σε εξέλιξη', 'In progress')], ['late', L('Καθυστερήσεις', 'Delays')], ['done', L('Παραδόθηκαν', 'Delivered')], ['all', L('Όλες', 'All')]].map(([k, t]) => `<button class="chip ${st.filter === k ? 'on' : ''}" data-f="${k}">${esc(t)} <b>${count(k)}</b></button>`).join('')}<button class="chip ${st.summary ? 'on' : ''}" data-summary aria-pressed="${st.summary}">${icon('chart')} ${esc(L('Σύνοψη', 'Summary'))}</button></div>
     </div>
     <div class="sheet-toolbar wf-filters">
       ${fsel('wfm', L('Όλοι οι μήνες', 'All months'), monthsHere.map((m) => [m, MONTHS_EL_UP[Number(m) - 1]]), st.month)}
@@ -61,6 +102,7 @@ export function renderWorkflow(root) {
       ${fsel('wfv', L('Video: όλα', 'Video: all'), VIDEO_STATUS.map((o) => [o.v, L(o.el, o.en)]), st.vid)}
       ${st.month || st.ph || st.vid ? `<button class="btn plain small" data-clearf>${icon('x')} ${esc(L('Καθαρισμός', 'Clear'))}</button>` : ''}
     <span style="flex:1"></span><button class="btn small" data-tpl>${icon('message')} ${esc(L('Πρότυπα μηνυμάτων', 'Message templates'))}</button></div>`;
+  if (st.summary) html += summaryHTML(yearRows.filter((r) => !st.month || r.v.e.event_date.slice(5, 7) === st.month));
   if (!rows.length) html += emptyState('flow', st.filter === 'late' ? L('Καμία καθυστέρηση 🎉', 'No delays 🎉') : L('Δεν υπάρχουν εκδηλώσεις εδώ', 'No events here'), st.filter === 'active' ? L('Εδώ εμφανίζεται κάθε εκδήλωση από τη στιγμή που κλείνεται, μέχρι να παραδοθεί.', 'Every event appears here from the moment it is booked until it is delivered.') : '');
   else {
     html += `<div class="wf-table">
@@ -88,6 +130,16 @@ export function renderWorkflow(root) {
   const wq = root.querySelector('#wq');
   wq.addEventListener('input', () => { st.q = wq.value; const p = wq.selectionStart; renderWorkflow(root); const n = document.getElementById('wq'); n?.focus(); n?.setSelectionRange(p, p); });
   root.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => { st.filter = b.dataset.f; renderWorkflow(root); }));
+  root.querySelector('[data-summary]').addEventListener('click', () => { st.summary = !st.summary; renderWorkflow(root); });
+  // γραμμή της σύνοψης → φίλτρο σε αυτές τις εκδηλώσεις (ξανά πάτημα = καθαρισμός)
+  root.querySelectorAll('tr[data-sum]').forEach((tr) => tr.addEventListener('click', () => {
+    const k = tr.dataset.sum; const v = tr.dataset.v;
+    const on = st[k] === v;
+    st.ph = ''; st.vid = '';
+    if (!on) { st[k] = v; st.filter = 'all'; }
+    renderWorkflow(root);
+    if (!on) document.querySelector('.wf-table, .empty')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
   root.querySelector('[data-tpl]').addEventListener('click', () => openTemplates());
   root.querySelectorAll('[data-ph]').forEach((sel) => sel.addEventListener('change', async () => {
     const id = sel.dataset.ph; const before = S.events.get(id).editing_status;
