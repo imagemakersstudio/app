@@ -1350,3 +1350,27 @@ button.mp-r:hover { background: var(--fill-2); }
 
 /* Αντίγραφα ασφαλείας: όσο τρέχει μια ενέργεια */
 .row.loading { opacity: .55; pointer-events: none; cursor: progress; }
+
+/* Κατάσταση Εργασιών · Σύνοψη (v1.9.7) */
+.wf-summary { margin: 4px 0 18px; }
+.wf-summary .grid > div { min-width: 0; }
+.wf-summary .hd-short { display: none; }
+.wf-summary .xl-wrap { overflow-x: auto; }
+.wf-summary table.wf-sum { width: 100%; }
+.wf-summary tr[data-sum] { cursor: pointer; }
+.wf-summary tr[data-sum]:hover td { background: var(--fill-2); }
+.wf-summary tr[data-sum].on td { background: var(--accent-soft, var(--fill)); }
+.wf-summary .wf-warn-t { color: var(--orange, #ff9500); }
+.wf-summary .wf-late-t { color: var(--red); }
+.wf-summary .xl td .c { max-width: none; min-width: 0; }
+.wf-summary .xl td.num .c { min-width: 56px; }
+.wf-summary .xl th { padding: 0 10px; }
+@media (max-width: 760px) {
+  .wf-summary .xl th, .wf-summary .xl td { white-space: normal; }
+  .wf-summary .xl th { padding: 6px; font-size: 11px; line-height: 1.2; }
+  .wf-summary .xl td .c { height: auto; min-height: 36px; padding: 4px 6px; font-size: 13px; line-height: 1.25; }
+  .wf-summary .xl td.num .c { min-width: 30px; }
+  .wf-summary .tchip { white-space: normal; }
+  .wf-summary .hd-full { display: none; }
+  .wf-summary .hd-short { display: inline; }
+}

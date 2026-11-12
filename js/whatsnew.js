@@ -8,6 +8,12 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.9.7', date: '12/11/2026',
+    items: [
+      ['📊', 'Κατάσταση Εργασιών: νέο κουμπί «Σύνοψη» δίπλα στο «Όλες». Ανοίγει δύο πίνακες δίπλα δίπλα, έναν για τις φωτογραφίες και έναν για το video, με πόσες εκδηλώσεις είναι σε κάθε στάδιο, το ποσοστό τους και (στις φωτογραφίες) πόσες έχουν πορτοκαλί ή κόκκινη καθυστέρηση. Ακολουθεί τη χρονιά και τον μήνα που έχετε επιλέξει. Πατώντας μια γραμμή εμφανίζονται από κάτω αυτές οι εκδηλώσεις.', 'Work status: new “Summary” button next to “All”. It opens two tables side by side, one for photos and one for video, showing how many events are in each stage, their percentage and (for photos) how many are orange or red. It follows the selected year and month. Tap a row to list those events below.'],
+    ],
+  },
+  {
     v: '1.9.5', date: '10/11/2026',
     items: [
       ['✉️', 'Τα μηνύματα προς πελάτες παίρνουν πλέον πάντα τα τρέχοντα στοιχεία του πελάτη και της εκδήλωσης, και έγιναν διορθώσεις σφαλμάτων.', 'Messages to clients now always use the current client and event details, plus bug fixes.'],
