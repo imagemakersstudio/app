@@ -95,13 +95,13 @@ export function renderHome(root) {
   const todayBits = [nEv && plural(nEv, L('εκδήλωση', 'event'), L('εκδηλώσεις', 'events')), nAppt && plural(nAppt, L('ραντεβού', 'appointment'), L('ραντεβού', 'appointments')), nMeet && plural(nMeet, 'meeting', 'meetings')].filter(Boolean);
   const sumLine = `${todayBits.length ? L(`Σήμερα έχετε <b>${todayBits.join('</b> και <b>')}</b>.`, `Today you have <b>${todayBits.join('</b> and <b>')}</b>.`) : L('Σήμερα δεν έχετε κάτι προγραμματισμένο.', 'Nothing scheduled for today.')} ${L(`Αυτή την εβδομάδα: <b>${plural(weekEvents, 'εκδήλωση', 'εκδηλώσεις')}</b>.`, `This week: <b>${plural(weekEvents, 'event', 'events')}</b>.`)}`;
 
-  const actions = admin ? `<div class="home-actions">
+  const actBtns = (cls) => admin ? `<div class="home-actions ${cls}">
       <button class="btn primary" data-act="newevent">${icon('plus')} ${esc(L('Εκδήλωση', 'Event'))}</button>
       <button class="btn h-act" data-act="appt" style="--hc:#8a6a00">${icon('handshake')} ${esc(L('Ραντεβού', 'Appointment'))}</button>
       <button class="btn h-act" data-act="income" style="--hc:var(--green)">${icon('incoming')} ${esc(L('Έσοδο', 'Income'))}</button>
       <button class="btn h-act" data-act="expense" style="--hc:var(--red)">${icon('outgoing')} ${esc(L('Έξοδο', 'Expense'))}</button>
     </div>` : '';
-  let html = pageHead(`${hello}, ${first}`, { sub: `${icon('calendar')} ${esc(fmtDateLong(today))}`, actions });
+  let html = pageHead(`${hello}, ${first}`, { sub: `${icon('calendar')} ${esc(fmtDateLong(today))}`, actions: actBtns('desk') });
   html += `<div class="home-sum">${sumLine}</div>`;
   html += '<div id="banners"></div>';
 
@@ -160,6 +160,7 @@ export function renderHome(root) {
   }
   const lg = (c, t) => `<span><i style="background:${c}"></i>${esc(t)}</span>`;
   html += `<div class="wk-legend">${lg('var(--cat-wedding)', L('Γάμος', 'Wedding'))}${lg('var(--cat-baptism)', L('Βάπτιση', 'Baptism'))}${lg('var(--cat-wedding_baptism)', L('Γάμος + Βάπτιση', 'Wedding + Baptism'))}${lg('var(--cat-promo)', L('Διαφημιστικό', 'Promo'))}${admin ? lg('#f2cf55', L('Ραντεβού', 'Appointment')) : ''}${lg('rgba(142,91,214,.35)', 'Meeting')}${lg('#f4b4ae', L('Απουσία', 'Away'))}</div>`;
+  if (admin) html += `<div class="home-mob-actions"><div class="h-sec"><div class="h-sec-l">${bub('plus', 'var(--accent)')}<h2>${esc(L('Γρήγορες ενέργειες', 'Quick actions'))}</h2></div></div>${actBtns('mob')}</div>`;
 
   if (admin) {
     // ---------- Χρειάζονται προσοχή
@@ -235,10 +236,11 @@ export function renderHome(root) {
     if (d) sc.scrollLeft = Math.max(0, d.offsetLeft - sc.offsetLeft - 8);
   });
   root.querySelectorAll('[data-meeting]').forEach((b) => b.addEventListener('click', () => meetingActions(S.meetings.find((m) => m.id === b.dataset.meeting))));
-  root.querySelector('[data-act="newevent"]')?.addEventListener('click', () => go('#/new-event'));
-  root.querySelector('[data-act="appt"]')?.addEventListener('click', () => newAppointmentChooser());
-  root.querySelector('[data-act="income"]')?.addEventListener('click', () => openIncomeForm({}));
-  root.querySelector('[data-act="expense"]')?.addEventListener('click', () => openExpenseForm({}));
+  const on = (k, fn) => root.querySelectorAll(`[data-act="${k}"]`).forEach((b) => b.addEventListener('click', fn));
+  on('newevent', () => go('#/new-event'));
+  on('appt', () => newAppointmentChooser());
+  on('income', () => openIncomeForm({}));
+  on('expense', () => openExpenseForm({}));
   root.querySelectorAll('[data-wk]').forEach((b) => b.addEventListener('click', () => { const n = Number(b.dataset.wk); weekOffset = n === 0 ? 0 : weekOffset + n; renderHome(root); }));
   // ενέργειες σε στοιχεία χωρίς δική τους σελίδα (meeting, απουσία, session, σημείωση)
   root.querySelectorAll('a[data-act*=":"]').forEach((a) => a.addEventListener('click', (ev) => {

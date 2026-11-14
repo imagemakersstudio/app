@@ -1543,3 +1543,11 @@ button.mp-r:hover { background: var(--fill-2); }
 .hero-card.multi .eyebrow { padding-right: 0; }
 .hero-card.multi .count { order: 1; }
 .hero-card.multi .hero-list { order: 2; }
+/* Αρχική στο κινητό: πρώτα οι εκδηλώσεις, τα κουμπιά πιο κάτω */
+.home-mob-actions { display: none; }
+@media (max-width: 760px) {
+  .page-actions .home-actions.desk, .home-sum { display: none; }
+  .home-mob-actions { display: block; }
+  .home-actions.mob { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .home-actions.mob .btn { justify-content: center; }
+}
