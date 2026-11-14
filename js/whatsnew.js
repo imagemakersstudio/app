@@ -8,6 +8,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.11.0', date: '15/11/2026',
+    items: [
+      ['🏠', 'Νέα Αρχική! Επόμενη εκδήλωση και «Σήμερα» δίπλα δίπλα, η εβδομάδα από Δευτέρα έως Κυριακή (την Κυριακή και η επόμενη από κάτω), «Χρειάζονται προσοχή» με εξήγηση σε κάθε γραμμή, «Ταμείο μήνα» και «Η χρονιά με μια ματιά».', 'New Home! Next event and “Today” side by side, the week from Monday to Sunday (on Sundays the next week too), “Needs attention” with a short explanation, “Cash this month” and “The year at a glance”.'],
+      ['🚫', 'Οι απουσίες φαίνονται πλέον με απαγορευτικό εικονίδιο και κόκκινο χρώμα στην Αρχική.', 'Absences now show with a “no entry” icon in red on Home.'],
+    ],
+  },
+  {
     v: '1.10.0', date: '15/11/2026',
     items: [
       ['💡', 'Φύλλα (Dimitris, Μητρώο Εισπράξεων): οι οδηγίες δεν πιάνουν πλέον χώρο πάνω πάνω. Ανοίγουν από το κουμπί «Οδηγίες», δίπλα στο «Excel».', 'Sheets (Dimitris, Receipts register): the instructions no longer take space at the top. Open them with the “Help” button next to “Excel”.'],
