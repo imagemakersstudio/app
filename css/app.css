@@ -1388,3 +1388,16 @@ button.mp-r:hover { background: var(--fill-2); }
 .xl-hbar > div { height: 1px; }
 @media (max-width: 899px) { .xl-hbar { bottom: calc(var(--tabbar-h) + var(--safe-bottom)); } }
 @media print { .xl-hbar { display: none !important; } }
+
+/* Φύλλα: οδηγίες σε παράθυρο (v1.10.0) */
+.hint-body { display: flex; gap: 14px; align-items: flex-start; padding: 4px 2px 8px; }
+.hint-body > svg { flex: 0 0 auto; width: 26px; height: 26px; color: var(--accent); margin-top: 2px; }
+.hint-body p { margin: 0 0 10px; line-height: 1.55; font-size: 15px; }
+.hint-body p:last-child { margin-bottom: 0; }
+
+/* Ομάδα: φίλτρο ιστορικού ασφαλείας ανά άτομο (v1.10.0) */
+.act-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.act-head .group-label { margin-bottom: 8px; }
+.act-filter { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 8px; font-weight: 600; color: var(--label-2); font-size: 14px; }
+.act-filter .select { width: auto; min-height: 36px; padding: 6px 32px 6px 12px; font-size: 14px; font-weight: 600; }
+.act-filter.on .select { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--accent); }
