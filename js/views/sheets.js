@@ -2,7 +2,7 @@
 //  Φύλλα (Excel): Κεντρικό, Πελάτες, Πληρωμές, Φωτογραφίες, Μητρώο,
 //  Έξοδα, Σύνοψη, Dashboard, Έλεγχος δεδομένων, Mitsos
 // =====================================================================
-import { needsOffer, dutyEmoji, L, esc, icon, money, fmtDate, todayISO, daysBetween, sum, matches, lbl, COVERAGE, CATEGORIES, PHOTO_STATUS, EDIT_STATUS, VIDEO_STATUS, PCS, SHOP_STATUS, FILES_COPIED, STORED_AT, METHODS, RESOLUTIONS, EXPENSE_KINDS, SHOP_SUBS, OTHER_SUBS, MONTHS_EL_UP, monthName, monthShort, toast, confirmBox, actionSheet, segmented, initSegmented } from '../core.js';
+import { needsOffer, dutyEmoji, L, esc, icon, money, fmtDate, todayISO, daysBetween, sum, matches, lbl, COVERAGE, CATEGORIES, PHOTO_STATUS, EDIT_STATUS, VIDEO_STATUS, PCS, SHOP_STATUS, FILES_COPIED, STORED_AT, METHODS, RESOLUTIONS, EXPENSE_KINDS, SHOP_SUBS, OTHER_SUBS, MONTHS_EL_UP, monthName, monthShort, toast, confirmBox, actionSheet, segmented, initSegmented, sheet } from '../core.js';
 import { S, isAdmin, isVideoAdmin, allEventViews, eventView, saveCustomer, patchCustomer, patchPayment, patchExpense, patchEvent, saveFinance, savePayment, deletePayment, saveExpense, deleteExpense, openOffer, yearsAvailable, profileName, profileById } from '../data.js';
 import { pageHead, setTopActions } from '../layout.js';
 import { pickYear, yearOf, yearSelect, bindYear, catShort } from '../components.js';
@@ -67,7 +67,7 @@ export function renderSheets(root, params = {}) {
   root.querySelector('.sheet-tabs a.active')?.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
 
-function toolbar({ search = true, months = true, cats = true, unpaid = false, extra = '', exportBtn = true } = {}) {
+function toolbar({ search = true, months = true, cats = true, unpaid = false, extra = '', exportBtn = true, hint = null } = {}) {
   const ms = [...Array(12).keys()];
   return `<div class="sheet-toolbar">
     ${search ? `<div class="search">${icon('search')}<input class="input" id="sq" type="search" placeholder="${esc(L('Αναζήτηση…', 'Search…'))}" value="${esc(st.q)}"></div>` : ''}
@@ -76,10 +76,17 @@ function toolbar({ search = true, months = true, cats = true, unpaid = false, ex
     ${unpaid ? `<button class="chip ${st.unpaid ? 'on' : ''}" id="su">${icon('euro')} ${esc(L('Μόνο ανεξόφλητα', 'Unpaid only'))}</button>` : ''}
     ${extra}
     <span style="flex:1"></span>
+    ${hint ? `<button class="btn small" id="shint" title="${esc(hint.title)}" aria-label="${esc(L('Οδηγίες', 'Help'))}">${icon('help')} <span class="hide-mobile">${esc(L('Οδηγίες', 'Help'))}</span></button>` : ''}
     ${exportBtn ? `<button class="btn small" id="sx">${icon('download')} Excel</button>` : ''}
   </div>`;
 }
-function bindToolbar(body, redraw) {
+/** Οδηγίες φύλλου: αντί για μεγάλο πλαίσιο πάνω πάνω, ανοίγουν σε παράθυρο από το κουμπί «Οδηγίες» */
+function openHint(hint) {
+  const paras = hint.text.split(/(?<=\.)\s+/).map((t) => `<p>${esc(t)}</p>`).join('');
+  sheet({ title: hint.title, body: `<div class="hint-body">${icon(hint.icon || 'help')}<div>${paras}</div></div>` });
+}
+function bindToolbar(body, redraw, hint = null) {
+  if (hint) body.querySelector('#shint')?.addEventListener('click', () => openHint(hint));
   const sq = body.querySelector('#sq');
   sq?.addEventListener('input', () => { st.q = sq.value; const p = sq.selectionStart; redraw(); const n = document.getElementById('sq'); n?.focus(); n?.setSelectionRange(p, p); });
   body.querySelector('#sm')?.addEventListener('change', (e) => { st.month = e.target.value; redraw(); });
@@ -217,9 +224,9 @@ function mitsosSheet(body, tab, redraw) {
     { key: 'stored', label: L('Αποθηκευμένο σε', 'Stored at'), w: 120, type: 'select', chips: true, options: STORED_AT, editable: true, get: (v) => v.e.stored_at, set: (v, val) => patchEvent(v.e.id, { stored_at: val }) },
     { key: 'vn', label: L('Σχόλια', 'Comments'), w: 240, editable: true, get: (v) => v.e.video_notes, set: (v, val) => patchEvent(v.e.id, { video_notes: val }) },
   ];
-  body.innerHTML = `<div class="banner">${icon('film')}<div><b>${esc(L('Πώς δουλεύει το Editing Workflow', 'How the Editing Workflow works'))}</b><span>${esc(L('Κάθε εκδήλωση μπαίνει εδώ μόλις κλειστεί. Η «Προτεραιότητα» αλλάζει μόνη της: φωτογραφίες σε «Αλλαγές» → «Να γίνει» (με ειδοποίηση) · album σε «Εκτύπωση στο εργαστήριο» → SOS (κόκκινη γραμμή). Η «Κατάσταση Editing» του μεγάλου Excel ακολουθεί την Κατάσταση Βίντεο: υπό επεξεργασία / έτοιμο να γίνει export → «Σε επεξεργασία» · «Ολοκληρώθηκε» μόνο όταν η Κατάσταση Βίντεο είναι «έτοιμο» και το «Είναι στο μαγαζί;» είναι «παραδόθηκε στο μαγαζί». Πατήστε την τοποθεσία για να ανοίξει η εκδήλωση.', 'Every event appears here once booked. “Priority” changes by itself: photos to “Changes” → “To do” (with a notification) · album to the lab → SOS (red row). The main Excel “Editing status” follows Video status: in progress / ready for export → “In progress” · “Done” only when Video status is “ready” and “In the shop?” is “delivered to the shop”. Tap the location to open the event.'))}</span></div></div>`
-    + toolbar({ months: false, cats: false, extra: segmented('mf', [{ v: 'all', label: L('Όλα', 'All') }, { v: 'open', label: L(`Εκκρεμή (${counts.open})`, `Pending (${counts.open})`) }, { v: 'sos', label: `SOS (${counts.sos})` }], st.mitsosFilter) }) + '<div id="grid" class="dim-grid"></div>';
-  bindToolbar(body, redraw);
+  const hint = { icon: 'film', title: L('Πώς δουλεύει το Editing Workflow', 'How the Editing Workflow works'), text: L('Κάθε εκδήλωση μπαίνει εδώ μόλις κλειστεί. Η «Προτεραιότητα» αλλάζει μόνη της: φωτογραφίες σε «Αλλαγές» → «Να γίνει» (με ειδοποίηση) · album σε «Εκτύπωση στο εργαστήριο» → SOS (κόκκινη γραμμή). Η «Κατάσταση Editing» του μεγάλου Excel ακολουθεί την Κατάσταση Βίντεο: υπό επεξεργασία / έτοιμο να γίνει export → «Σε επεξεργασία» · «Ολοκληρώθηκε» μόνο όταν η Κατάσταση Βίντεο είναι «έτοιμο» και το «Είναι στο μαγαζί;» είναι «παραδόθηκε στο μαγαζί». Πατήστε την τοποθεσία για να ανοίξει η εκδήλωση.', 'Every event appears here once booked. “Priority” changes by itself: photos to “Changes” → “To do” (with a notification) · album to the lab → SOS (red row). The main Excel “Editing status” follows Video status: in progress / ready for export → “In progress” · “Done” only when Video status is “ready” and “In the shop?” is “delivered to the shop”. Tap the location to open the event.') };
+  body.innerHTML = toolbar({ months: false, cats: false, hint, extra: segmented('mf', [{ v: 'all', label: L('Όλα', 'All') }, { v: 'open', label: L(`Εκκρεμή (${counts.open})`, `Pending (${counts.open})`) }, { v: 'sos', label: `SOS (${counts.sos})` }], st.mitsosFilter) }) + '<div id="grid" class="dim-grid"></div>';
+  bindToolbar(body, redraw, hint);
   initSegmented(body, (_, v) => { st.mitsosFilter = v; redraw(); });
   renderGrid(body.querySelector('#grid'), cols, { id: 'mitsos', rows: views, rowKey: (v) => v.e.id, rowClass: (v) => (isSOS(v.e) ? 'sos' : ''), onEdit: (v, c, val) => c.set(v, val), empty: L('Δεν υπάρχουν εκδηλώσεις εδώ', 'No events here') });
   body.querySelector('#sx').addEventListener('click', () => exportGrid(`Dimitris ${st.year}`, cols, views));
@@ -248,9 +255,9 @@ function registerSheet(body, tab, redraw) {
     { key: 'notes', label: L('Σημειώσεις', 'Notes'), w: 240, editable: true, get: (r) => r.p.notes, set: (r, val) => patchPayment(r.p.id, { notes: val }) },
     { key: 'act', label: '', w: 56, align: 'center', get: () => '', display: (r) => `<button class="pdf-btn" data-pact="${r.p.id}" style="color:var(--label-2)" aria-label="${esc(L('Ενέργειες', 'Actions'))}">${icon('more')}</button>`, exportValue: () => '' },
   ];
-  body.innerHTML = `<div class="banner">${icon('sparkles')}<div><b>${esc(L('Ενημερώνεται αυτόματα', 'Updates automatically'))}</b><span>${esc(L('Κάθε έσοδο από το «Έσοδα & Έξοδα» ή από το κουμπί «+ Δόση» μπαίνει εδώ μόνο του.', 'Every income from “Income & Expenses” or the “+ Pay” button appears here by itself.'))}</span></div></div>`
-    + toolbar({ extra: `<button class="btn small primary" id="newin">${icon('plus')} ${esc(L('Έσοδο', 'Income'))}</button>` }) + '<div id="grid"></div>';
-  bindToolbar(body, redraw);
+  const hint = { icon: 'sparkles', title: L('Ενημερώνεται αυτόματα', 'Updates automatically'), text: L('Κάθε έσοδο από το «Έσοδα & Έξοδα» ή από το κουμπί «+ Δόση» μπαίνει εδώ μόνο του.', 'Every income from “Income & Expenses” or the “+ Pay” button appears here by itself.') };
+  body.innerHTML = toolbar({ hint, extra: `<button class="btn small primary" id="newin">${icon('plus')} ${esc(L('Έσοδο', 'Income'))}</button>` }) + '<div id="grid"></div>';
+  bindToolbar(body, redraw, hint);
   renderGrid(body.querySelector('#grid'), cols, { id: 'register', rows, rowKey: (r) => r.p.id, onEdit: (r, c, val) => c.set(r, val), empty: L('Καμία είσπραξη για αυτά τα φίλτρα.', 'No receipts for these filters.') });
   body.querySelector('#newin').addEventListener('click', () => openIncomeForm({}));
   body.querySelectorAll('[data-pact]').forEach((b) => b.addEventListener('click', () => paymentActions(S.payments.find((p) => p.id === b.dataset.pact))));

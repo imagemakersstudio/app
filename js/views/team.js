@@ -9,6 +9,7 @@ import { verifyPinPrompt } from './auth.js';
 
 let activity = null;
 let invites = null;
+let actUser = ''; // φίλτρο ιστορικού ασφαλείας: '' = όλοι, αλλιώς id μέλους
 
 const ROLE_HELP = () => ({
   admin_photo: L('Πλήρης πρόσβαση: οικονομικά, Excel, ομάδα, ρυθμίσεις.', 'Full access: finances, Excel, team, settings.'),
@@ -19,7 +20,7 @@ const ROLE_HELP = () => ({
 
 async function loadExtras(root) {
   const [a, i] = await Promise.all([
-    sb.from('activity_log').select('*').order('at', { ascending: false }).limit(60),
+    (actUser ? sb.from('activity_log').select('*').eq('user_id', actUser) : sb.from('activity_log').select('*')).order('at', { ascending: false }).limit(60),
     sb.from('invite_codes').select('*').order('created_at', { ascending: false }).limit(50),
   ]);
   activity = a.data || []; invites = i.data || [];
@@ -49,8 +50,13 @@ export function renderTeam(root, skipLoad = false) {
   html += `<div class="group-label">${esc(L('Ενεργοί κωδικοί πρόσκλησης', 'Active invite codes'))}</div>`;
   html += invites === null ? `<div class="card pad"><div class="skeleton" style="height:20px"></div></div>` : active.length ? `<div class="list">${active.map((i) => `<div class="row"><div class="main-col"><div class="t">${esc(lbl(ROLES, i.role))}${i.note ? ' · ' + esc(i.note) : ''}</div><div class="s">${esc(L('Λήγει', 'Expires'))} ${esc(new Date(i.expires_at).toLocaleString(L('el-GR', 'en-GB')))}</div></div><button class="btn small danger" data-revoke="${i.id}">${esc(L('Ακύρωση', 'Revoke'))}</button></div>`).join('')}</div>` : `<div class="card pad muted small">${esc(L('Κανένας ενεργός κωδικός. Για ασφάλεια, κάθε κωδικός ισχύει μία φορά και λήγει.', 'No active codes. For safety, each code works once and expires.'))}</div>`;
 
-  html += `<div class="group-label">${esc(L('Ιστορικό ασφαλείας', 'Security history'))}</div>`;
-  const actName = (a) => ({ role_changed: L('Αλλαγή ρόλου', 'Role changed'), role_from_code: L('Ρόλος με κωδικό', 'Role via code'), invite_created: L('Νέος κωδικός πρόσκλησης', 'Invite created'), invite_failed: L('Λάθος κωδικός', 'Wrong code'), user_disabled: L('Απενεργοποίηση χρήστη', 'User disabled'), user_enabled: L('Ενεργοποίηση χρήστη', 'User enabled'), event_deleted: L('Διαγραφή εκδήλωσης', 'Event deleted'), payment_deleted: L('Διαγραφή πληρωμής', 'Payment deleted'), expense_deleted: L('Διαγραφή εξόδου', 'Expense deleted'), push_configured: L('Ρύθμιση ειδοποιήσεων', 'Push configured') }[a.action] || a.action);
+  const people = [...S.profiles].sort((a, b) => profileName(a).localeCompare(profileName(b), 'el'));
+  html += `<div class="act-head"><div class="group-label">${esc(L('Ιστορικό ασφαλείας', 'Security history'))}</div>
+    <label class="act-filter ${actUser ? 'on' : ''}"><span>${esc(L('Από:', 'By:'))}</span><select class="select" id="actUser">
+      <option value="">${esc(L('Όλοι', 'Everyone'))}</option>
+      ${people.map((p) => `<option value="${p.id}" ${actUser === p.id ? 'selected' : ''}>${esc(profileName(p))}${p.active ? '' : ' ' + esc(L('(ανενεργός)', '(disabled)'))}</option>`).join('')}
+    </select></label></div>`;
+  const actName = (a) => ({ role_changed: L('Αλλαγή ρόλου', 'Role changed'), role_from_code: L('Ρόλος με κωδικό', 'Role via code'), invite_created: L('Νέος κωδικός πρόσκλησης', 'Invite created'), invite_failed: L('Λάθος κωδικός', 'Wrong code'), user_disabled: L('Απενεργοποίηση χρήστη', 'User disabled'), user_enabled: L('Ενεργοποίηση χρήστη', 'User enabled'), event_deleted: L('Διαγραφή εκδήλωσης', 'Event deleted'), payment_deleted: L('Διαγραφή πληρωμής', 'Payment deleted'), expense_deleted: L('Διαγραφή εξόδου', 'Expense deleted'), push_configured: L('Ρύθμιση ειδοποιήσεων', 'Push configured'), appointment_deleted: L('Διαγραφή ραντεβού', 'Appointment deleted'), customer_deleted: L('Διαγραφή πελάτη', 'Customer deleted'), terms_accepted: L('Αποδοχή όρων χρήσης', 'Terms accepted'), restore_started: L('Έναρξη επαναφοράς αντιγράφου', 'Backup restore started'), restore_finished: L('Ολοκλήρωση επαναφοράς αντιγράφου', 'Backup restore finished'), restore_mode: L('Λειτουργία επαναφοράς', 'Restore mode'), restore_guard: L('Προστασία επαναφοράς', 'Restore guard'), retention_cleanup: L('Αυτόματος καθαρισμός παλιών δεδομένων', 'Automatic clean-up of old data') }[a.action] || a.action);
   const detail = (a) => {
     const d = a.details || {};
     if (a.action === 'role_changed') return `${profileName(S.profiles.find((p) => p.id === a.entity_id))}: ${d.from ? lbl(ROLES, d.from) : '—'} → ${d.to ? lbl(ROLES, d.to) : L('χωρίς ρόλο', 'no role')}`;
@@ -58,12 +64,15 @@ export function renderTeam(root, skipLoad = false) {
     if (a.action === 'event_deleted') return `${fmtDate(d.event_date)} · ${d.church_location || ''}`;
     if (a.action === 'payment_deleted' || a.action === 'expense_deleted') return `${d.label || d.kind || ''} · ${d.amount} €`;
     if (a.action === 'invite_created') return lbl(ROLES, d.role);
+    if (a.action === 'terms_accepted' && d.version) return L(`έκδοση ${d.version}`, `version ${d.version}`);
+    if (a.action === 'appointment_deleted' && d.appt_date) return fmtDate(d.appt_date);
     return '';
   };
-  html += activity === null ? `<div class="card pad"><div class="skeleton" style="height:20px"></div></div>` : activity.length ? `<div class="list">${activity.slice(0, 40).map((a) => `<div class="row"><div class="main-col"><div class="t">${esc(actName(a))}</div><div class="s">${esc(detail(a))}${detail(a) ? ' · ' : ''}${esc(profileName(S.profiles.find((p) => p.id === a.user_id)))}</div></div><div class="v tiny">${esc(timeAgo(a.at))}</div></div>`).join('')}</div>` : `<div class="card pad muted small">—</div>`;
+  html += activity === null ? `<div class="card pad"><div class="skeleton" style="height:20px"></div></div>` : activity.length ? `<div class="list">${activity.slice(0, 40).map((a) => `<div class="row"><div class="main-col"><div class="t">${esc(actName(a))}</div><div class="s">${esc(detail(a))}${detail(a) ? ' · ' : ''}${esc(profileName(S.profiles.find((p) => p.id === a.user_id)))}</div></div><div class="v tiny">${esc(timeAgo(a.at))}</div></div>`).join('')}</div>` : `<div class="card pad muted small">${esc(actUser ? L('Δεν υπάρχουν καταγραφές για αυτό το άτομο.', 'No entries for this person.') : '—')}</div>`;
   root.innerHTML = html;
 
   document.querySelector('[data-invite]')?.addEventListener('click', () => createInvite(root));
+  root.querySelector('#actUser')?.addEventListener('change', (e) => { actUser = e.target.value; activity = null; renderTeam(root, true); loadExtras(root); });
   root.querySelectorAll('[data-p]').forEach((b) => b.addEventListener('click', () => memberActions(S.profiles.find((p) => p.id === b.dataset.p), root)));
   root.querySelectorAll('[data-revoke]').forEach((b) => b.addEventListener('click', async () => {
     if (!await confirmBox(L('Ακύρωση κωδικού;', 'Revoke code?'), L('Δεν θα μπορεί πλέον να χρησιμοποιηθεί.', 'It can no longer be used.'), { ok: L('Ακύρωση κωδικού', 'Revoke'), destructive: true })) return;

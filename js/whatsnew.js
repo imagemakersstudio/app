@@ -8,6 +8,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.10.0', date: '15/11/2026',
+    items: [
+      ['💡', 'Φύλλα (Dimitris, Μητρώο Εισπράξεων): οι οδηγίες δεν πιάνουν πλέον χώρο πάνω πάνω. Ανοίγουν από το κουμπί «Οδηγίες», δίπλα στο «Excel».', 'Sheets (Dimitris, Receipts register): the instructions no longer take space at the top. Open them with the “Help” button next to “Excel”.'],
+      ['🔎', 'Ομάδα → Ιστορικό ασφαλείας: νέο φίλτρο «Από:» για να βλέπετε τι έκανε κάθε μέλος. Όλες οι ενέργειες εμφανίζονται πλέον στα ελληνικά.', 'Team → Security history: new “By:” filter to see what each member did. All actions are now shown with proper names.'],
+    ],
+  },
+  {
     v: '1.9.9', date: '12/11/2026',
     items: [
       ['↔️', 'Φύλλα (Excel): η μπάρα για κύλιση δεξιά-αριστερά φαίνεται πλέον πάντα, και σε υπολογιστές με μικρότερη οθόνη: όταν ο πίνακας δεν χωράει, εμφανίζεται στο κάτω μέρος της οθόνης. Έγινε και πιο φαρδιά, για να πιάνεται εύκολα με το ποντίκι.', 'Sheets (Excel): the left-right scroll bar is now always visible, also on computers with smaller screens: when the table does not fit, it appears at the bottom of the screen. It is also wider, so it is easy to grab with the mouse.'],
