@@ -8,6 +8,12 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.13.2', date: '15/11/2026',
+    items: [
+      ['📱', 'Κινητό: η εβδομάδα στην Αρχική είναι πιο μαζεμένη — οι συνεχόμενες ελεύθερες μέρες γίνονται μία γραμμή (π.χ. «Πεμ 19 – Κυρ 22 · ελεύθερες») και μια άδεια εβδομάδα δείχνει μόνο ένα μήνυμα.', 'Phone: the week on Home is more compact — consecutive free days become one line (e.g. “Thu 19 – Sun 22 · free”) and an empty week shows just one message.'],
+    ],
+  },
+  {
     v: '1.13.1', date: '15/11/2026',
     items: [
       ['🗓️', 'Αρχική: η εβδομάδα με ώρες είναι πιο μικρή — ξεκινά από την πρώτη ώρα που έχει κάτι και σταματά εκεί που τελειώνει το τελευταίο. Μια άδεια εβδομάδα δείχνει μόνο ένα χαμηλό πλαίσιο.', 'Home: the hourly week is more compact — it starts at the first hour with something and stops where the last item ends. An empty week shows just a short frame.'],
