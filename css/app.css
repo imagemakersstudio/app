@@ -1705,3 +1705,40 @@ button.mp-r:hover { background: var(--fill-2); }
 .wh-emptymsg span.wh-em { background: var(--bg-grouped); padding: 6px 14px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 0 0 1px var(--sep); }
 .wk-card.wk-none { display: flex; align-items: center; gap: 8px; color: var(--label-2); font-weight: 600; font-size: 14px; }
 .wk-card.wk-none .ic { width: 18px; height: 18px; color: var(--green); flex: none; }
+/* v1.13.3: φύλλο Dimitris πιο συμπτυγμένο */
+.dim-grid .xl td { height: 31px; }
+.dim-grid .xl td .c { height: 31px; padding: 0 8px; gap: 4px; }
+.dim-grid .xl thead tr.h th { height: 36px; padding: 0 6px; font-size: 12px; }
+.dim-grid .tchip { font-size: 12px; min-height: 19px; padding: 0 8px; line-height: 19px; }
+.dim-grid .sos-tag { font-size: 10.5px; padding: 0 5px; }
+.dim-grid .dim-loc { overflow: hidden; text-overflow: ellipsis; }
+.dim-grid .xl td.sticky .tchip { font-size: 11.5px; padding: 0 7px; }
+/* ---------- Φίλτρα επικεφαλίδων τύπου Excel (v1.14.0) ---------- */
+.xl thead tr.h th.has-f > div { display: flex; align-items: center; justify-content: center; gap: 4px; padding-right: 2px; }
+.xl-fbtn { flex: none; display: inline-flex; align-items: center; gap: 1px; height: 22px; min-width: 22px; padding: 0 3px; border: 0; border-radius: 6px; background: rgba(255,255,255,.18); color: #fff; cursor: pointer; }
+.xl-fbtn .ic { width: 13px; height: 13px; }
+.xl-fbtn b { font-size: 11px; }
+.xl-fbtn:hover { background: rgba(255,255,255,.32); }
+.xl-fbtn.on, .xl-fbtn.sorted { background: #fff; color: #3d3fb0; }
+.xl-fbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 8px; padding: 6px 8px 6px 12px; border-radius: 12px; background: color-mix(in srgb, #5b5fc7 10%, var(--bg-grouped)); color: var(--label); font-size: 13.5px; }
+.xl-fbar > .ic { width: 16px; height: 16px; color: #5b5fc7; }
+.xl-fbar > span { flex: 1; min-width: 0; }
+.xf-menu { position: fixed; z-index: 320; display: flex; flex-direction: column; gap: 2px; padding: 8px; border-radius: 12px; background: var(--bg-elev); box-shadow: 0 12px 34px rgba(0,0,0,.22), 0 0 0 1px var(--sep); font-size: 13.5px; }
+.xf-h { font-weight: 700; font-size: 12.5px; color: var(--label-2); padding: 2px 6px 6px; }
+.xf-sort { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--label); text-align: left; cursor: pointer; font-size: 13.5px; }
+.xf-sort b { width: 16px; text-align: center; color: var(--label-2); }
+.xf-sort:hover { background: var(--fill-2); }
+.xf-sort.on { background: var(--accent-soft); color: var(--accent-strong); font-weight: 650; }
+.xf-sep { height: 1px; background: var(--sep); margin: 4px 0; }
+.xf-q { height: 34px; font-size: 13.5px; margin: 2px 0 4px; }
+.xf-list { max-height: min(46vh, 330px); overflow-y: auto; border: 1px solid var(--sep); border-radius: 8px; padding: 4px; }
+.xf-item { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 6px; cursor: pointer; min-width: 0; }
+.xf-item:hover { background: var(--fill-2); }
+.xf-item[hidden] { display: none; }
+.xf-item input { width: 16px; height: 16px; flex: none; accent-color: #5b5fc7; margin: 0; }
+.xf-item .xf-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xf-item .tchip { max-width: 170px; }
+.xf-item small { margin-left: auto; color: var(--label-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+.xf-all { border-bottom: 1px solid var(--sep); border-radius: 6px 6px 0 0; margin-bottom: 2px; font-weight: 600; }
+.xf-btns { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.xf-btns .btn[disabled] { opacity: .45; pointer-events: none; }
