@@ -185,7 +185,8 @@ export function renderHome(root) {
     const group = upcoming.filter((v) => v.e.event_date <= lastDay);
     const d = daysBetween(today, next.e.event_date);
     const countTxt = d <= 0 ? L('σήμερα', 'today') : d === 1 ? L('αύριο', 'tomorrow') : '';
-    const count = `<div class="count"><b>${d <= 1 ? '' : d}</b><span>${esc(countTxt || L('ημέρες ακόμη', 'days to go'))}</span></div>`;
+    // «σε 2 ημέρες» (ή «σήμερα» / «αύριο»)
+    const count = `<div class="count">${d > 1 ? `<span>${esc(L('σε', 'in'))}</span>` : ''}<b>${d <= 1 ? '' : d}</b><span>${esc(countTxt || L('ημέρες', 'days'))}</span></div>`;
     const big = (v) => `${esc(catLabel(v.e.category))}${v.e.church_location ? ` · ${esc(v.e.church_location)}` : ''}`;
     const meta = (v, showDate) => `<div class="meta"><span>${icon('user')} ${esc(v.title)}</span>${showDate ? `<span>${icon('calendar')} ${esc(isMultiDay(v.e) ? fmtRange(v.e, true) : fmtDateLong(v.e.event_date))}</span>` : ''}<span>${icon('clock')} ${esc(v.e.event_time ? fmtTime(v.e.event_time) : L('ώρα: δεν γνωρίζουμε ακόμη', 'time: not known yet'))}</span></div>`;
     const pills = (v) => {
@@ -225,8 +226,6 @@ export function renderHome(root) {
   html += `<div class="h-sec"><div class="h-sec-l">${bub('calendar', 'var(--accent)')}<h2>${esc(wkTitle)}</h2><span class="h-sec-sub">${esc(rangeTxt(monday))}</span></div>
     <div class="h-sec-r">${weekOffset !== 0 ? `<button class="btn small plain" data-wk="0">${esc(L('Σήμερα', 'Today'))}</button>` : ''}<button class="h-round" data-wk="-1" aria-label="${esc(L('Προηγούμενη εβδομάδα', 'Previous week'))}">${icon('chevL')}</button><button class="h-round" data-wk="1" aria-label="${esc(L('Επόμενη εβδομάδα', 'Next week'))}">${icon('chevR')}</button><a href="#/calendar" class="h-link">${esc(L('Ημερολόγιο', 'Calendar'))} ${icon('chevR')}</a></div></div>`;
   html += weekHours(monday, ctx, today) + weekList(monday, ctx, today, weekOffset === 0);
-  const lg = (c, t) => `<span><i style="background:${c}"></i>${esc(t)}</span>`;
-  html += `<div class="wk-legend">${lg('var(--cat-wedding)', L('Γάμος', 'Wedding'))}${lg('var(--cat-baptism)', L('Βάπτιση', 'Baptism'))}${lg('var(--cat-wedding_baptism)', L('Γάμος + Βάπτιση', 'Wedding + Baptism'))}${lg('var(--cat-promo)', L('Διαφημιστικό', 'Promo'))}${admin ? lg('#f2cf55', L('Ραντεβού', 'Appointment')) : ''}${lg('var(--wh-meet)', 'Meeting')}${lg('#f4b4ae', L('Απουσία', 'Away'))}</div>`;
   if (admin) html += `<div class="home-mob-actions"><div class="h-sec"><div class="h-sec-l">${bub('plus', 'var(--accent)')}<h2>${esc(L('Γρήγορες ενέργειες', 'Quick actions'))}</h2></div></div>${actBtns('mob')}</div>`;
 
   if (admin) {
@@ -265,8 +264,11 @@ export function renderHome(root) {
     const net = inM - outM;
     const cash = `<a class="cash-card" href="#/money">
       <div class="cash-h"><span>${bub('wallet', 'var(--green)')}<b>${esc(L(`Ταμείο ${monthOf(parseISO(today).getMonth())}`, `${MONTH_EN[parseISO(today).getMonth()]} cash`))}</b></span>${icon('chevR', 'chev')}</div>
-      <div><div class="cash-big">+${esc(money(inM, { dec: 0 }))}</div><div class="cash-sub">${esc(L('εισπράξεις αυτόν τον μήνα', 'collected this month'))}</div></div>
-      <div class="cash-two"><div class="neg"><span>${icon('outgoing')} ${esc(L('Έξοδα', 'Expenses'))}</span><b>${esc(money(outM, { dec: 0 }))}</b></div><div class="${net < 0 ? 'neg' : 'pos'}"><span>${icon('trending')} ${esc(L('Καθαρά', 'Net'))}</span><b>${esc(money(net, { dec: 0 }))}</b></div></div>
+      <div class="cash-io">
+        <div><small>${esc(L('Εισπράξεις', 'Income'))}</small><b class="pos">+${esc(money(inM, { dec: 0 }))}</b></div>
+        <div><small>${esc(L('Έξοδα', 'Expenses'))}</small><b class="neg">−${esc(money(outM, { dec: 0 }))}</b></div>
+      </div>
+      <div class="cash-net ${net < 0 ? 'neg' : 'pos'}"><span>${icon('trending')} ${esc(L('Καθαρά αυτόν τον μήνα', 'Net this month'))}</span><b>${net < 0 ? '−' : ''}${esc(money(Math.abs(net), { dec: 0 }))}</b></div>
       <div class="cash-bars">${months6.map((m, i) => `<div title="${esc(`${m.label}: ${money(m.v, { dec: 0 })}`)}"><i style="height:${Math.max(4, Math.round((m.v / mx) * 100))}%" class="${i === 5 ? 'cur' : ''}"></i><span class="${i === 5 ? 'cur' : ''}">${esc(m.label)}</span></div>`).join('')}</div>
     </a>`;
     html += `<div class="home-two">${attn}${cash}</div>`;
