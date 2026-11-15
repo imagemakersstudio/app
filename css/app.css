@@ -1805,3 +1805,7 @@ button.mp-r:hover { background: var(--fill-2); }
 .pdf-btn.share-btn.sent { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--green) 55%, transparent); }
 .at-name .client-chg { color: var(--orange); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
 .at-name .client-chg .ic { width: 12px; height: 12px; }
+.share-wrap { display: inline-flex; align-items: center; gap: 4px; }
+.share-wrap .pdf-btn.share-btn { margin-right: 0; }
+.share-ok { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #fff; }
+.share-ok .ic { width: 12px; height: 12px; stroke-width: 3; }

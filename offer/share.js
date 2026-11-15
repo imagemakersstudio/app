@@ -12,6 +12,7 @@
   var $ = function (s) { return document.querySelector(s); };
   var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
   var money = function (v) { return Math.round(v).toLocaleString('el-GR') + '€'; };
+  var fmtD = function (v) { var p = String(v).slice(0, 10).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(v); };
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
 
   // ίδια ονόματα με τους Οδηγούς προσφοράς της εφαρμογής
@@ -120,14 +121,14 @@
       S.ready = true;
       window.IMClient.update();
       var names = [d.name1, d.name2].filter(Boolean).join(' & ');
-      var heroP = $('.hero-copy p'); if (heroP) heroP.textContent = 'Αυτή είναι η προσφορά που διαμορφώσαμε μαζί στο μαγαζί. Δείτε τη με την ησυχία σας· αν θέλετε, αλλάξτε επιλογές και στείλτε μας τες.';
+      var heroP = $('.hero-copy p'); if (heroP) heroP.textContent = 'Αυτή είναι η προσφορά που διαμορφώσαμε μαζί στο μαγαζί. Μπορείτε να τη διαφοροποιήσετε ή να τη διαμορφώσετε εκ νέου και να πατήσετε ξανά «Αποστολή».';
       var hp = $('.hero-price strong'); if (hp) hp.textContent = money(S.agreed);
       var hs = $('.hero-price span'); if (hs) hs.textContent = 'η προσφορά σας · με Φ.Π.Α.';
       if (d.locked) {
         lockAll();
         banner('<b>' + esc(names) + '</b>, η κράτησή σας έχει προχωρήσει. Εδώ βλέπετε τις επιλογές σας· για οποιαδήποτε αλλαγή καλέστε μας στο <b>2410 550361</b>.', 'warn');
       } else {
-        banner('<b>Καλώς ήρθατε, ' + esc(names) + '!</b> Εδώ είναι η προσφορά από την παρουσίαση στο μαγαζί (<b>' + money(S.agreed) + '</b>). Αν θέλετε να αλλάξετε κάτι, αλλάξτε το παρακάτω και πατήστε «Αποστολή στην Image Makers».');
+        banner('<b>Καλώς ήρθατε, ' + esc(names) + '!</b> Εδώ είναι η προσφορά από το ραντεβού μας' + (d.appt_date ? ' στις <b>' + esc(fmtD(d.appt_date)) + '</b>' : '') + '. Μπορείτε να τη διαμορφώσετε εκ νέου και να πατήσετε «Αποστολή στην Image Makers».');
         if (submitBtn) { submitBtn.style.visibility = ''; }
         // επαναφορά = οι επιλογές του μαγαζιού (όχι το βασικό πακέτο)
         if (resetBtn) resetBtn.addEventListener('click', function (e) {
