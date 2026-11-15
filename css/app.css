@@ -1799,3 +1799,9 @@ button.mp-r:hover { background: var(--fill-2); }
   .split-m { display: flex; }
   .month-now-row + .split-m { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--separator, rgba(0,0,0,.08)); }
 }
+
+/* ---- Προσωπικό link προσφοράς ---- */
+.pdf-btn.share-btn { color: var(--green); margin-right: 6px; }
+.pdf-btn.share-btn.sent { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--green) 55%, transparent); }
+.at-name .client-chg { color: var(--orange); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.at-name .client-chg .ic { width: 12px; height: 12px; }

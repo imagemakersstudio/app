@@ -54,6 +54,37 @@ export function requestToOfferState(r) {
   };
 }
 
+/**
+ * Οι νέες επιλογές του πελάτη (από το προσωπικό link) πάνω στην προσφορά του μαγαζιού.
+ * Ό,τι δεν αλλάζει ο πελάτης (μεταφορικά, σημειώσεις, ειδική τιμή, στοιχεία) μένει όπως ήταν.
+ */
+export function mergeClientSelections(base, sel, kind) {
+  const b = { ...(base || {}) };
+  const s = sel || {};
+  const up = s.upgrades || {};
+  if (kind === 'baptism') {
+    const managed = Object.values(BAPTISM_ADD_MAP);
+    return {
+      ...b, kind: 'baptism',
+      adds: [...(b.adds || []).filter((x) => !managed.includes(x)), ...Object.entries(BAPTISM_ADD_MAP).filter(([k]) => String(up[k]) === '1').map(([, v]) => v)],
+      smallAlbums: Math.max(0, Number(s.smallAlbums) || 0), largeSpreads: Number(s.largeSpreads) || 0, smallSpreads: Number(s.smallSpreads) || 0,
+      prints: s.prints || b.prints,
+    };
+  }
+  const inc = s.include || {};
+  const managedAdds = Object.values(ADD_MAP);
+  const managedRemoves = Object.values(INC_MAP);
+  const albums = Math.max(0, Number(s.smallAlbums ?? 3) || 0);
+  return {
+    ...b, kind: b.kind || (kind === 'wedding_baptism' ? 'wedding_baptism' : undefined),
+    removes: [...(b.removes || []).filter((x) => !managedRemoves.includes(x)), ...Object.entries(INC_MAP).filter(([k]) => String(inc[k]) === '0').map(([, v]) => v)],
+    adds: [...(b.adds || []).filter((x) => !managedAdds.includes(x)), ...Object.entries(ADD_MAP).filter(([k]) => String(up[k]) === '1').map(([, v]) => v)],
+    smallAlbumCount: albums, removeAlbums: Math.max(0, 3 - albums), addAlbums: Math.max(0, albums - 3),
+    extraHours: Number(s.extraHours) || 0, largeSpreads: Number(s.largeSpreads) || 0, smallSpreads: Number(s.smallSpreads) || 0,
+    prints: s.prints || b.prints,
+  };
+}
+
 export function pickPdfFile() {
   return new Promise((resolve) => {
     const inp = document.createElement('input');
@@ -95,8 +126,12 @@ export async function refreshOfferPdf(state, fields) {
   return { pdf: new File([res.pdf], fileName, { type: 'application/pdf' }), fileName, state: res.state, total: res.total };
 }
 
-/** Δημιουργία PDF χωρίς να φανεί ο Οδηγός (π.χ. για ηλεκτρονικές προσφορές πελατών) */
-export function generateOfferPdf(prefill, kind = 'wedding') {
+/**
+ * Δημιουργία PDF χωρίς να φανεί ο Οδηγός (π.χ. για ηλεκτρονικές προσφορές πελατών).
+ * priceFrom: η προηγούμενη προσφορά. Αν είχε ειδική (χειροκίνητη) τιμή, η νέα τιμή =
+ * ειδική τιμή ± η διαφορά των αλλαγών, ώστε να μη χάνεται η έκπτωση που συμφωνήθηκε.
+ */
+export function generateOfferPdf(prefill, kind = 'wedding', { priceFrom = null } = {}) {
   return new Promise((resolve, reject) => {
     const frame = document.createElement('iframe');
     frame.src = builderUrl(kind);
@@ -110,8 +145,17 @@ export function generateOfferPdf(prefill, kind = 'wedding') {
         let api = null;
         for (let i = 0; i < 80 && !(api = frame.contentWindow?.IMOffer); i++) await new Promise((r) => setTimeout(r, 100));
         if (!api) throw new Error('builder');
-        api.setState(prefill);
-        await new Promise((r) => setTimeout(r, 400));
+        const settle = () => new Promise((r) => setTimeout(r, 400));
+        if (priceFrom && priceFrom.finalPrice != null && !isNaN(Number(priceFrom.finalPrice))) {
+          api.setState({ ...priceFrom, finalPrice: null }); await settle();
+          const calcOld = Number(api.getState().calculatedTotal) || 0;
+          api.setState({ ...prefill, finalPrice: null }); await settle();
+          const calcNew = Number(api.getState().calculatedTotal) || 0;
+          api.setState({ ...prefill, finalPrice: Math.max(0, Math.round(Number(priceFrom.finalPrice) + calcNew - calcOld)) });
+        } else {
+          api.setState({ ...prefill, ...(priceFrom ? { finalPrice: null } : {}) });
+        }
+        await settle();
         const state = api.getState();
         const blob = await api.exportPdf();
         clearTimeout(timer); frame.remove();

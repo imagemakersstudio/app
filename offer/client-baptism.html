@@ -438,7 +438,7 @@
         return Number($(`#${id}`).value) || 0;
       }
 
-      function calculate() {
+      function calculateBase() {
         let total = BASE_PRICE;
         const rows = [{ label: 'Βασικό πακέτο βάπτισης', value: BASE_PRICE, kind: 'base' }];
         const upgrades = [];
@@ -459,6 +459,12 @@
           rows.push({ label, value, kind: 'plus' });
         });
         return { total, rows, removed: [], upgrades, prints: $('input[name="prints"]:checked').value };
+      }
+
+      // Προσωπικό link (share.js): η τιμή ξεκινά από τη συμφωνημένη του μαγαζιού
+      function calculate() {
+        const state = calculateBase();
+        return window.IMShare && window.IMShare.ready ? window.IMShare.adjust(state) : state;
       }
 
       function baptismDetails() {
@@ -496,7 +502,7 @@
       function update() {
         const state = calculate();
         $$('.live-total').forEach((node) => { node.textContent = money(state.total); });
-        $('#miniBreakdown').innerHTML = state.rows.map((row) => `<div class="summary-line ${row.kind}"><span>${row.label}</span><strong>${row.kind === 'base' ? '' : '+'}${money(Math.abs(row.value))}</strong></div>`).join('');
+        $('#miniBreakdown').innerHTML = state.rows.map((row) => `<div class="summary-line ${row.kind}"><span>${row.label}</span><strong>${row.kind === 'base' ? '' : row.value > 0 ? '+' : '−'}${money(Math.abs(row.value))}</strong></div>`).join('');
         const is4k = !!$('.upgrade-option[data-key="video4k"]:checked');
         const included = [
           'Φωτογραφική κάλυψη όλης της βάπτισης',
@@ -584,10 +590,11 @@
           selections: { category: 'baptism', upgrades, smallAlbums: quantity('smallAlbums'), largeSpreads: quantity('largeSpreads'), smallSpreads: quantity('smallSpreads'), prints: state.prints, started_at: STARTED_AT }
         };
         try {
-          const res = await fetch(cfg.SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/offer_requests', {
+          const req = window.IMShare && window.IMShare.ready ? window.IMShare.request(body) : { path: '/rest/v1/offer_requests', payload: body };
+          const res = await fetch(cfg.SUPABASE_URL.replace(/\/$/, '') + req.path, {
             method: 'POST',
             headers: Object.assign({ 'Content-Type': 'application/json', apikey: cfg.SUPABASE_ANON_KEY, Prefer: 'return=minimal' }, /^sb_/.test(cfg.SUPABASE_ANON_KEY) ? {} : { Authorization: 'Bearer ' + cfg.SUPABASE_ANON_KEY }),
-            body: JSON.stringify(body)
+            body: JSON.stringify(req.payload)
           });
           if (!res.ok) throw new Error(await res.text());
           submitted = true;
@@ -596,7 +603,7 @@
           showSubmissionStatus('success', 'Οι επιλογές σας στάλθηκαν με επιτυχία! Η Image Makers θα επικοινωνήσει μαζί σας σύντομα για επιβεβαίωση διαθεσιμότητας.');
         } catch (err) {
           setSending(false);
-          showSubmissionStatus('error', 'Η αποστολή δεν ολοκληρώθηκε. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά ή πατήστε «Αντιγραφή σύνοψης».');
+          showSubmissionStatus('error', (window.IMShare && window.IMShare.errorText && window.IMShare.errorText(String(err && err.message))) || 'Η αποστολή δεν ολοκληρώθηκε. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά ή πατήστε «Αντιγραφή σύνοψης».');
         }
       }
 
@@ -650,9 +657,11 @@
         toast('Οι επιλογές επανήλθαν στο βασικό πακέτο.');
       });
 
+      window.IMClient = { update, calculateBase, allowResend: () => { submitted = false; setSending(false); } };
       update();
     })();
   </script>
+  <script src="share.js"></script>
 <script>
   // Ώρα πάντα 24ωρη (ΩΩ:ΛΛ) σε όλα τα κινητά
   (function () {
