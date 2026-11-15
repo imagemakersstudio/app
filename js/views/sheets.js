@@ -206,7 +206,7 @@ function mitsosSheet(body, tab, redraw) {
   views.sort((a, b) => a.e.event_date.localeCompare(b.e.event_date) || String(a.e.event_time || '').localeCompare(String(b.e.event_time || '')));
   const mi = (v) => Number(v.e.event_date.slice(5, 7)) - 1;
   const cols = [
-    { key: 'month', label: L('Μήνας', 'Month'), w: 114, sticky: true, get: (v) => MONTHS_EL_UP[mi(v)],
+    { key: 'month', label: L('Μήνας', 'Month'), w: 114, sticky: true, filterSort: 'appear', get: (v) => MONTHS_EL_UP[mi(v)],
       display: (v) => `<span class="tchip" style="background:${MONTH_COLORS[mi(v)]};color:${MONTH_DARK[mi(v)] ? '#fff' : '#1c2a17'}">${esc(MONTHS_EL_UP[mi(v)])}</span>` },
     { key: 'date', label: L('Ημερομηνία', 'Date'), w: 112, type: 'date', align: 'center', get: (v) => v.e.event_date,
       display: (v) => `${isSOS(v.e) ? '<span class="sos-tag" title="SOS: το album πάει για εκτύπωση">SOS</span> ' : ''}${esc(fmtDate(v.e.event_date))}` },
@@ -228,7 +228,7 @@ function mitsosSheet(body, tab, redraw) {
   body.innerHTML = toolbar({ months: false, cats: false, hint, extra: segmented('mf', [{ v: 'all', label: L('Όλα', 'All') }, { v: 'open', label: L(`Εκκρεμή (${counts.open})`, `Pending (${counts.open})`) }, { v: 'sos', label: `SOS (${counts.sos})` }], st.mitsosFilter) }) + '<div id="grid" class="dim-grid"></div>';
   bindToolbar(body, redraw, hint);
   initSegmented(body, (_, v) => { st.mitsosFilter = v; redraw(); });
-  renderGrid(body.querySelector('#grid'), cols, { id: 'mitsos', rows: views, rowKey: (v) => v.e.id, rowClass: (v) => (isSOS(v.e) ? 'sos' : ''), onEdit: (v, c, val) => c.set(v, val), empty: L('Δεν υπάρχουν εκδηλώσεις εδώ', 'No events here') });
+  renderGrid(body.querySelector('#grid'), cols, { id: 'mitsos', filters: true, rows: views, rowKey: (v) => v.e.id, rowClass: (v) => (isSOS(v.e) ? 'sos' : ''), onEdit: (v, c, val) => c.set(v, val), empty: L('Δεν υπάρχουν εκδηλώσεις εδώ', 'No events here') });
   body.querySelector('#sx').addEventListener('click', () => exportGrid(`Dimitris ${st.year}`, cols, views));
 }
 

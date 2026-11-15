@@ -2,7 +2,7 @@
 //  Πίνακας τύπου Excel: επεξεργασία κελιών, πλοήγηση με πλήκτρα,
 //  σταθερή πρώτη στήλη & επικεφαλίδες, ομάδες στηλών
 // =====================================================================
-import { L, esc, money, fmtDate, parseMoney, normTime, opt, sheet, toast, toastErr, haptic, latinName } from './core.js';
+import { L, esc, money, fmtDate, parseMoney, normTime, opt, sheet, toast, toastErr, haptic, latinName, icon } from './core.js';
 
 const memory = {}; // id → { scrollLeft, scrollTop, sel: {rk, ck} }
 /** Χρωματιστή ετικέτα επιλογής (tone: red, green, blue, yellow, orange, grey, solid-green, solid-red, ή CSS χρώμα μέσω o.color) */
@@ -11,7 +11,8 @@ const coarse = () => window.matchMedia('(pointer: coarse)').matches;
 
 /**
  * cols: [{ key, label, group, w, type, get(row), display(row)->html, editable(row)->bool|bool, options(row)->[{v,el,en}], cls(row), sum: bool }]
- * opts: { id, rows, rowKey(row), rowClass(row), groups: {key: {label, cls}}, onEdit(row, col, value) → Promise, empty }
+ * opts: { id, rows, rowKey(row), rowClass(row), groups: {key: {label, cls}}, onEdit(row, col, value) → Promise, empty, filters: bool }
+ * filters: κουμπί φίλτρου σε κάθε επικεφαλίδα (όπως στο Excel)· στήλη με filter:false δεν έχει· col.filterSort='appear' = σειρά εμφάνισης
  */
 /** Ο πίνακας χωράει στο παράθυρο: το κάτω μέρος (και η οριζόντια μπάρα κύλισης) φαίνεται πάντα */
 function fitWrap(wrap) {
@@ -87,10 +88,44 @@ function bindFit() {
 }
 export function renderGrid(container, cols, opts) {
   bindFit();
-  const { id, rows, rowKey, rowClass = () => '', groups = {}, onEdit, empty = L('Καμία εγγραφή', 'No rows') } = opts;
+  const { id, rowKey, rowClass = () => '', groups = {}, onEdit, filters: useFilters = false } = opts;
+  let { empty = L('Καμία εγγραφή', 'No rows') } = opts;
+  const allRows = opts.rows;
   const mem = (memory[id] ||= { scrollLeft: 0, scrollTop: 0, sel: null });
   const isEditable = (c, r) => (typeof c.editable === 'function' ? c.editable(r) : !!c.editable);
   const raw = (c, r) => (c.get ? c.get(r) : r[c.key]);
+
+  // ---------- Φίλτρα & ταξινόμηση τύπου Excel (μένουν όσο είναι ανοιχτή η εφαρμογή)
+  const F = useFilters ? (mem.filters ||= {}) : {};
+  const SORT = useFilters ? mem.sort : null;
+  const fkey = (c, r) => { const v = raw(c, r); return v === null || v === undefined || v === '' ? '' : String(v); };
+  const optsOf = (c, r) => (typeof c.options === 'function' ? c.options(r) : c.options) || [];
+  const flabel = (c, k, r) => {
+    if (k === '') return L('(Κενά)', '(Blanks)');
+    if (c.type === 'select') { const o = opt(optsOf(c, r), k); return o ? L(o.el, o.en) : k; }
+    if (c.type === 'date') return fmtDate(k);
+    if (c.type === 'money') return money(Number(k));
+    return k;
+  };
+  const passes = (r, except) => Object.keys(F).every((k) => { if (k === except) return true; const c = cols.find((x) => x.key === k); return !c || F[k].includes(fkey(c, r)); });
+  const sortVal = (c, r) => {
+    const k = fkey(c, r);
+    if (c.type === 'select') { const i = optsOf(c, r).findIndex((o) => o.v === k); return i < 0 ? 999 : i; }
+    if (['money', 'number'].includes(c.type)) return Number(k) || 0;
+    if (c.filterSort === 'appear') return allRows.indexOf(r);
+    return k.toLocaleLowerCase('el');
+  };
+  let rows = allRows;
+  if (useFilters) {
+    for (const k of Object.keys(F)) if (!cols.some((c) => c.key === k)) delete F[k];
+    rows = allRows.filter((r) => passes(r));
+    const sc = SORT && cols.find((c) => c.key === SORT.key);
+    if (sc) {
+      const d = SORT.dir === 'desc' ? -1 : 1;
+      rows = rows.map((r, i) => [r, i]).sort((a, b) => { const x = sortVal(sc, a[0]), y = sortVal(sc, b[0]); return (x < y ? -d : x > y ? d : 0) || a[1] - b[1]; }).map((x) => x[0]);
+    }
+    if (allRows.length && !rows.length) empty = L('Καμία εγγραφή με αυτά τα φίλτρα', 'No rows match these filters');
+  }
   const show = (c, r) => {
     if (c.display) return c.display(r);
     const v = raw(c, r);
@@ -114,7 +149,17 @@ export function renderGrid(container, cols, opts) {
   const hasGroups = cols.some((c) => c.group);
   let html = `<div class="xl-wrap" tabindex="0"><table class="xl"><thead>`;
   if (hasGroups) html += `<tr class="g">${groupRow.map((g, i) => `<th colspan="${g.n}" class="${groups[g.g]?.cls || 'gc-plain'} ${i === 0 && cols[0].sticky ? 'sticky' : ''}">${esc(groups[g.g]?.label || '')}</th>`).join('')}</tr>`;
-  html += `<tr class="h">${cols.map((c) => `<th class="${groups[c.group]?.cls || 'gc-plain'} ${c.sticky ? 'sticky' : ''}" style="${hasGroups ? '' : 'top:0'}"><div style="min-width:${c.w || 110}px">${esc(c.label)}</div></th>`).join('')}</tr></thead><tbody>`;
+  const fbtn = (c, ci) => {
+    if (!useFilters || c.filter === false) return '';
+    const on = !!F[c.key], so = SORT?.key === c.key ? SORT.dir : '';
+    return `<button type="button" class="xl-fbtn ${on ? 'on' : ''} ${so ? 'sorted' : ''}" data-f="${ci}" title="${esc(L('Φίλτρο & ταξινόμηση', 'Filter & sort'))}" aria-label="${esc(L('Φίλτρο', 'Filter'))}: ${esc(c.label)}">${so ? `<b>${so === 'asc' ? '↑' : '↓'}</b>` : ''}${icon(on ? 'filter' : 'chevD')}</button>`;
+  };
+  const fCount = Object.keys(F).length;
+  if (useFilters && (fCount || SORT)) {
+    const names = [...Object.keys(F).map((k) => cols.find((c) => c.key === k)?.label), SORT ? `${cols.find((c) => c.key === SORT.key)?.label || ''} ${SORT.dir === 'asc' ? '↑' : '↓'}` : null].filter(Boolean);
+    html = `<div class="xl-fbar">${icon('filter')}<span>${esc(fCount ? L('Φίλτρα', 'Filters') : L('Ταξινόμηση', 'Sort'))}: <b>${names.map(esc).join(', ')}</b> · ${esc(L(`εμφανίζονται ${rows.length} από ${allRows.length}`, `showing ${rows.length} of ${allRows.length}`))}</span><button type="button" class="btn small plain" data-fclear>${icon('x')} ${esc(L('Καθαρισμός όλων', 'Clear all'))}</button></div>` + html;
+  }
+  html += `<tr class="h">${cols.map((c, ci) => `<th class="${groups[c.group]?.cls || 'gc-plain'} ${c.sticky ? 'sticky' : ''} ${useFilters && c.filter !== false ? 'has-f' : ''}" style="${hasGroups ? '' : 'top:0'}"><div style="min-width:${c.w || 110}px">${esc(c.label)}${fbtn(c, ci)}</div></th>`).join('')}</tr></thead><tbody>`;
   if (!rows.length) html += `<tr><td colspan="${cols.length}"><div class="c muted" style="justify-content:center;max-width:none;height:80px">${esc(empty)}</div></td></tr>`;
   rows.forEach((r, ri) => {
     html += `<tr class="${rowClass(r)}" data-rk="${esc(rowKey(r))}">${cols.map((c, ci) => {
@@ -137,6 +182,11 @@ export function renderGrid(container, cols, opts) {
 
   const wrap = container.querySelector('.xl-wrap');
   fitWrap(wrap); wheelPass(wrap); floatingBar(wrap);
+  if (useFilters) {
+    const again = () => { document.querySelector('.xf-menu')?.remove(); renderGrid(container, cols, opts); };
+    container.querySelector('[data-fclear]')?.addEventListener('click', () => { Object.keys(F).forEach((k) => delete F[k]); mem.sort = null; again(); });
+    wrap.querySelectorAll('.xl-fbtn').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); filterMenu(b, cols[+b.dataset.f], again); }));
+  }
   wrap.scrollLeft = mem.scrollLeft; wrap.scrollTop = mem.scrollTop;
   wrap.addEventListener('scroll', () => { mem.scrollLeft = wrap.scrollLeft; mem.scrollTop = wrap.scrollTop; }, { passive: true });
 
@@ -156,6 +206,79 @@ export function renderGrid(container, cols, opts) {
     const ri = rows.findIndex((r) => rowKey(r) === mem.sel.rk);
     const ci = cols.findIndex((c) => c.key === mem.sel.ck);
     if (ri >= 0 && ci >= 0) select(tdAt(ri, ci), false);
+  }
+
+  /** Μενού φίλτρου μιας στήλης (όπως στο Excel): ταξινόμηση, αναζήτηση, τικ ανά τιμή, OK / Άκυρο */
+  function filterMenu(btn, c, again) {
+    const old = document.querySelector('.xf-menu');
+    if (old) { const same = old.dataset.k === c.key; old._close?.(); if (same) return; }
+    const base = allRows.filter((r) => passes(r, c.key));
+    const counts = new Map(), sample = new Map();
+    base.forEach((r) => { const k = fkey(c, r); counts.set(k, (counts.get(k) || 0) + 1); if (!sample.has(k)) sample.set(k, r); });
+    (F[c.key] || []).forEach((k) => { if (!counts.has(k)) counts.set(k, 0); });
+    let keys = [...counts.keys()];
+    if (c.type === 'select') { const list = optsOf(c, base[0] || allRows[0]); const ix = (k) => { const i = list.findIndex((o) => o.v === k); return i < 0 ? 999 : i; }; keys.sort((a, b) => ix(a) - ix(b)); }
+    else if (c.filterSort === 'appear') { const first = (k) => allRows.findIndex((r) => fkey(c, r) === k); keys.sort((a, b) => first(a) - first(b)); }
+    else if (['money', 'number'].includes(c.type)) keys.sort((a, b) => Number(a) - Number(b));
+    else keys.sort((a, b) => a.localeCompare(b, 'el', { numeric: true }));
+    keys = [...keys.filter((k) => k !== ''), ...keys.filter((k) => k === '')];
+    const sel = new Set(F[c.key] || keys);
+    const isDate = c.type === 'date', isNum = ['money', 'number'].includes(c.type);
+    const sAsc = isDate ? L('Από τα παλιά στα νέα', 'Oldest to newest') : isNum ? L('Από το μικρότερο', 'Smallest first') : c.type === 'select' || c.filterSort === 'appear' ? L('Με τη σειρά', 'In order') : L('Ταξινόμηση Α → Ω', 'Sort A → Z');
+    const sDesc = isDate ? L('Από τα νέα στα παλιά', 'Newest to oldest') : isNum ? L('Από το μεγαλύτερο', 'Largest first') : c.type === 'select' || c.filterSort === 'appear' ? L('Αντίστροφα', 'Reversed') : L('Ταξινόμηση Ω → Α', 'Sort Z → A');
+    const chip = (k) => {
+      const r = sample.get(k) || allRows[0];
+      if (k !== '' && c.type === 'select') { const o = opt(optsOf(c, r), k); if (o?.tone) return toneChip(o, false); }
+      return `<span class="xf-t">${esc(flabel(c, k, r))}</span>`;
+    };
+    const m = document.createElement('div');
+    m.className = 'xf-menu'; m.dataset.k = c.key;
+    m.innerHTML = `<div class="xf-h">${esc(c.label)}</div>
+      <button type="button" class="xf-sort ${SORT?.key === c.key && SORT.dir === 'asc' ? 'on' : ''}" data-s="asc"><b>↑</b> ${esc(sAsc)}</button>
+      <button type="button" class="xf-sort ${SORT?.key === c.key && SORT.dir === 'desc' ? 'on' : ''}" data-s="desc"><b>↓</b> ${esc(sDesc)}</button>
+      <div class="xf-sep"></div>
+      ${keys.length > 7 ? `<input class="input xf-q" type="search" placeholder="${esc(L('Αναζήτηση…', 'Search…'))}">` : ''}
+      <div class="xf-list">
+        <label class="xf-item xf-all"><input type="checkbox"><span class="xf-t">${esc(L('(Επιλογή όλων)', '(Select all)'))}</span></label>
+        ${keys.map((k) => `<label class="xf-item" data-t="${esc(flabel(c, k, sample.get(k) || allRows[0]).toLocaleLowerCase('el'))}"><input type="checkbox" value="${esc(k)}" ${sel.has(k) ? 'checked' : ''}>${chip(k)}<small>${counts.get(k)}</small></label>`).join('')}
+      </div>
+      <div class="xf-btns"><button type="button" class="btn small plain" data-x="clear" ${F[c.key] || SORT?.key === c.key ? '' : 'disabled'}>${esc(L('Καθαρισμός', 'Clear'))}</button><span style="flex:1"></span><button type="button" class="btn small" data-x="cancel">${esc(L('Άκυρο', 'Cancel'))}</button><button type="button" class="btn small primary" data-x="ok">OK</button></div>`;
+    document.body.appendChild(m);
+    const rc = btn.closest('th').getBoundingClientRect();
+    const w = Math.min(290, innerWidth - 16);
+    m.style.width = w + 'px';
+    m.style.left = Math.max(8, Math.min(rc.left, innerWidth - w - 8)) + 'px';
+    m.style.top = Math.min(rc.bottom + 4, Math.max(8, innerHeight - m.offsetHeight - 8)) + 'px';
+    const boxes = () => [...m.querySelectorAll('.xf-item:not(.xf-all) input')];
+    const visible = () => boxes().filter((b) => !b.closest('.xf-item').hidden);
+    const all = m.querySelector('.xf-all input');
+    const ok = m.querySelector('[data-x="ok"]');
+    const sync = () => { const v = visible(); const n = v.filter((b) => b.checked).length; all.checked = n === v.length && n > 0; all.indeterminate = n > 0 && n < v.length; ok.disabled = !boxes().some((b) => b.checked && !b.closest('.xf-item').hidden); };
+    sync();
+    all.addEventListener('change', () => { visible().forEach((b) => { b.checked = all.checked; }); sync(); });
+    m.querySelectorAll('.xf-item:not(.xf-all) input').forEach((b) => b.addEventListener('change', sync));
+    const q = m.querySelector('.xf-q');
+    q?.addEventListener('input', () => {
+      const t = q.value.trim().toLocaleLowerCase('el');
+      boxes().forEach((b) => { const it = b.closest('.xf-item'); it.hidden = !!t && !it.dataset.t.includes(t); if (t) b.checked = !it.hidden; });
+      sync();
+    });
+    const close = () => { m.remove(); document.removeEventListener('mousedown', outside, true); document.removeEventListener('keydown', keys2, true); };
+    m._close = close;
+    const outside = (e) => { if (!m.contains(e.target) && !e.target.closest?.('.xl-fbtn')) close(); };
+    const apply = () => {
+      const chosen = boxes().filter((b) => b.checked && !b.closest('.xf-item').hidden).map((b) => b.value);
+      if (!chosen.length) return;
+      if (chosen.length === keys.length && keys.every((k) => chosen.includes(k))) delete F[c.key]; else F[c.key] = chosen;
+      close(); again();
+    };
+    const keys2 = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); apply(); } };
+    m.querySelectorAll('[data-s]').forEach((b) => b.addEventListener('click', () => { mem.sort = SORT?.key === c.key && SORT.dir === b.dataset.s ? null : { key: c.key, dir: b.dataset.s }; close(); again(); }));
+    m.querySelector('[data-x="cancel"]').addEventListener('click', close);
+    m.querySelector('[data-x="clear"]').addEventListener('click', () => { delete F[c.key]; if (SORT?.key === c.key) mem.sort = null; close(); again(); });
+    ok.addEventListener('click', apply);
+    setTimeout(() => { document.addEventListener('mousedown', outside, true); document.addEventListener('keydown', keys2, true); }, 0);
+    (q || all).focus({ preventScroll: true });
   }
 
   async function commit(td, value) {

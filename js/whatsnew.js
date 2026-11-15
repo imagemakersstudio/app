@@ -8,8 +8,9 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
-    v: '1.13.3', date: '15/11/2026',
+    v: '1.14.0', date: '15/11/2026',
     items: [
+      ['🔽', 'Φύλλο Dimitris: φίλτρα όπως στο Excel! Δίπλα σε κάθε επικεφαλίδα υπάρχει ένα βελάκι — πατήστε το για ταξινόμηση ή για να διαλέξετε με τικ ποιες τιμές θα φαίνονται (π.χ. μόνο κάποιους μήνες ή μόνο «υπό επεξεργασία»). Πάνω από τον πίνακα φαίνεται ποια φίλτρα είναι ενεργά, με κουμπί «Καθαρισμός όλων».', 'Dimitris sheet: Excel-style filters! Each header has a small arrow — tap it to sort or tick which values to show (e.g. only some months or only “in progress”). Active filters are shown above the table with a “Clear all” button.'],
       ['🎬', 'Φύλλο Dimitris: πιο συμπτυγμένο — στενότερες στήλες και χαμηλότερες γραμμές, ώστε να χωράνε περισσότερα στην οθόνη χωρίς σκρολάρισμα.', 'Dimitris sheet: more compact — narrower columns and shorter rows, so more fits on screen without scrolling.'],
     ],
   },
