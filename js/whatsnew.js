@@ -8,6 +8,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.11.1', date: '15/11/2026',
+    items: [
+      ['📅', 'Αρχική: η εβδομάδα εμφανίζεται πλέον ως κάρτες ανά ημέρα, με όλες τις λεπτομέρειες (τι, ποιος, ώρα). Οι ημέρες που πέρασαν δεν εμφανίζονται.', 'Home: the week now shows as one card per day with all details (what, who, time). Past days are hidden.'],
+      ['📱', 'Διόρθωση: στο κινητό το «ημέρες ακόμη» δεν πέφτει πλέον πάνω στον τίτλο της επόμενης εκδήλωσης.', 'Fix: on phones, “days to go” no longer covers the next event’s title.'],
+    ],
+  },
+  {
     v: '1.11.0', date: '15/11/2026',
     items: [
       ['🏠', 'Νέα Αρχική! Επόμενη εκδήλωση και «Σήμερα» δίπλα δίπλα, η εβδομάδα από Δευτέρα έως Κυριακή (την Κυριακή και η επόμενη από κάτω), «Χρειάζονται προσοχή» με εξήγηση σε κάθε γραμμή, «Ταμείο μήνα» και «Η χρονιά με μια ματιά».', 'New Home! Next event and “Today” side by side, the week from Monday to Sunday (on Sundays the next week too), “Needs attention” with a short explanation, “Cash this month” and “The year at a glance”.'],

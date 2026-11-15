@@ -1551,3 +1551,52 @@ button.mp-r:hover { background: var(--fill-2); }
   .home-actions.mob { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .home-actions.mob .btn { justify-content: center; }
 }
+/* Αρχική: «ημέρες ακόμη» σε δική του θέση πάνω δεξιά, ποτέ πάνω από τον τίτλο (v1.11.1) */
+.hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: auto; }
+.hero-top .eyebrow { padding-top: 4px; }
+.home-top .hero-card .hero-top .count, .home-top .hero-card.multi .hero-top .count { position: static; order: 0; display: block; flex: 0 0 auto; background: rgba(255,255,255,.12); border-radius: 14px; padding: 6px 12px; text-align: center; margin: 0; }
+.home-top .hero-card .hero-top .count b { font-size: 30px; }
+.home-top .hero-card .hero-top .count span { font-size: 11.5px; }
+.home-top .hero-card h2 { padding-right: 0; margin-top: 14px; }
+.home-top .hero-card.multi .hero-top { margin-bottom: 0; }
+@media (max-width: 760px) {
+  .home-top .hero-card .hero-top .count { padding: 5px 10px; }
+  .home-top .hero-card .hero-top .count b { font-size: 24px; }
+}
+/* Αρχική: εβδομάδα ως κάρτες ανά ημέρα (τρόπος Α, v1.11.1) */
+.wk-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.wk-card { background: var(--bg-grouped); border-radius: 16px; padding: 12px 14px 14px; box-shadow: var(--shadow-sm); min-width: 0; }
+.wk-card.today { box-shadow: inset 0 0 0 2px var(--accent); }
+.wk-card.past { opacity: .6; }
+.wk-card .wk-dh { font-size: 12.5px; letter-spacing: .03em; }
+.wk-card.today .wk-dh, .wk-card.tomorrow .wk-dh { color: var(--accent); }
+.wk-card.free { display: flex; align-items: center; gap: 8px; padding: 12px 14px; }
+.wk-card.free .wk-free { margin: 0; font-size: 13.5px; }
+.wk-card.free .wk-free::before { content: '· '; }
+.wk-row { display: flex; gap: 10px; align-items: center; margin-top: 7px; padding: 9px 11px; border-radius: 12px; background: var(--fill-2); color: var(--label); }
+.wk-row:hover { filter: brightness(.97); }
+.wk-row > .ic { width: 18px; height: 18px; flex: 0 0 auto; }
+.wk-row .main-col { flex: 1; min-width: 0; }
+.wk-row .t { font-weight: 650; font-size: 14.5px; line-height: 1.25; }
+.wk-row .s { font-size: 12.5px; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wk-row > b { font-size: 14px; white-space: nowrap; }
+.wk-row.wk-ev { background: var(--c, var(--accent)); color: #fff; }
+.wk-row.wk-appt { background: #fff1b8; color: #4a3a00; }
+.wk-row.wk-meet { background: rgba(142,91,214,.16); }
+.wk-row.wk-sess { background: var(--blue-soft); }
+.wk-row.wk-abs { background: var(--red-soft); }
+.wk-row.wk-abs > .ic { color: var(--red); }
+.wk-row.wk-note { background: var(--fill); }
+:root[data-theme="dark"] .wk-row.wk-appt { background: rgba(224,168,0,.2); color: var(--label); }
+@media (max-width: 1000px) { .wk-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .wk-list { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
+.wk-list { align-items: stretch; }
+.wk-card.free { display: block; }
+.wk-card.free .wk-free { display: block; margin-top: 8px; color: var(--label-3); }
+.wk-card.free .wk-free::before { content: none; }
+@media (max-width: 760px) {
+  .wk-list { align-items: start; }
+  .wk-card.free { display: flex; align-items: center; gap: 8px; }
+  .wk-card.free .wk-free { margin: 0; }
+  .wk-card.free .wk-free::before { content: '· '; }
+}
