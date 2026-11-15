@@ -544,7 +544,7 @@ export async function updateRequest(id, patch) {
 // Προσφορές / Ραντεβού
 const APPT_FIELDS = ['appt_time', 'mode', 'appt_date', 'category', 'name1', 'name2', 'phone', 'email', 'event_date', 'church', 'church_time', 'reception', 'reception_time', 'notes', 'offer_path', 'offer_data', 'selections', 'total', 'status', 'status_at', 'reason', 'comments', 'customer_id', 'event_id', 'handled_by',
   // προσωπικό link προσφοράς προς τον πελάτη (ραντεβού στο μαγαζί)
-  'share_token', 'share_expires_at', 'client_selections', 'client_total', 'client_changed_at', 'client_applied_at', 'client_prev'];
+  'share_token', 'share_expires_at', 'client_selections', 'client_total', 'client_changed_at', 'client_applied_at', 'client_prev', 'share_sent_at'];
 export async function saveAppointment(a) {
   const row = {};
   APPT_FIELDS.forEach((k) => { if (k in a) row[k] = a[k] === '' ? null : a[k]; });

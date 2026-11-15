@@ -235,7 +235,8 @@ function listView(body, redraw) {
         const decision = s === 'rejected' ? `<span class="pill red">Rejected</span>`
           : s === 'confirmed' ? (a.event_id && S.events.has(a.event_id) ? `<a class="pill green" href="#/event/${a.event_id}">✓ Confirmed</a>` : `<span class="pill green">✓ Confirmed</span><button class="btn tiny primary" data-mkev="${a.id}">${esc(L('Δημιουργία εκδήλωσης', 'Create event'))}</button>`)
           : `<button class="btn tiny danger-soft" data-rej="${a.id}">${icon('x')} Reject</button><button class="btn tiny success" data-conf="${a.id}">${icon('check')} Confirm</button>`;
-        const share = canShare(a) ? `<button class="pdf-btn share-btn ${shareActive(a) ? 'sent' : ''}" data-share="${a.id}" title="${esc(L('Αποστολή στον πελάτη', 'Send to client'))}" aria-label="${esc(L('Αποστολή στον πελάτη', 'Send to client'))}">${icon('send')}</button>` : '';
+        const sentTip = a.share_sent_at ? L(`Στάλθηκε στον πελάτη ${fmtDateTime(a.share_sent_at)}`, `Sent to the client ${fmtDateTime(a.share_sent_at)}`) : '';
+        const share = canShare(a) ? `<span class="share-wrap"><button class="pdf-btn share-btn ${a.share_sent_at ? 'sent' : ''}" data-share="${a.id}" title="${esc(sentTip || L('Αποστολή στον πελάτη', 'Send to client'))}" aria-label="${esc(L('Αποστολή στον πελάτη', 'Send to client'))}">${icon('send')}</button>${a.share_sent_at ? `<span class="share-ok" title="${esc(sentTip)}" aria-label="${esc(sentTip)}">${icon('check')}</span>` : ''}</span>` : '';
         const pdf = share + (a.offer_path ? `<button class="pdf-btn" data-pdf="${a.id}">${icon('doc')}PDF</button>`
           : (a.selections || a.offer_data) ? `<button class="pdf-btn" data-gen="${a.id}" title="${esc(L('Δημιουργία PDF από τις επιλογές', 'Create PDF from the choices'))}">${icon('wand')}PDF</button>`
           : `<button class="pdf-btn" data-mkpdf="${a.id}" style="color:var(--label-3)" title="${esc(L('Δημιουργία προσφοράς', 'Create offer'))}">${icon('plus')}</button>`);
@@ -277,6 +278,12 @@ const find = (id) => S.appointments.find((a) => a.id === id);
 //  Προσωπικό link προσφοράς (ραντεβού στο μαγαζί → ο πελάτης τη βλέπει/αλλάζει από το σπίτι)
 // ---------------------------------------------------------------------
 const SHARE_DAYS = 60;
+/** Ημερομηνία & ώρα (τοπική ώρα συσκευής), π.χ. 15/11/2026 22:30 */
+const fmtDateTime = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso); const p = (n) => String(n).padStart(2, '0');
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
 /** Όταν το μαγαζί ξαναφτιάχνει την προσφορά, αυτή υπερισχύει των αλλαγών του πελάτη */
 const SHOP_TAKES_OVER = { client_selections: null, client_prev: null, client_total: null, client_changed_at: null, client_applied_at: null };
 const canShare = (a) => a && a.mode === 'store' && !!a.offer_data && a.status === 'pending' && !a.event_id;
@@ -330,7 +337,7 @@ export async function openShareOffer(a, { renew = false } = {}) {
   if (!canShare(a)) return toastErr(L('Δεν γίνεται αποστολή', 'Cannot send'), L('Χρειάζεται προσφορά από τον Οδηγό και ραντεβού «σε αναμονή».', 'Needs a builder offer and a pending appointment.'));
   if (renew || !shareActive(a)) {
     const exp = new Date(Date.now() + SHARE_DAYS * 864e5).toISOString();
-    try { a = await saveAppointment({ id: a.id, share_token: newShareToken(), share_expires_at: exp }); } catch (e) { console.error(e); return; }
+    try { a = await saveAppointment({ id: a.id, share_token: newShareToken(), share_expires_at: exp, share_sent_at: null }); } catch (e) { console.error(e); return; }
   }
   const kind = offerKindFor(a.category);
   const k = LINK_KINDS.find((x) => x.v === kind) || LINK_KINDS[0];
@@ -363,6 +370,7 @@ export async function openShareOffer(a, { renew = false } = {}) {
     const how = b.dataset.send;
     if ((how === 'sms' || how === 'whatsapp') && !f.phone) return toastErr(L('Γράψτε κινητό', 'Enter a mobile'));
     if (how === 'email' && !f.email) return toastErr(L('Γράψτε email', 'Enter an email'));
+    try { a = await saveAppointment({ id: a.id, share_sent_at: new Date().toISOString() }); } catch (e) { console.warn('share_sent_at', e); }
     if (how === 'sms') window.location.href = smsUrl(f.phone, msg());
     if (how === 'whatsapp') window.location.href = waUrl(f.phone, msg());
     if (how === 'email') window.location.href = mailUrl(f.email, L(`Image Makers · Η προσφορά ${k.gen} σας`, `Image Makers · Your ${k.en.toLowerCase()} offer`), msg());
@@ -463,7 +471,7 @@ export function openAppointment(a) {
       ${a.notes ? `<div class="small muted mt-s">${esc(L('Σημειώσεις', 'Notes'))}: ${esc(a.notes)}</div>` : ''}</div>
     <div class="list mt">
       <button class="row has-icon" data-act="offer"><span class="row-icon" style="background:var(--accent)">${icon('wand')}</span><div class="main-col"><div class="t">${esc(a.offer_path || sel ? L('Επεξεργασία προσφοράς (Οδηγός)', 'Edit offer (builder)') : L('Δημιουργία προσφοράς (Οδηγός)', 'Create offer (builder)'))}</div></div>${icon('chevR', 'chev')}</button>
-      ${canShare(a) ? `<button class="row has-icon" data-act="share"><span class="row-icon" style="background:var(--green)">${icon('send')}</span><div class="main-col"><div class="t">${esc(L('Αποστολή προσφοράς στον πελάτη', 'Send offer to the client'))}</div><div class="s">${esc(shareActive(a) ? L(`Έχει σταλεί link · ισχύει έως ${fmtDate(a.share_expires_at)}`, `Link sent · valid until ${fmtDate(a.share_expires_at)}`) : L('Τη βλέπει και την αλλάζει από το σπίτι', 'They view and change it from home'))}</div></div>${icon('chevR', 'chev')}</button>` : ''}
+      ${canShare(a) ? `<button class="row has-icon" data-act="share"><span class="row-icon" style="background:var(--green)">${icon('send')}</span><div class="main-col"><div class="t">${esc(L('Αποστολή προσφοράς στον πελάτη', 'Send offer to the client'))}</div><div class="s">${esc(a.share_sent_at && shareActive(a) ? L(`✓ Στάλθηκε ${fmtDateTime(a.share_sent_at)} · ισχύει έως ${fmtDate(a.share_expires_at)}`, `✓ Sent ${fmtDateTime(a.share_sent_at)} · valid until ${fmtDate(a.share_expires_at)}`) : L('Τη βλέπει και την αλλάζει από το σπίτι', 'They view and change it from home'))}</div></div>${icon('chevR', 'chev')}</button>` : ''}
       ${clientChanged(a) && a.status === 'pending' ? `<button class="row has-icon" data-act="revert"><span class="row-icon" style="background:var(--orange)">${icon('refresh')}</span><div class="main-col"><div class="t">${esc(L('Επαναφορά στις επιλογές του μαγαζιού', 'Restore the in-store choices'))}</div><div class="s">${esc(money(a.client_prev?.total, { dec: 0 }))}</div></div></button>` : ''}
       <button class="row has-icon" data-act="upload"><span class="row-icon" style="background:var(--label-2)">${icon('upload')}</span><div class="main-col"><div class="t">${esc(L('Ανέβασμα έτοιμου PDF', 'Upload ready PDF'))}</div></div>${icon('chevR', 'chev')}</button>
       ${a.mode === 'store' ? `<button class="row has-icon" data-act="edit"><span class="row-icon" style="background:var(--blue)">${icon('edit')}</span><div class="main-col"><div class="t">${esc(L('Επεξεργασία στοιχείων', 'Edit details'))}</div></div>${icon('chevR', 'chev')}</button>` : ''}
