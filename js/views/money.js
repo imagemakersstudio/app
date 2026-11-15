@@ -42,15 +42,24 @@ export function renderMoney(root) {
   const incomes = S.payments.filter((p) => (p.paid_on || '').startsWith(yp));
   const expenses = S.expenses.filter((x) => (x.paid_on || '').startsWith(yp));
   const inSum = sum(incomes, (p) => p.amount), outSum = sum(expenses, (x) => x.amount);
+  const inCash = sum(incomes.filter((p) => p.method === 'cash'), (p) => p.amount);
+  // ο τρέχων μήνας με μια ματιά (μόνο όταν βλέπουμε την τρέχουσα χρονιά)
+  const nowD = new Date(), thisYear = nowD.getFullYear() === y, mp = `${y}-${String(nowD.getMonth() + 1).padStart(2, '0')}`;
+  const mIn = thisYear ? sum(incomes.filter((p) => (p.paid_on || '').startsWith(mp)), (p) => p.amount) : 0;
+  const mOut = thisYear ? sum(expenses.filter((x) => (x.paid_on || '').startsWith(mp)), (x) => x.amount) : 0;
 
   setTopActions(`${yearSelect(years, y)} <button class="btn primary small hide-mobile" data-new>${icon('plus')} ${esc(L('Νέα κίνηση', 'New entry'))}</button>`);
   let html = pageHead(L('Έσοδα & Έξοδα', 'Income & Expenses'), { sub: esc(L('Κάθε καταχώρηση ενημερώνει αυτόματα τα φύλλα Excel.', 'Every entry updates the Excel sheets automatically.')) });
 
   html += `<div class="grid cols-3 money-kpis" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
-      <div class="kpi"><div class="k-label">${icon('incoming')} ${esc(L('Έσοδα', 'Income'))}</div><div class="k-value pos">${esc(money(inSum, { dec: 0 }))}</div><div class="k-sub">${incomes.length} ${esc(L('κινήσεις', 'entries'))}</div></div>
+      <div class="kpi"><div class="k-label">${icon('incoming')} ${esc(L('Έσοδα', 'Income'))}</div><div class="k-value pos">${esc(money(inSum, { dec: 0 }))}</div><div class="k-sub">${incomes.length} ${esc(L('κινήσεις', 'entries'))}</div>${inSum ? `<div class="k-sub k-split hide-mobile">${esc(L('Μετρητά', 'Cash'))} <b>${esc(money(inCash, { dec: 0 }))}</b> · ${esc(L('Τράπεζα/κάρτα', 'Bank/card'))} <b>${esc(money(inSum - inCash, { dec: 0 }))}</b></div>` : ''}</div>
       <div class="kpi"><div class="k-label">${icon('outgoing')} ${esc(L('Έξοδα', 'Expenses'))}</div><div class="k-value neg">${esc(money(outSum, { dec: 0 }))}</div><div class="k-sub">${expenses.length} ${esc(L('κινήσεις', 'entries'))}</div></div>
       <div class="kpi accent"><div class="k-label">${icon('euro')} ${esc(L('Καθαρό', 'Net'))}</div><div class="k-value">${esc(money(inSum - outSum, { dec: 0 }))}</div><div class="k-sub">${esc(L('ταμειακή διαφορά', 'cash difference'))}</div></div>
     </div>`;
+  // στο κινητό ο διαχωρισμός μετρητά / τράπεζα μπαίνει εδώ (στα στενά κουτιά δεν χωράει)
+  const splitM = inSum ? `<div class="split-m">${icon('incoming')}<span>${esc(L(`Έσοδα ${y}`, `Income ${y}`))}: ${esc(L('Μετρητά', 'Cash'))} <b>${esc(money(inCash, { dec: 0 }))}</b> · ${esc(L('Τράπεζα/κάρτα', 'Bank/card'))} <b>${esc(money(inSum - inCash, { dec: 0 }))}</b></span></div>` : '';
+  if (thisYear || splitM) html += `<div class="card pad small month-now mt-s ${thisYear ? '' : 'only-mobile'}">${thisYear ? `<div class="month-now-row">${icon('calendar')}<span><b>${esc(L('Αυτός ο μήνας', 'This month'))} (${esc(monthName(nowD.getMonth()))})</b></span>
+      <span class="month-now-v"><span class="pos">+${esc(money(mIn, { dec: 0 }))}</span> · <span class="neg">−${esc(money(mOut, { dec: 0 }))}</span> · ${esc(L('καθαρό', 'net'))} <b>${esc(money(mIn - mOut, { dec: 0 }))}</b></span></div>` : ''}${splitM}</div>`;
 
   html += sheetLinks();
   // Κινήσεις ή Στατιστικά: τα στατιστικά ένα πάτημα μακριά, όχι στο τέλος της σελίδας
@@ -91,9 +100,12 @@ export function renderMoney(root) {
     const v = p.event_id ? eventView(p.event_id) : null;
     rows.push({ t: 'in', id: p.id, date: p.paid_on, created: p.created_at, amount: Number(p.amount), title: v ? `${v.title}` : (p.description || lbl(CATEGORIES, p.category)), sub: [p.label, lbl(METHODS, p.method), p.notes].filter((x) => x && x !== '—').join(' · '), cat: p.category });
   });
-  if (st.kind !== 'in') expenses.filter(okOut).forEach((x) => rows.push({ t: 'out', id: x.id, date: x.paid_on, created: x.created_at, amount: Number(x.amount), title: expenseTitle(x), sub: expenseSub(x) }));
+  if (st.kind !== 'in') expenses.filter(okOut).forEach((x) => rows.push({ t: 'out', id: x.id, date: x.paid_on, created: x.created_at, amount: Number(x.amount), title: expenseTitle(x), sub: expenseSub(x), ic: opt(EXPENSE_KINDS, x.kind)?.icon }));
   const filtered = rows.filter((r) => matches(st.q, r.title, r.sub, fmtDate(r.date), String(r.amount))).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.created || '').localeCompare(a.created || ''));
-  html += `<div class="sheet-toolbar wf-filters mt-s">${filtersHTML}${anyF ? `<button class="btn plain small" data-mfclear>${icon('x')} ${esc(L('Καθαρισμός', 'Clear'))}</button>` : ''}</div>`;
+  // στο κινητό τα φίλτρα κρύβονται πίσω από ένα κουμπί (στον υπολογιστή φαίνονται πάντα)
+  const nF = Object.values(F).filter(Boolean).length;
+  html += `<button type="button" class="btn small mf-toggle mt-s ${nF ? 'on' : ''}" data-mftoggle aria-expanded="${!!st.fopen}">${icon('filter')} ${esc(L('Φίλτρα', 'Filters'))}${nF ? ` (${nF})` : ''} ${icon('chevD', 'mchev')}</button>`;
+  html += `<div class="sheet-toolbar wf-filters mt-s ${st.fopen ? '' : 'mf-collapsed'}">${filtersHTML}${anyF ? `<button class="btn plain small" data-mfclear>${icon('x')} ${esc(L('Καθαρισμός', 'Clear'))}</button>` : ''}</div>`;
   if (anyF || st.q) {
     const tin = sum(filtered.filter((r) => r.t === 'in'), (r) => r.amount), tout = sum(filtered.filter((r) => r.t === 'out'), (r) => r.amount);
     html += `<div class="card pad small filter-sum"><b>${filtered.length}</b> ${esc(L('κινήσεις', 'entries'))}${tin ? ` · <span class="pos">+${esc(money(tin))}</span>` : ''}${tout ? ` · <span class="neg">−${esc(money(tout))}</span>` : ''}</div>`;
@@ -107,7 +119,10 @@ export function renderMoney(root) {
   const filtering = !!(st.q || anyF);
   const isOpen = (mo) => (filtering ? st.openF : st.open).has(mo);
 
-  html += `<div class="section-title"><h2>${esc(L(`Κινήσεις ${y}`, `Entries ${y}`))}</h2><span class="hint">${filtered.length}</span></div>`;
+  const monthsShown = [...new Set(filtered.map((r) => Number((r.date || '').slice(5, 7)) || 0))];
+  const allOpen = monthsShown.length > 0 && monthsShown.every((mo) => isOpen(mo));
+  st.months = monthsShown;
+  html += `<div class="section-title"><h2>${esc(L(`Κινήσεις ${y}`, `Entries ${y}`))}</h2><span class="hstack" style="gap:10px">${monthsShown.length > 1 ? `<button type="button" class="btn plain small" data-allmo="${allOpen ? 'close' : 'open'}">${esc(allOpen ? L('Κλείσιμο όλων', 'Collapse all') : L('Άνοιγμα όλων', 'Expand all'))}</button>` : ''}<span class="hint">${filtered.length}</span></span></div>`;
   if (!filtered.length) html += `<div class="card pad center muted">${esc(L('Καμία κίνηση αυτή τη χρονιά. Πατήστε + για νέα.', 'No entries this year. Tap + to add one.'))}</div>`;
   else {
     let lastM = null; let open = false;
@@ -123,8 +138,8 @@ export function renderMoney(root) {
       }
       const dn = daysBetween(r.date, todayISO());
       r.sub = [dn === 0 ? L('Σήμερα', 'Today') : dn === 1 ? L('Χθες', 'Yesterday') : fmtDate(r.date), r.sub].filter(Boolean).join(' · ');
-      html += `<button class="row has-icon" data-${r.t}="${r.id}"><span class="row-icon" style="background:${r.t === 'in' ? 'var(--green)' : 'var(--red)'}">${icon(r.t === 'in' ? 'incoming' : 'outgoing')}</span>
-        <div class="main-col"><div class="t">${esc(r.title)}</div><div class="s">${esc(r.sub || '—')}</div></div>
+      html += `<button class="row has-icon" data-${r.t}="${r.id}"><span class="row-icon" style="background:${r.t === 'in' ? 'var(--green)' : 'var(--red)'}">${icon(r.t === 'in' ? 'incoming' : (r.ic || 'outgoing'))}</span>
+        <div class="main-col"><div class="t">${r.t === 'in' && r.cat ? `<span class="cat-dot cat-${esc(r.cat)}" title="${esc(lbl(CATEGORIES, r.cat))}"></span> ` : ''}${esc(r.title)}</div><div class="s">${esc(r.sub || '—')}</div></div>
         <div class="v money ${r.t === 'in' ? 'pos' : 'neg'}" style="font-weight:650">${r.t === 'in' ? '+' : '−'}${esc(money(Math.abs(r.amount)).replace('−', ''))}</div></button>`;
     });
     if (open) html += '</div>';
@@ -175,6 +190,13 @@ function finish(root, html) {
   bindYear(() => renderMoney(root));
   root.querySelectorAll('[data-mf]').forEach((sel) => sel.addEventListener('change', () => { st.f[sel.dataset.mf] = sel.value; if (sel.dataset.mf === 'ekind') { st.f.sub = ''; st.f.who = ''; st.f.supplier = ''; } renderMoney(root); }));
   root.querySelector('[data-mfclear]')?.addEventListener('click', () => { st.f = {}; renderMoney(root); });
+  root.querySelector('[data-mftoggle]')?.addEventListener('click', () => { st.fopen = !st.fopen; renderMoney(root); });
+  root.querySelector('[data-allmo]')?.addEventListener('click', (e) => {
+    const filtering = !!(st.q || Object.values(st.f).some(Boolean));
+    const set = filtering ? st.openF : st.open;
+    if (e.currentTarget.dataset.allmo === 'open') (st.months || []).forEach((mo) => set.add(mo)); else set.clear();
+    renderMoney(root);
+  });
   root.querySelectorAll('[data-mo]').forEach((b) => b.addEventListener('click', () => {
     const mo = Number(b.dataset.mo); const list = b.nextElementSibling;
     const filtering = !!(st.q || Object.values(st.f).some(Boolean));
@@ -182,6 +204,8 @@ function finish(root, html) {
     if (set.has(mo)) set.delete(mo); else set.add(mo);
     const op = set.has(mo);
     b.classList.toggle('open', op); b.setAttribute('aria-expanded', op); if (list) list.hidden = !op;
+    const ab = root.querySelector('[data-allmo]');
+    if (ab) { const all = (st.months || []).every((m) => set.has(m)); ab.dataset.allmo = all ? 'close' : 'open'; ab.textContent = all ? L('Κλείσιμο όλων', 'Collapse all') : L('Άνοιγμα όλων', 'Expand all'); }
   }));
   const mq = root.querySelector('#mq');
   mq?.addEventListener('input', () => { st.q = mq.value; const p = mq.selectionStart; renderMoney(root); const n = root.querySelector('#mq'); n.focus(); n.setSelectionRange(p, p); });
@@ -330,7 +354,7 @@ export function openExpenseForm({ expense = null, kind = null, crew_id = null, c
       html += `<div class="field"><label>${esc(L('Περιγραφή επένδυσης', 'Investment description'))} <span class="req">*</span></label><input class="input" name="description" value="${esc(f.description)}" placeholder="${esc(L('π.χ. Νέα κάμερα Sony A7 IV', 'e.g. New Sony A7 IV camera'))}"></div>
         <div class="field"><label>${esc(L('Προμηθευτής', 'Supplier'))}</label><input class="input" name="supplier" value="${esc(f.supplier)}"></div>`;
     } else {
-      html += `<div class="field"><label>${esc(L('Κατηγορία', 'Category'))}</label><select class="select" name="subcategory">${options(OTHER_SUBS, f.subcategory)}</select></div>
+      html += `<div class="field"><label>${esc(L('Κατηγορία', 'Category'))}</label><div class="chips">${OTHER_SUBS.map((s) => `<button type="button" class="chip ${f.subcategory === s.v ? 'on' : ''}" data-sub="${s.v}">${esc(L(s.el, s.en))}</button>`).join('')}</div></div>
         <div class="form-grid"><div class="field"><label>${esc(L('Πληρώθηκε σε / Προμηθευτής', 'Paid to / Supplier'))}</label><input class="input" name="supplier" value="${esc(f.supplier)}"></div>
         <div class="field"><label>${esc(L('Περιγραφή', 'Description'))}</label><input class="input" name="description" value="${esc(f.description)}"></div></div>`;
     }
