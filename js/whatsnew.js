@@ -8,6 +8,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.15.2', date: '15/11/2026',
+    items: [
+      ['🏠', 'Αρχική: η επόμενη εκδήλωση γράφει «σε 5 ημέρες». Το Ταμείο του μήνα δείχνει δίπλα-δίπλα εισπράξεις (πράσινο) και έξοδα (κόκκινο) και από κάτω τα καθαρά. Έφυγε το υπόμνημα χρωμάτων κάτω από την εβδομάδα.', 'Home: the next event says “in 5 days”. Month cash shows income (green) and expenses (red) side by side with net below. The colour legend under the week is gone.'],
+      ['🗂️', 'Κατάσταση εργασιών: ανοίγει πάντα στο «Όλες», έχει στήλη Κατηγορία, και οι εκδηλώσεις που είναι έτοιμες (φωτογραφίες έτοιμες/παραδόθηκαν και βίντεο έτοιμο) φαίνονται πράσινες.', 'Work status: always opens on “All”, has a Category column, and ready events (photos ready/delivered and video ready) show in green.'],
+    ],
+  },
+  {
     v: '1.15.1', date: '15/11/2026',
     items: [
       ['📌', 'Φύλλα: ο Μήνας, η Ημερομηνία και η Τοποθεσία μένουν πάντα καρφιτσωμένα αριστερά όταν σύρετε τον πίνακα δεξιά (στο κινητό μόνο ο Μήνας, για να χωράει η οθόνη).', 'Sheets: Month, Date and Location stay pinned on the left when you scroll right (on phones only Month, to fit the screen).'],

@@ -3,14 +3,14 @@
 //  Αντίγραφο του Excel μόνο για Κατάσταση Φωτογραφιών & Κατάσταση Video.
 //  Ό,τι αλλάζει εδώ αλλάζει και στο Excel (και στο Dimitris για το video).
 // =====================================================================
-import { VIDEO_STATUS, L, esc, icon, fmtDate, todayISO, daysBetween, matches, lbl, options, PHOTO_STATUS, EDIT_STATUS, WF_RULES, MONTHS_EL_UP, CHANNELS, sheet, toast, toastErr, confirmBox, copyText, smsUrl, mailUrl, waUrl, viberUrl, timeAgo, busy } from '../core.js';
+import { CATEGORIES, VIDEO_STATUS, L, esc, icon, fmtDate, todayISO, daysBetween, matches, lbl, options, PHOTO_STATUS, EDIT_STATUS, WF_RULES, MONTHS_EL_UP, CHANNELS, sheet, toast, toastErr, confirmBox, copyText, smsUrl, mailUrl, waUrl, viberUrl, timeAgo, busy } from '../core.js';
 import { S, allEventViews, eventView, patchEvent, logSentMessage, yearsAvailable, saveWfTemplate, deleteWfTemplate } from '../data.js';
 import { pageHead, emptyState, setTopActions } from '../layout.js';
 import { renderText } from './outbox.js';
-import { pickYear, yearOf, yearSelect, bindYear } from '../components.js';
+import { pickYear, yearOf, yearSelect, bindYear, catShort } from '../components.js';
 import { toneChip } from '../grid.js';
 
-const st = { year: null, q: '', filter: 'active', month: '', ph: '', vid: '', summary: false };
+const st = { year: null, q: '', filter: 'all', month: '', ph: '', vid: '', summary: false };
 
 /**
  * Σύνοψη (stats panel): δύο πίνακες δίπλα δίπλα, Φωτογραφίες και Video.
@@ -72,6 +72,7 @@ export function renderWorkflow(root) {
   const { ys: years, y: selY } = pickYear([...S.events.values()].filter((e) => e.status !== 'cancelled').map((e) => yearOf(e.event_date)));
   st.year = selY;
   const byYear = () => true;
+  if (!root.querySelector('.wf-filters')) st.filter = 'all'; // κάθε νέα είσοδος ξεκινά στο «Όλες»
   setTopActions(yearSelect(years, st.year));
   const lvl = (list) => list.map((v) => ({ v, ...wfLevel(v.e, today) }));
   const allRows = lvl(allEventViews({ includeCancelled: false }));
@@ -106,12 +107,15 @@ export function renderWorkflow(root) {
   if (!rows.length) html += emptyState('flow', st.filter === 'late' ? L('Καμία καθυστέρηση 🎉', 'No delays 🎉') : L('Δεν υπάρχουν εκδηλώσεις εδώ', 'No events here'), st.filter === 'active' ? L('Εδώ εμφανίζεται κάθε εκδήλωση από τη στιγμή που κλείνεται, μέχρι να παραδοθεί.', 'Every event appears here from the moment it is booked until it is delivered.') : '');
   else {
     html += `<div class="wf-table">
-      <div class="wf-head"><span>${esc(L('Μήνας', 'Month'))}</span><span>${esc(L('Ημερομηνία', 'Date'))}</span><span>${esc(L('Όνομα', 'Name'))}</span><span>${esc(L('Τοποθεσία', 'Location'))}</span><span>${esc(L('Κατάσταση Φωτογραφιών', 'Photos status'))}</span><span>${esc(L('Κατάσταση Video', 'Video status'))}</span><span></span></div>
+      <div class="wf-head"><span>${esc(L('Μήνας', 'Month'))}</span><span>${esc(L('Ημερομηνία', 'Date'))}</span><span>${esc(L('Κατηγορία', 'Category'))}</span><span>${esc(L('Όνομα', 'Name'))}</span><span>${esc(L('Τοποθεσία', 'Location'))}</span><span>${esc(L('Κατάσταση Φωτογραφιών', 'Photos status'))}</span><span>${esc(L('Κατάσταση Video', 'Video status'))}</span><span></span></div>
       ${rows.map(({ v, level, days, rule }) => {
         const sent = S.queue.filter((m) => m.event_id === v.e.id && m.status === 'sent').sort((a, b) => String(b.sent_at).localeCompare(String(a.sent_at)))[0];
-        return `<div class="wf-row ${level}" data-id="${v.e.id}">
+        // πράσινη = έτοιμη: φωτογραφίες «Έτοιμα προς παραλαβή» ή «Παραδόθηκαν» και βίντεο «έτοιμο» (ό,τι δεν καλύπτεται δεν μετράει)
+        const ready = (v.e.coverage === 'video' || ['ready', 'delivered'].includes(v.e.photo_status)) && (v.e.coverage === 'photo' || v.e.video_status === 'ready');
+        return `<div class="wf-row ${ready ? 'ready' : level}" data-id="${v.e.id}">
         <span class="wf-month">${esc(monthUp(v.e.event_date))}</span>
         <span class="wf-date"><b>${esc(fmtDate(v.e.event_date))}</b></span>
+        <span class="wf-cat"><span class="pill cat-pill cat-${esc(v.e.category)}" title="${esc(lbl(CATEGORIES, v.e.category))}">${esc(catShort(v.e.category))}</span></span>
         <span class="wf-name"><a href="#/event/${v.e.id}">${esc(v.title)}</a></span>
         <span class="wf-loc">${esc(v.e.church_location || '—')}</span>
         <span class="wf-sel"><label class="wf-lbl">${esc(L('Φωτογραφίες', 'Photos'))}</label>${v.e.coverage === 'video' ? `<span class="muted small">${esc(L('Μόνο βίντεο', 'Video only'))}</span>` : `<select class="select" data-ph="${v.e.id}">${options(PHOTO_STATUS, v.e.photo_status)}</select>`}${days != null && rule ? `<small class="wf-days">${esc(L(`${days} ημ. σε αυτό το στάδιο`, `${days} days in this stage`))}${level ? ` · ${esc(level === 'late' ? L('καθυστέρηση', 'late') : L('προσοχή', 'attention'))}` : ''}</small>` : ''}</span>
@@ -120,7 +124,7 @@ export function renderWorkflow(root) {
       </div>`;
       }).join('')}
     </div>
-    <div class="legend"><span><i style="background:var(--wf-warn)"></i>${esc(L('Πορτοκαλί: αργεί να περάσει στο επόμενο στάδιο', 'Orange: slow to move to the next stage'))}</span><span><i style="background:var(--wf-late)"></i>${esc(L('Κόκκινο: μεγάλη καθυστέρηση', 'Red: long delay'))}</span><span>${esc(L('Τα χρώματα είναι μόνο προειδοποίηση· δεν αλλάζουν τίποτα.', 'Colours are warnings only; they change nothing.'))}</span></div>
+    <div class="legend"><span><i style="background:var(--wf-warn)"></i>${esc(L('Πορτοκαλί: αργεί να περάσει στο επόμενο στάδιο', 'Orange: slow to move to the next stage'))}</span><span><i style="background:var(--wf-late)"></i>${esc(L('Κόκκινο: μεγάλη καθυστέρηση', 'Red: long delay'))}</span><span><i style="background:var(--wf-ready)"></i>${esc(L('Πράσινο: έτοιμη (φωτογραφίες έτοιμες/παραδόθηκαν και βίντεο έτοιμο)', 'Green: ready (photos ready/delivered and video ready)'))}</span><span>${esc(L('Τα χρώματα είναι μόνο προειδοποίηση· δεν αλλάζουν τίποτα.', 'Colours are warnings only; they change nothing.'))}</span></div>
     <div class="card pad mt small muted" style="line-height:1.7">${esc(L('Κανόνες: «Να γίνουν δείγματα» 25 / 35 ημέρες μετά την εκδήλωση · «Έλαβαν δείγματα και περιμένουμε» 20 / 35 ημέρες χωρίς να πάει στις «Αλλαγές» · «Αλλαγές» 20 / 30 ημέρες χωρίς να πάει για εκτύπωση · «Έτοιμα προς παραλαβή» 7 / 14 ημέρες (πορτοκαλί / κόκκινο).', 'Rules: “Samples to be made” 25 / 35 days after the event · “Client has samples” 20 / 35 days without moving to “Changes” · “Changes” 20 / 30 days without going to print · “Ready for pickup” 7 / 14 days (orange / red).'))}</div>`;
   }
   root.innerHTML = html;
