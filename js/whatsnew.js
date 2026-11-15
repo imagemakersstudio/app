@@ -8,6 +8,14 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.13.0', date: '15/11/2026',
+    items: [
+      ['📋', 'Νέα καρτέλα εκδήλωσης: πιο συμμαζεμένη, με κάθε ενότητα σε δικό της κουτί. Στον υπολογιστή σε δύο στήλες — αριστερά τι γίνεται (τοποθεσίες, συνεργείο, Next day, πακέτο, σημειώσεις), δεξιά πελάτης, οικονομικά, παραγωγή και ενέργειες.', 'New event page: tidier, each section in its own box. On computers in two columns — on the left what happens (locations, crew, Next day, package, notes), on the right client, finances, production and actions.'],
+      ['👥', 'Το συνεργείο και τα κείμενα ανάθεσης είναι πλέον μαζί: κάθε μέλος σε μία γραμμή με την αρμοδιότητά του και το κείμενό του (πατήστε το κείμενο για να το δείτε ολόκληρο).', 'Crew and assignment notes are now together: each member on one line with their duty and note (tap the note to see all of it).'],
+      ['📱', 'Στο κινητό ο πελάτης εμφανίζεται αμέσως μετά το συνεργείο και τα κουμπιά επάνω (Κλήση, SMS, Χάρτης…) είναι πιο μικρά και τακτοποιημένα.', 'On phones the client appears right after the crew, and the buttons on top (Call, SMS, Map…) are smaller and tidier.'],
+    ],
+  },
+  {
     v: '1.12.0', date: '15/11/2026',
     items: [
       ['🗓️', 'Αρχική (υπολογιστής): η εβδομάδα εμφανίζεται πλέον με ώρες — μία στήλη για κάθε μέρα και κάθε υπόθεση ένα χρωματιστό μπλοκ στην ώρα της. Ό,τι δεν έχει ώρα (π.χ. απουσίες) μπαίνει στη γραμμή «όλη μέρα» επάνω. Μια κόκκινη γραμμή δείχνει την τρέχουσα ώρα.', 'Home (computer): the week now shows with hours — one column per day and each item as a coloured block at its time. Items without a time (e.g. absences) go in the “all day” row on top. A red line marks the current time.'],

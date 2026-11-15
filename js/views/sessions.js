@@ -119,6 +119,16 @@ export function sessionsSectionHTML(eventId) {
   return `<div class="group-label spread"><span>${esc(L('Next day / Ευχολόγιο', 'Next day / Blessing'))}</span>${admin ? `<span class="hstack" style="gap:6px"><button class="btn plain small" data-newsess="next_day">${icon('plus')} Next day</button><button class="btn plain small" data-newsess="blessing">${icon('plus')} ${esc(L('Ευχολόγιο', 'Blessing'))}</button></span>` : ''}</div>
     <div class="list">${list.map((x) => `<button class="row has-icon" data-sess="${x.id}"><span class="row-icon sess-ic ${x.kind}">${sessionEmoji(x.kind)}</span><div class="main-col"><div class="t">${esc(sessionTitle(x))}</div><div class="s">${esc([fmtDateLong(x.day), x.start_time ? fmtTime(x.start_time) : L('ώρα: δεν έχει οριστεί', 'time: not set'), x.notes].filter(Boolean).join(' · '))}</div></div>${admin ? icon('chevR', 'chev') : ''}</button>`).join('') || `<div class="row muted small">${esc(L('Δεν υπάρχει Next day ή Ευχολόγιο.', 'No Next day or blessing.'))}</div>`}</div>`;
 }
+/** Το ίδιο τμήμα σε κομμάτια (κουμπιά + λίστα) για την καρτέλα εκδήλωσης */
+export function sessionsParts(eventId) {
+  const list = sessionsOf(eventId);
+  const admin = isAdmin() && !withoutNextDay(S.events.get(eventId));
+  if (!list.length && !admin) return null;
+  return {
+    actions: admin ? `<span class="hstack" style="gap:6px"><button class="btn plain small" data-newsess="next_day">${icon('plus')} Next day</button><button class="btn plain small" data-newsess="blessing">${icon('plus')} ${esc(L('Ευχολόγιο', 'Blessing'))}</button></span>` : '',
+    body: `<div class="ev-list">${list.map((x) => `<button class="row has-icon" data-sess="${x.id}"><span class="row-icon sess-ic ${x.kind}">${sessionEmoji(x.kind)}</span><div class="main-col"><div class="t">${esc(sessionTitle(x))}</div><div class="s">${esc([fmtDateLong(x.day), x.start_time ? fmtTime(x.start_time) : L('ώρα: δεν έχει οριστεί', 'time: not set'), x.notes].filter(Boolean).join(' · '))}</div></div>${admin ? icon('chevR', 'chev') : ''}</button>`).join('') || `<div class="ev-empty">${esc(L('Δεν υπάρχει Next day ή Ευχολόγιο.', 'No Next day or blessing.'))}</div>`}</div>`,
+  };
+}
 export function bindSessionsSection(root, eventId) {
   root.querySelectorAll('[data-newsess]').forEach((b) => b.addEventListener('click', () => openSessionSheet({ kind: b.dataset.newsess, eventId })));
   root.querySelectorAll('[data-sess]').forEach((b) => b.addEventListener('click', () => sessionActions(S.sessions.find((x) => x.id === b.dataset.sess))));
