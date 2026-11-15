@@ -8,6 +8,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.13.1', date: '15/11/2026',
+    items: [
+      ['🗓️', 'Αρχική: η εβδομάδα με ώρες είναι πιο μικρή — ξεκινά από την πρώτη ώρα που έχει κάτι και σταματά εκεί που τελειώνει το τελευταίο. Μια άδεια εβδομάδα δείχνει μόνο ένα χαμηλό πλαίσιο.', 'Home: the hourly week is more compact — it starts at the first hour with something and stops where the last item ends. An empty week shows just a short frame.'],
+      ['🧹', 'Την Κυριακή δεν εμφανίζεται πλέον αυτόματα και η επόμενη εβδομάδα από κάτω (τη βλέπετε με το βελάκι ›).', 'On Sundays the next week no longer appears automatically below (use the › arrow).'],
+    ],
+  },
+  {
     v: '1.13.0', date: '15/11/2026',
     items: [
       ['📋', 'Νέα καρτέλα εκδήλωσης: πιο συμμαζεμένη, με κάθε ενότητα σε δικό της κουτί. Στον υπολογιστή σε δύο στήλες — αριστερά τι γίνεται (τοποθεσίες, συνεργείο, Next day, πακέτο, σημειώσεις), δεξιά πελάτης, οικονομικά, παραγωγή και ενέργειες.', 'New event page: tidier, each section in its own box. On computers in two columns — on the left what happens (locations, crew, Next day, package, notes), on the right client, finances, production and actions.'],
