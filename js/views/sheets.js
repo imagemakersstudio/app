@@ -7,7 +7,7 @@ import { S, isAdmin, isVideoAdmin, allEventViews, eventView, saveCustomer, patch
 import { pageHead, setTopActions } from '../layout.js';
 import { pickYear, yearOf, yearSelect, bindYear, catShort } from '../components.js';
 import { toastErr as tErr } from '../core.js';
-import { resetGridFilters, renderGrid, exportGrid } from '../grid.js';
+import { resetGridFilters, setGridFilter, renderGrid, exportGrid } from '../grid.js';
 import { openIncomeForm, openExpenseForm, expenseTitle, paymentActions, expenseActions } from './money.js';
 import { openCrewSheet, deleteEventFlow } from './events.js';
 import { uploadPdfForEvent } from '../offer.js';
@@ -42,7 +42,7 @@ const PRESETS = {
   photos: ['basic', 'photo'],
 };
 
-const st = { year: null, q: '', month: '', cat: '', unpaid: false, groups: null, mitsosFilter: 'all', showCancelled: false };
+const st = { year: null, q: '', month: '', cat: '', groups: null, mitsosFilter: 'all' };
 
 export function renderSheets(root, params = {}) {
   if (!isAdmin()) return;
@@ -51,8 +51,11 @@ export function renderSheets(root, params = {}) {
   if (tab === 'mitsos' && !root.querySelector('.dim-grid')) { st.mitsosFilter = 'all'; st.q = ''; resetGridFilters('mitsos'); }
   // Φύλλα εκδηλώσεων: κάθε νέα είσοδος (ή άλλη καρτέλα) ξεκινά χωρίς φίλτρα στήλων
   const EVTABS = ['main', 'clients', 'payments', 'photos'];
-  if (EVTABS.includes(tab) && root.querySelector('#grid')?.dataset.tab !== tab) resetGridFilters('ev-' + tab);
-  if (params.unpaid) st.unpaid = true;
+  if (EVTABS.includes(tab) && root.querySelector('#grid')?.dataset.tab !== tab) {
+    resetGridFilters('ev-' + tab);
+    // από την Αρχική («εκδηλώσεις με υπόλοιπο»): ξεκινά με φίλτρο Εξόφληση OK = Όχι
+    if (params.unpaid) setGridFilter('ev-' + tab, 'paidok', [L('Όχι', 'No')]);
+  }
   // χρονιές μόνο όπου υπάρχει κάτι (εκδηλώσεις, πληρωμές, έξοδα) · η ίδια επιλογή σε όλα τα tabs
   const { ys: years, y: selY } = pickYear([...[...S.events.values()].map((e) => yearOf(e.event_date)), ...S.payments.map((p) => yearOf(p.paid_on)), ...S.expenses.map((x) => yearOf(x.paid_on))]);
   st.year = selY;
@@ -73,13 +76,12 @@ export function renderSheets(root, params = {}) {
   root.querySelector('.sheet-tabs a.active')?.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
 
-function toolbar({ search = true, months = true, cats = true, unpaid = false, extra = '', exportBtn = true, hint = null } = {}) {
+function toolbar({ search = true, months = true, cats = true, extra = '', exportBtn = true, hint = null } = {}) {
   const ms = [...Array(12).keys()];
   return `<div class="sheet-toolbar">
     ${search ? `<div class="search">${icon('search')}<input class="input" id="sq" type="search" placeholder="${esc(L('Αναζήτηση…', 'Search…'))}" value="${esc(st.q)}"></div>` : ''}
     ${months ? `<select class="select" id="sm" style="width:auto;min-height:40px"><option value="">${esc(L('Όλοι οι μήνες', 'All months'))}</option>${ms.map((m) => `<option value="${String(m + 1).padStart(2, '0')}" ${st.month === String(m + 1).padStart(2, '0') ? 'selected' : ''}>${esc(monthName(m))}</option>`).join('')}</select>` : ''}
     ${cats ? `<select class="select" id="sc" style="width:auto;min-height:40px"><option value="">${esc(L('Όλες οι κατηγορίες', 'All categories'))}</option>${CATEGORIES.map((c) => `<option value="${c.v}" ${st.cat === c.v ? 'selected' : ''}>${esc(L(c.el, c.en))}</option>`).join('')}</select>` : ''}
-    ${unpaid ? `<button class="chip ${st.unpaid ? 'on' : ''}" id="su">${icon('euro')} ${esc(L('Μόνο ανεξόφλητα', 'Unpaid only'))}</button>` : ''}
     ${extra}
     <span style="flex:1"></span>
     ${hint ? `<button class="btn small" id="shint" title="${esc(hint.title)}" aria-label="${esc(L('Οδηγίες', 'Help'))}">${icon('help')} <span class="hide-mobile">${esc(L('Οδηγίες', 'Help'))}</span></button>` : ''}
@@ -97,7 +99,6 @@ function bindToolbar(body, redraw, hint = null) {
   sq?.addEventListener('input', () => { st.q = sq.value; const p = sq.selectionStart; redraw(); const n = document.getElementById('sq'); n?.focus(); n?.setSelectionRange(p, p); });
   body.querySelector('#sm')?.addEventListener('change', (e) => { st.month = e.target.value; redraw(); });
   body.querySelector('#sc')?.addEventListener('change', (e) => { st.cat = e.target.value; redraw(); });
-  body.querySelector('#su')?.addEventListener('click', () => { st.unpaid = !st.unpaid; redraw(); });
 }
 
 const monthUp = (iso) => (iso ? MONTHS_EL_UP[Number(iso.slice(5, 7)) - 1] : '');
@@ -109,9 +110,9 @@ const yesNo = [{ v: 'true', el: 'Ναι', en: 'Yes' }, { v: 'false', el: 'Όχι
 function eventsSheet(body, tab, redraw) {
   const G = GROUPS();
   const visible = new Set(tab === 'main' ? (st.groups || PRESETS.main) : PRESETS[tab]);
-  let views = allEventViews({ year: st.year }).filter((v) => st.showCancelled || v.e.status !== 'cancelled');
-  views = views.filter((v) => (!st.unpaid || !v.fullyPaid)
-    && matches(st.q, v.title, v.c?.phone1, v.c?.phone2, v.c?.email1, v.c?.email2, v.e.church_location, v.f.package_name, fmtDate(v.e.event_date), v.f.office_notes));
+  // οι ακυρωμένες δεν εμφανίζονται στα φύλλα (φαίνονται στη λίστα Εκδηλώσεις)
+  let views = allEventViews({ year: st.year }).filter((v) => v.e.status !== 'cancelled');
+  views = views.filter((v) => matches(st.q, v.title, v.c?.phone1, v.c?.phone2, v.c?.email1, v.c?.email2, v.e.church_location, v.f.package_name, fmtDate(v.e.event_date), v.f.office_notes));
   const maxPays = Math.max(4, ...views.map((v) => v.pays.filter((p) => p.amount > 0).length - 1));
 
   const updCust = async (v, field, val) => { if (!v.c) return; if (field === 'name1' && !val) throw new Error('required'); await patchCustomer(v.c.id, { [field]: val || null }); };
@@ -144,7 +145,7 @@ function eventsSheet(body, tab, redraw) {
     });
     for (let i = 0; i <= maxPays; i++) cols.push(payCol(i));
     cols.push({ group: 'fin', key: 'addpay', label: L('Νέα δόση', 'New installment'), w: 104, align: 'center', get: () => '', display: (v) => `<button class="add-pay" data-addpay="${v.e.id}">${icon('plus')} ${esc(L('Δόση', 'Pay'))}</button>`, exportValue: () => '' });
-    cols.push({ group: 'fin', key: 'paidok', label: L('Εξόφληση OK', 'Paid OK'), w: 92, align: 'center', get: (v) => (v.fullyPaid ? L('Ναι', 'Yes') : L('Όχι', 'No')), display: (v) => v.price == null ? '<span class="muted">—</span>' : v.fullyPaid ? `<span class="pill green">✓ ${esc(L('Ναι', 'Yes'))}</span>` : esc(L('Όχι', 'No')) });
+    cols.push({ group: 'fin', key: 'paidok', label: L('Εξόφληση OK', 'Paid OK'), w: 92, align: 'center', get: (v) => (v.price == null ? '' : v.fullyPaid ? L('Ναι', 'Yes') : L('Όχι', 'No')), display: (v) => v.price == null ? '<span class="muted">—</span>' : v.fullyPaid ? `<span class="pill green">✓ ${esc(L('Ναι', 'Yes'))}</span>` : esc(L('Όχι', 'No')) });
   }
   add('photo', { key: 'pst', label: L('Κατάσταση Φωτογραφίες', 'Photos status'), w: 220, type: 'select', blank: false, options: PHOTO_STATUS, editable: true, get: (v) => v.e.photo_status, set: async (v, val) => { const before = v.e.editing_status; const u = await patchEvent(v.e.id, { photo_status: val }); if (u.editing_status !== before) toast(L('Το editing έγινε «Να γίνει» αυτόματα', 'Editing auto-set to “To do”'), { type: 'info' }); } });
   // Κατάσταση Editing = καθρέφτης της «Κατάστασης Βίντεο» του φύλλου Dimitris (αλλάζει μόνο αυτόματα)
@@ -162,10 +163,9 @@ function eventsSheet(body, tab, redraw) {
   if (cols[0]) cols[0].group = cols[1]?.group === 'basic' ? 'basic' : cols[0].group;
 
   const toggles = tab === 'main' ? `<div class="chips col-toggles scroll" style="margin-bottom:10px">${PRESETS.main.map((g) => `<button class="chip ${visible.has(g) ? 'on' : ''}" data-g="${g}"><i style="--g:${{ basic: '#3e4651', couple: '#3e4651', cat: '#2b5797', fin: '#7a1712', photo: '#2b5797', money: '#3f7a2b' }[g]}"></i>${esc(G[g].label)}</button>`).join('')}</div>` : '';
-  body.innerHTML = toolbar({ unpaid: true, months: false, cats: false, extra: `<button class="chip ${st.showCancelled ? 'on' : ''}" id="scx">${esc(L('Με ακυρωμένες', 'Include cancelled'))}</button><a class="btn small primary" href="#/new-event">${icon('plus')} ${esc(L('Εκδήλωση', 'Event'))}</a>` }) + toggles + '<div id="grid"></div>' +
+  body.innerHTML = toolbar({ months: false, cats: false, extra: `<a class="btn small primary" href="#/new-event">${icon('plus')} ${esc(L('Εκδήλωση', 'Event'))}</a>` }) + toggles + '<div id="grid"></div>' +
     `<div class="legend"><span><i style="background:var(--row-paid)"></i>${esc(L('Πλήρως εξοφλημένη (οι πληρωμές έφτασαν την αξία πακέτου)', 'Fully paid (payments reached package value)'))}</span><span>${esc(L('Διπλό κλικ ή Enter για επεξεργασία κελιού · στο κινητό ένα πάτημα', 'Double-click or Enter to edit a cell · tap on mobile'))}</span></div>`;
   bindToolbar(body, redraw);
-  body.querySelector('#scx')?.addEventListener('click', () => { st.showCancelled = !st.showCancelled; redraw(); });
   body.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => {
     const set = new Set(st.groups || PRESETS.main);
     if (set.has(b.dataset.g)) { if (set.size > 1) set.delete(b.dataset.g); } else set.add(b.dataset.g);
@@ -173,7 +173,7 @@ function eventsSheet(body, tab, redraw) {
   }));
   body.querySelector('#grid').dataset.tab = tab;
   renderGrid(body.querySelector('#grid'), cols, {
-    id: 'ev-' + tab, rows: views, filters: ['month', 'cat', 'res', 'pst', 'est'], rowKey: (v) => v.e.id, groups: G,
+    id: 'ev-' + tab, rows: views, filters: ['month', 'cat', 'res', 'pst', 'est', 'paidok'], rowKey: (v) => v.e.id, groups: G,
     rowClass: (v) => [v.fullyPaid ? 'paid' : '', v.e.status === 'cancelled' ? 'cancelled' : ''].join(' '),
     onEdit: async (v, c, val) => { await c.set(v, val); },
     empty: L('Δεν υπάρχουν εκδηλώσεις για αυτά τα φίλτρα.', 'No events for these filters.'),

@@ -7,6 +7,8 @@ import { L, esc, money, fmtDate, parseMoney, normTime, opt, sheet, toast, toastE
 const memory = {}; // id → { scrollLeft, scrollTop, sel: {rk, ck} }
 /** Καθαρίζει φίλτρα & ταξινόμηση ενός πίνακα (π.χ. σε κάθε νέα είσοδο στη σελίδα) */
 export function resetGridFilters(id) { if (memory[id]) { memory[id].filters = {}; memory[id].sort = null; } }
+/** Ξεκινά τον πίνακα με ένα συγκεκριμένο φίλτρο (π.χ. από σύνδεσμο της Αρχικής) */
+export function setGridFilter(id, key, vals) { const m = (memory[id] ||= { scrollLeft: 0, scrollTop: 0, sel: null }); m.filters = { [key]: vals }; m.sort = null; }
 /** Χρωματιστή ετικέτα επιλογής (tone: red, green, blue, yellow, orange, grey, solid-green, solid-red, ή CSS χρώμα μέσω o.color) */
 export const toneChip = (o, caret = true) => `<span class="tchip t-${esc(o.tone || 'grey')}${caret ? ' caret' : ''}"${o.color ? ` style="--tc:${esc(o.color)}"` : ''}>${esc(L(o.el, o.en))}</span>`;
 const coarse = () => window.matchMedia('(pointer: coarse)').matches;

@@ -10,7 +10,8 @@ export const RELEASES = [
   {
     v: '1.15.0', date: '15/11/2026',
     items: [
-      ['🔽', 'Φύλλα (Image Makers, Πελάτες, Πληρωμές, Φωτογραφίες & editing): φίλτρα όπως στο Excel στις στήλες Μήνας, Κατηγορία Εκδήλωσης, Ανάλυση, Κατάσταση Φωτογραφίες και Κατάσταση Editing. Αντικαθιστούν τις παλιές λίστες «Όλοι οι μήνες / Όλες οι κατηγορίες».', 'Sheets (Image Makers, Clients, Payments, Photos & editing): Excel-style filters on Month, Event category, Resolution, Photos status and Editing status. They replace the old “All months / All categories” lists.'],
+      ['🔽', 'Φύλλα (Image Makers, Πελάτες, Πληρωμές, Φωτογραφίες & editing): φίλτρα όπως στο Excel στις στήλες Μήνας, Κατηγορία Εκδήλωσης, Ανάλυση, Κατάσταση Φωτογραφίες, Κατάσταση Editing και Εξόφληση OK. Αντικαθιστούν τις παλιές λίστες «Όλοι οι μήνες / Όλες οι κατηγορίες».', 'Sheets (Image Makers, Clients, Payments, Photos & editing): Excel-style filters on Month, Event category, Resolution, Photos status and Editing status. They replace the old “All months / All categories” lists.'],
+      ['🧹', 'Αφαιρέθηκαν τα κουμπιά «Μόνο ανεξόφλητα» και «Με ακυρωμένες». Για τα ανεξόφλητα υπάρχει φίλτρο στη στήλη «Εξόφληση OK»· οι ακυρωμένες εκδηλώσεις φαίνονται στη λίστα Εκδηλώσεις.', 'Removed the “Unpaid only” and “Include cancelled” buttons. For unpaid use the “Paid OK” column filter; cancelled events are in the Events list.'],
       ['📅', 'Πρώτη στήλη ο Μήνας και μετά η Ημερομηνία.', 'Month is now the first column, then the Date.'],
       ['✨', 'Οι καρτέλες των φύλλων χωράνε σε μία γραμμή και τα κουμπιά ενοτήτων (Βασικά, Ζευγάρι, …) είναι πιο ελαφριά.', 'Sheet tabs fit on one line and the section buttons (Basics, Couple, …) are lighter.'],
     ],
