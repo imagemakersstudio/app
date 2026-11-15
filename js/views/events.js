@@ -99,7 +99,7 @@ export function renderEventDetail(root, { id }) {
         <h1>${esc(v.title)}</h1>
         <div class="when"><span>${icon('calendar')} ${esc(fmtRange(e, true))}${isMultiDay(e) ? ` · ${esc(L(`${dayCount(e)} ημέρες`, `${dayCount(e)} days`))}` : ''}</span>${e.event_time ? `<span>${icon('clock')} ${esc(fmtTime(e.event_time))}</span>` : `<span class="no-time">${icon('clock')} ${esc(L('Ώρα: δεν γνωρίζουμε ακόμη', 'Time: not known yet'))}</span>`}${where}</div>
       </div>
-      ${days >= 0 ? `<div class="countdown2"><b>${days === 0 ? '' : days}</b><small>${esc(days === 0 ? L('σήμερα', 'today') : days === 1 ? L('ημέρα ακόμη', 'day to go') : L('ημέρες ακόμη', 'days to go'))}</small></div>` : `<div class="countdown2 done"><small>${esc(L('έγινε', 'done'))}</small></div>`}
+      ${days >= 0 ? `<div class="countdown2">${days > 1 ? `<small>${esc(L('σε', 'in'))}</small>` : ''}<b>${days <= 1 ? '' : days}</b><small>${esc(days === 0 ? L('σήμερα', 'today') : days === 1 ? L('αύριο', 'tomorrow') : L('ημέρες', 'days'))}</small></div>` : `<div class="countdown2 done"><small>${esc(L('έγινε', 'done'))}</small></div>`}
     </div>
     <div class="quick-actions qa2">
       ${phone ? `<a class="qa" href="${telUrl(phone)}">${icon('phone')}<span>${esc(L('Κλήση', 'Call'))}</span></a>${admin ? `<a class="qa" href="${smsUrl(phone)}">${icon('sms')}<span>SMS</span></a>` : ''}` : ''}

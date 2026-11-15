@@ -110,8 +110,8 @@ export function renderWorkflow(root) {
       <div class="wf-head"><span>${esc(L('Μήνας', 'Month'))}</span><span>${esc(L('Ημερομηνία', 'Date'))}</span><span>${esc(L('Κατηγορία', 'Category'))}</span><span>${esc(L('Όνομα', 'Name'))}</span><span>${esc(L('Τοποθεσία', 'Location'))}</span><span>${esc(L('Κατάσταση Φωτογραφιών', 'Photos status'))}</span><span>${esc(L('Κατάσταση Video', 'Video status'))}</span><span></span></div>
       ${rows.map(({ v, level, days, rule }) => {
         const sent = S.queue.filter((m) => m.event_id === v.e.id && m.status === 'sent').sort((a, b) => String(b.sent_at).localeCompare(String(a.sent_at)))[0];
-        // πράσινη = έτοιμη: φωτογραφίες «Έτοιμα προς παραλαβή» ή «Παραδόθηκαν» και βίντεο «έτοιμο» (ό,τι δεν καλύπτεται δεν μετράει)
-        const ready = (v.e.coverage === 'video' || ['ready', 'delivered'].includes(v.e.photo_status)) && (v.e.coverage === 'photo' || v.e.video_status === 'ready');
+        // πράσινη = έτοιμη: φωτογραφίες «Παραδόθηκαν στον πελάτη» και βίντεο «έτοιμο» (ό,τι δεν καλύπτεται δεν μετράει)
+        const ready = (v.e.coverage === 'video' || v.e.photo_status === 'delivered') && (v.e.coverage === 'photo' || v.e.video_status === 'ready');
         return `<div class="wf-row ${ready ? 'ready' : level}" data-id="${v.e.id}">
         <span class="wf-month">${esc(monthUp(v.e.event_date))}</span>
         <span class="wf-date"><b>${esc(fmtDate(v.e.event_date))}</b></span>
@@ -124,7 +124,7 @@ export function renderWorkflow(root) {
       </div>`;
       }).join('')}
     </div>
-    <div class="legend"><span><i style="background:var(--wf-warn)"></i>${esc(L('Πορτοκαλί: αργεί να περάσει στο επόμενο στάδιο', 'Orange: slow to move to the next stage'))}</span><span><i style="background:var(--wf-late)"></i>${esc(L('Κόκκινο: μεγάλη καθυστέρηση', 'Red: long delay'))}</span><span><i style="background:var(--wf-ready)"></i>${esc(L('Πράσινο: έτοιμη (φωτογραφίες έτοιμες/παραδόθηκαν και βίντεο έτοιμο)', 'Green: ready (photos ready/delivered and video ready)'))}</span><span>${esc(L('Τα χρώματα είναι μόνο προειδοποίηση· δεν αλλάζουν τίποτα.', 'Colours are warnings only; they change nothing.'))}</span></div>
+    <div class="legend"><span><i style="background:var(--wf-warn)"></i>${esc(L('Πορτοκαλί: αργεί να περάσει στο επόμενο στάδιο', 'Orange: slow to move to the next stage'))}</span><span><i style="background:var(--wf-late)"></i>${esc(L('Κόκκινο: μεγάλη καθυστέρηση', 'Red: long delay'))}</span><span><i style="background:var(--wf-ready)"></i>${esc(L('Πράσινο: ολοκληρώθηκε (φωτογραφίες παραδόθηκαν και βίντεο έτοιμο)', 'Green: completed (photos delivered and video ready)'))}</span><span>${esc(L('Τα χρώματα είναι μόνο προειδοποίηση· δεν αλλάζουν τίποτα.', 'Colours are warnings only; they change nothing.'))}</span></div>
     <div class="card pad mt small muted" style="line-height:1.7">${esc(L('Κανόνες: «Να γίνουν δείγματα» 25 / 35 ημέρες μετά την εκδήλωση · «Έλαβαν δείγματα και περιμένουμε» 20 / 35 ημέρες χωρίς να πάει στις «Αλλαγές» · «Αλλαγές» 20 / 30 ημέρες χωρίς να πάει για εκτύπωση · «Έτοιμα προς παραλαβή» 7 / 14 ημέρες (πορτοκαλί / κόκκινο).', 'Rules: “Samples to be made” 25 / 35 days after the event · “Client has samples” 20 / 35 days without moving to “Changes” · “Changes” 20 / 30 days without going to print · “Ready for pickup” 7 / 14 days (orange / red).'))}</div>`;
   }
   root.innerHTML = html;

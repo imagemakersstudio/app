@@ -10,8 +10,8 @@ export const RELEASES = [
   {
     v: '1.15.2', date: '15/11/2026',
     items: [
-      ['🏠', 'Αρχική: η επόμενη εκδήλωση γράφει «σε 5 ημέρες». Το Ταμείο του μήνα δείχνει δίπλα-δίπλα εισπράξεις (πράσινο) και έξοδα (κόκκινο) και από κάτω τα καθαρά. Έφυγε το υπόμνημα χρωμάτων κάτω από την εβδομάδα.', 'Home: the next event says “in 5 days”. Month cash shows income (green) and expenses (red) side by side with net below. The colour legend under the week is gone.'],
-      ['🗂️', 'Κατάσταση εργασιών: ανοίγει πάντα στο «Όλες», έχει στήλη Κατηγορία, και οι εκδηλώσεις που είναι έτοιμες (φωτογραφίες έτοιμες/παραδόθηκαν και βίντεο έτοιμο) φαίνονται πράσινες.', 'Work status: always opens on “All”, has a Category column, and ready events (photos ready/delivered and video ready) show in green.'],
+      ['🏠', 'Αρχική και καρτέλα εκδήλωσης: γράφει «σε 5 ημέρες» αντί για «5 ημέρες ακόμη». Το Ταμείο του μήνα δείχνει δίπλα-δίπλα εισπράξεις (πράσινο) και έξοδα (κόκκινο) και από κάτω τα καθαρά. Έφυγε το υπόμνημα χρωμάτων κάτω από την εβδομάδα.', 'Home: the next event says “in 5 days”. Month cash shows income (green) and expenses (red) side by side with net below. The colour legend under the week is gone.'],
+      ['🗂️', 'Κατάσταση εργασιών: ανοίγει πάντα στο «Όλες», έχει στήλη Κατηγορία, και οι εκδηλώσεις που ολοκληρώθηκαν (φωτογραφίες παραδόθηκαν και βίντεο έτοιμο) φαίνονται πράσινες.', 'Work status: always opens on “All”, has a Category column, and completed events (photos delivered and video ready) show in green.'],
     ],
   },
   {
