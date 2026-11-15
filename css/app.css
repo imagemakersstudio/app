@@ -1703,3 +1703,5 @@ button.mp-r:hover { background: var(--fill-2); }
 .wh-wrap.is-empty .wh-hours { visibility: hidden; }
 .wh-wrap.is-empty .wh-emptymsg { top: auto; bottom: 34px; transform: none; }
 .wh-emptymsg span.wh-em { background: var(--bg-grouped); padding: 6px 14px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 0 0 1px var(--sep); }
+.wk-card.wk-none { display: flex; align-items: center; gap: 8px; color: var(--label-2); font-weight: 600; font-size: 14px; }
+.wk-card.wk-none .ic { width: 18px; height: 18px; color: var(--green); flex: none; }

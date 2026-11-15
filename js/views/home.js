@@ -60,17 +60,34 @@ function wkRow(x) {
  *  Στην τρέχουσα εβδομάδα οι ημέρες που πέρασαν δεν εμφανίζονται. */
 function weekList(monday, ctx, today, hidePast) {
   const dows = LANG === 'en' ? DOW_SHORT_EN : DOW_SHORT_EL;
-  const cards = [...Array(7).keys()].map((i) => {
+  const out = [];
+  let free = []; // συνεχόμενες ελεύθερες ημέρες → μία μικρή γραμμή
+  const flush = () => {
+    if (!free.length) return;
+    const a = free[0], b = free[free.length - 1];
+    const lab = (x) => `${dows[x.i]} ${parseISO(x.day).getDate()}`;
+    const txt = free.length === 1 ? `${lab(a)}${a.tag}` : `${lab(a)} – ${lab(b)}`;
+    out.push(`<div class="wk-card free ${free.length === 1 ? a.st : ''}"><div class="wk-dh">${esc(txt)}</div><span class="wk-free">${esc(free.length === 1 ? L('ελεύθερη', 'free') : L('ελεύθερες', 'free'))}</span></div>`);
+    free = [];
+  };
+  let shown = 0, busy = 0;
+  [...Array(7).keys()].forEach((i) => {
     const day = addDays(monday, i);
-    if (hidePast && day < today) return '';
+    if (hidePast && day < today) return;
+    shown++;
     const items = dayItems(day, ctx);
     const st = day < today ? 'past' : day === today ? 'today' : day === addDays(today, 1) ? 'tomorrow' : '';
     const tag = st === 'today' ? ` · ${L('σήμερα', 'today')}` : st === 'tomorrow' ? ` · ${L('αύριο', 'tomorrow')}` : '';
-    const dh = `<div class="wk-dh">${esc(dows[i])} ${parseISO(day).getDate()}${esc(tag)}</div>`;
-    if (!items.length) return `<div class="wk-card free ${st}">${dh}<span class="wk-free">${esc(L('ελεύθερη', 'free'))}</span></div>`;
-    return `<div class="wk-card ${st}">${dh}${items.map(wkRow).join('')}</div>`;
-  }).join('');
-  return `<div class="wk-list">${cards}</div>`;
+    if (!items.length) {
+      if (st === 'today') { flush(); free.push({ i, day, st, tag }); flush(); } else free.push({ i, day, st, tag });
+      return;
+    }
+    flush(); busy++;
+    out.push(`<div class="wk-card ${st}"><div class="wk-dh">${esc(dows[i])} ${parseISO(day).getDate()}${esc(tag)}</div>${items.map(wkRow).join('')}</div>`);
+  });
+  if (shown && !busy) return `<div class="wk-list"><div class="wk-card free wk-none">${icon('checkCircle')}<span>${esc(L('Δεν υπάρχει τίποτα προγραμματισμένο αυτή την εβδομάδα.', 'Nothing scheduled this week.'))}</span></div></div>`;
+  flush();
+  return `<div class="wk-list">${out.join('')}</div>`;
 }
 /** Η εβδομάδα με ώρες (υπολογιστής): μία στήλη ανά ημέρα, κάθε στοιχείο ένα χρωματιστό
  *  μπλοκ στην ώρα του. Ό,τι δεν έχει ώρα (απουσίες, σημειώσεις χωρίς ώρα, συνέχεια
