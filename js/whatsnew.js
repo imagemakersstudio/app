@@ -8,6 +8,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.12.0', date: '15/11/2026',
+    items: [
+      ['🗓️', 'Αρχική (υπολογιστής): η εβδομάδα εμφανίζεται πλέον με ώρες — μία στήλη για κάθε μέρα και κάθε υπόθεση ένα χρωματιστό μπλοκ στην ώρα της. Ό,τι δεν έχει ώρα (π.χ. απουσίες) μπαίνει στη γραμμή «όλη μέρα» επάνω. Μια κόκκινη γραμμή δείχνει την τρέχουσα ώρα.', 'Home (computer): the week now shows with hours — one column per day and each item as a coloured block at its time. Items without a time (e.g. absences) go in the “all day” row on top. A red line marks the current time.'],
+      ['📱', 'Στο κινητό η εβδομάδα μένει ως λίστα ανά ημέρα, που διαβάζεται πιο εύκολα σε μικρή οθόνη.', 'On phones the week stays as a list per day, easier to read on a small screen.'],
+    ],
+  },
+  {
     v: '1.11.1', date: '15/11/2026',
     items: [
       ['📅', 'Αρχική: η εβδομάδα εμφανίζεται πλέον ως κάρτες ανά ημέρα, με όλες τις λεπτομέρειες (τι, ποιος, ώρα). Οι ημέρες που πέρασαν δεν εμφανίζονται.', 'Home: the week now shows as one card per day with all details (what, who, time). Past days are hidden.'],

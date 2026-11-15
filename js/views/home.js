@@ -73,6 +73,51 @@ function weekList(monday, ctx, today, hidePast) {
   }).join('');
   return `<div class="wk-list">${cards}</div>`;
 }
+/** Η εβδομάδα με ώρες (υπολογιστής): μία στήλη ανά ημέρα, κάθε στοιχείο ένα χρωματιστό
+ *  μπλοκ στην ώρα του. Ό,τι δεν έχει ώρα (απουσίες, σημειώσεις χωρίς ώρα, συνέχεια
+ *  πολυήμερων) μπαίνει στη γραμμή «όλη μέρα» επάνω. Δεν υπάρχει ώρα λήξης στη βάση,
+ *  οπότε η διάρκεια είναι ενδεικτική (εκδήλωση 3 ώρες, τα υπόλοιπα 1 ώρα). */
+const DUR = { ev: 180, sess: 120, appt: 60, meet: 60, note: 60 };
+const HPX = 50; // ύψος μίας ώρας σε pixels
+const toMin = (t) => { const [a, b] = t.split(':').map(Number); return a * 60 + (b || 0); };
+function weekHours(monday, ctx, today) {
+  const dows = LANG === 'en' ? DOW_SHORT_EN : DOW_SHORT_EL;
+  const days = [...Array(7).keys()].map((i) => { const day = addDays(monday, i); return { i, day, items: dayItems(day, ctx) }; });
+  let h0 = 9, h1 = 21;
+  days.forEach((d) => d.items.forEach((x) => { if (!x.t) return; const m = toMin(x.t); h0 = Math.min(h0, Math.floor(m / 60)); h1 = Math.max(h1, Math.min(24, Math.ceil((m + DUR[x.k]) / 60))); }));
+  const hours = [...Array(h1 - h0).keys()].map((k) => h0 + k);
+  const attrs = (x) => (x.href ? `href="${x.href}"` : `href="#" data-act="${x.act}"`);
+  const color = (x) => (x.k === 'ev' ? `var(--cat-${x.cat})` : `var(--wh-${x.k})`);
+  const tip = (x) => esc([x.t, x.text, x.sub].filter(Boolean).join(' · '));
+  const anyAllDay = days.some((d) => d.items.some((x) => !x.t));
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  const cols = days.map((d) => {
+    const st = d.day < today ? 'past' : d.day === today ? 'today' : '';
+    const timed = d.items.filter((x) => x.t).map((x) => ({ x, s: toMin(x.t), e: Math.min(24 * 60, toMin(x.t) + DUR[x.k]) })).sort((a, b) => a.s - b.s);
+    // επικαλύψεις: ομάδες που αλληλεπικαλύπτονται, και μέσα σε κάθε ομάδα «λωρίδες» δίπλα-δίπλα
+    let group = [], groupEnd = -1;
+    const flush = () => { const n = Math.max(...group.map((g) => g.lane)) + 1; group.forEach((g) => { g.n = n; }); group = []; };
+    timed.forEach((b) => {
+      if (group.length && b.s >= groupEnd) flush();
+      const used = new Set(group.filter((g) => g.e > b.s).map((g) => g.lane));
+      let lane = 0; while (used.has(lane)) lane++;
+      b.lane = lane; group.push(b); groupEnd = Math.max(groupEnd, b.e);
+    });
+    if (group.length) flush();
+    const blocks = timed.map((b) => {
+      const top = ((b.s - h0 * 60) / 60) * HPX, hgt = Math.max(24, ((b.e - b.s) / 60) * HPX - 3);
+      const cls = b.x.k === 'ev' || b.x.k === 'meet' || b.x.k === 'sess' ? 'solid' : `soft wh-${b.x.k}`;
+      return `<a class="wh-blk ${cls}${hgt < 70 ? ' short' : ''}" ${attrs(b.x)} title="${tip(b.x)}" style="--c:${color(b.x)};top:${top}px;height:${hgt}px;left:calc(${(100 / b.n) * b.lane}% + 2px);width:calc(${100 / b.n}% - 4px)">
+        <span class="wh-h">${icon(b.x.ic)}${esc(b.x.t)}</span><span class="wh-t">${esc(b.x.text)}</span>${b.x.sub ? `<span class="wh-s">${esc(b.x.sub)}</span>` : ''}</a>`;
+    }).join('');
+    const nowLine = d.day === today && nowMin >= h0 * 60 && nowMin <= h1 * 60 ? `<div class="wh-now" style="top:${((nowMin - h0 * 60) / 60) * HPX}px"></div>` : '';
+    const allDay = d.items.filter((x) => !x.t).map((x) => `<a class="wh-chip ${x.k === 'ev' ? 'solid' : `soft wh-${x.k}`}" ${attrs(x)} title="${tip(x)}" style="--c:${color(x)}">${icon(x.ic)}<span>${esc(x.k === 'ev' ? (x.sub || x.text) : x.text)}</span></a>`).join('');
+    return { st, d, allDay, body: `<div class="wh-col ${st}">${hours.map(() => '<div class="wh-cell"></div>').join('')}${blocks}${nowLine}</div>` };
+  });
+  const head = cols.map(({ st, d }) => `<div class="wh-dh ${st}"><span>${esc(dows[d.i])}</span><b>${parseISO(d.day).getDate()}</b></div>`).join('');
+  const allRow = anyAllDay ? `<div class="wh-lab wh-alllab">${esc(L('όλη μέρα', 'all day'))}</div>${cols.map((c) => `<div class="wh-all ${c.st}">${c.allDay}</div>`).join('')}` : '';
+  return `<div class="wh-wrap"><div class="wh-grid"><div></div>${head}${allRow}<div class="wh-hours">${hours.map((x) => `<div class="wh-lab">${String(x).padStart(2, '0')}:00</div>`).join('')}</div>${cols.map((c) => c.body).join('')}</div></div>`;
+}
 const rangeTxt = (monday) => {
   const a = parseISO(monday), b = parseISO(addDays(monday, 6));
   return a.getMonth() === b.getMonth() ? `${a.getDate()} – ${b.getDate()} ${monthOf(b.getMonth())}` : `${a.getDate()} ${monthOf(a.getMonth())} – ${b.getDate()} ${monthOf(b.getMonth())}`;
@@ -158,14 +203,14 @@ export function renderHome(root) {
   const wkTitle = weekOffset === 0 ? L('Αυτή η εβδομάδα', 'This week') : weekOffset === 1 ? L('Επόμενη εβδομάδα', 'Next week') : weekOffset === -1 ? L('Προηγούμενη εβδομάδα', 'Last week') : L('Εβδομάδα', 'Week');
   html += `<div class="h-sec"><div class="h-sec-l">${bub('calendar', 'var(--accent)')}<h2>${esc(wkTitle)}</h2><span class="h-sec-sub">${esc(rangeTxt(monday))}</span></div>
     <div class="h-sec-r">${weekOffset !== 0 ? `<button class="btn small plain" data-wk="0">${esc(L('Σήμερα', 'Today'))}</button>` : ''}<button class="h-round" data-wk="-1" aria-label="${esc(L('Προηγούμενη εβδομάδα', 'Previous week'))}">${icon('chevL')}</button><button class="h-round" data-wk="1" aria-label="${esc(L('Επόμενη εβδομάδα', 'Next week'))}">${icon('chevR')}</button><a href="#/calendar" class="h-link">${esc(L('Ημερολόγιο', 'Calendar'))} ${icon('chevR')}</a></div></div>`;
-  html += weekList(monday, ctx, today, weekOffset === 0);
+  html += weekHours(monday, ctx, today) + weekList(monday, ctx, today, weekOffset === 0);
   if (isSunday && weekOffset === 0) {
     const nm = addDays(thisMonday, 7);
     html += `<div class="h-sub2"><h3>${esc(L('Επόμενη εβδομάδα', 'Next week'))}</h3><span class="h-sec-sub">${esc(rangeTxt(nm))}</span><span class="h-tag">${icon('sparkles')} ${esc(L('εμφανίζεται μόνο την Κυριακή', 'shown on Sundays only'))}</span></div>`;
-    html += weekList(nm, ctx, today, false);
+    html += weekHours(nm, ctx, today) + weekList(nm, ctx, today, false);
   }
   const lg = (c, t) => `<span><i style="background:${c}"></i>${esc(t)}</span>`;
-  html += `<div class="wk-legend">${lg('var(--cat-wedding)', L('Γάμος', 'Wedding'))}${lg('var(--cat-baptism)', L('Βάπτιση', 'Baptism'))}${lg('var(--cat-wedding_baptism)', L('Γάμος + Βάπτιση', 'Wedding + Baptism'))}${lg('var(--cat-promo)', L('Διαφημιστικό', 'Promo'))}${admin ? lg('#f2cf55', L('Ραντεβού', 'Appointment')) : ''}${lg('rgba(142,91,214,.35)', 'Meeting')}${lg('#f4b4ae', L('Απουσία', 'Away'))}</div>`;
+  html += `<div class="wk-legend">${lg('var(--cat-wedding)', L('Γάμος', 'Wedding'))}${lg('var(--cat-baptism)', L('Βάπτιση', 'Baptism'))}${lg('var(--cat-wedding_baptism)', L('Γάμος + Βάπτιση', 'Wedding + Baptism'))}${lg('var(--cat-promo)', L('Διαφημιστικό', 'Promo'))}${admin ? lg('#f2cf55', L('Ραντεβού', 'Appointment')) : ''}${lg('var(--wh-meet)', 'Meeting')}${lg('#f4b4ae', L('Απουσία', 'Away'))}</div>`;
   if (admin) html += `<div class="home-mob-actions"><div class="h-sec"><div class="h-sec-l">${bub('plus', 'var(--accent)')}<h2>${esc(L('Γρήγορες ενέργειες', 'Quick actions'))}</h2></div></div>${actBtns('mob')}</div>`;
 
   if (admin) {
