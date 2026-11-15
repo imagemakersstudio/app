@@ -1751,3 +1751,8 @@ button.mp-r:hover { background: var(--fill-2); }
 :root[data-theme="dark"] .col-toggles .chip.on { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--g) 60%, #fff); }
 :root[data-theme="dark"] .col-toggles .chip i { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--g) 60%, #fff); }
 :root[data-theme="dark"] .col-toggles .chip.on i { background: color-mix(in srgb, var(--g) 60%, #fff); }
+/* v1.15.1: πολλές καρφιτσωμένες στήλες — διαχωριστική σκιά μόνο στην τελευταία */
+.xl td.sticky:not(.pin-last), .xl thead th.sticky:not(.pin-last) { box-shadow: none; }
+.xl td.sticky.pin-last, .xl thead th.sticky.pin-last { box-shadow: 2px 0 0 var(--sep-strong), 6px 0 8px -6px rgba(0,0,0,.18); }
+.xl tfoot td.sticky { z-index: 3; }
+@media (min-width: 900px) { .sheet-tabs { flex-wrap: nowrap; } }
