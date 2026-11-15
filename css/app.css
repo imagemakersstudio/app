@@ -1600,3 +1600,39 @@ button.mp-r:hover { background: var(--fill-2); }
   .wk-card.free .wk-free { margin: 0; }
   .wk-card.free .wk-free::before { content: '· '; }
 }
+
+/* ---------- Εβδομάδα με ώρες στην Αρχική (v1.12.0) ---------- */
+:root { --wh-appt: #e0a800; --wh-meet: #8e5bd6; --wh-sess: #2f86d6; --wh-abs: #e2665c; --wh-note: #8a8a8e; }
+.wh-wrap { display: none; background: var(--bg-grouped); border-radius: 18px; box-shadow: var(--shadow-sm); padding: 14px 16px 16px 8px; }
+@media (min-width: 901px) { .wh-wrap { display: block; } .wh-wrap + .wk-list { display: none; } }
+.wh-grid { display: grid; grid-template-columns: 52px repeat(7, minmax(0, 1fr)); }
+.wh-dh { text-align: center; padding-bottom: 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.wh-dh span { font-size: 12px; font-weight: 650; color: var(--label-2); text-transform: uppercase; letter-spacing: .03em; }
+.wh-dh b { font-size: 18px; font-weight: 750; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; }
+.wh-dh.today b { background: var(--accent); color: var(--on-accent, #fff); }
+.wh-dh.today span { color: var(--accent); }
+.wh-dh.past { opacity: .5; }
+.wh-lab { height: 50px; font-size: 11px; color: var(--label-3); text-align: right; padding-right: 8px; transform: translateY(-7px); font-variant-numeric: tabular-nums; }
+.wh-alllab { height: auto; transform: none; padding-top: 8px; font-size: 10.5px; white-space: nowrap; }
+.wh-hours .wh-lab:first-child { transform: translateY(-1px); }
+.wh-all { border-left: 1px solid var(--sep); border-bottom: 1px solid var(--sep); padding: 3px; display: flex; flex-direction: column; gap: 3px; min-height: 30px; }
+.wh-all.past, .wh-col.past { background: var(--fill-2); }
+.wh-all.past > *, .wh-col.past > .wh-blk { opacity: .55; }
+.wh-col { position: relative; border-left: 1px solid var(--sep); }
+.wh-col.today { background: var(--accent-soft); }
+.wh-cell { height: 50px; border-top: 1px solid var(--sep); }
+.wh-chip, .wh-blk { display: flex; border-radius: 8px; overflow: hidden; color: #fff; background: var(--c); min-width: 0; }
+.wh-chip { align-items: center; gap: 5px; padding: 3px 6px; font-size: 11.5px; font-weight: 650; }
+.wh-chip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wh-chip .ic, .wh-blk .ic { width: 13px; height: 13px; flex: none; }
+.wh-blk { position: absolute; flex-direction: column; padding: 4px 7px; font-size: 11.5px; line-height: 1.25; box-shadow: 0 0 0 1.5px var(--bg-grouped); }
+.wh-blk:hover, .wh-chip:hover { filter: brightness(1.06); z-index: 2; }
+.wh-blk .wh-h { display: flex; gap: 4px; align-items: center; font-weight: 750; font-size: 11px; opacity: .92; }
+.wh-blk .wh-t { font-weight: 700; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.wh-blk .wh-s { opacity: .9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wh-blk.soft, .wh-chip.soft { background: color-mix(in srgb, var(--c) 18%, var(--bg-grouped)); color: var(--label); border-left: 3px solid var(--c); }
+.wh-blk.soft .ic, .wh-chip.soft .ic { color: var(--c); }
+.wh-now { position: absolute; left: -1px; right: 0; height: 2px; background: var(--red); z-index: 3; pointer-events: none; }
+.wh-now::before { content: ''; position: absolute; left: -4px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); }
+.wh-blk.short .wh-t { display: block; white-space: nowrap; text-overflow: ellipsis; }
+.wh-blk.short .wh-s { display: none; }
