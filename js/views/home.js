@@ -49,23 +49,29 @@ function dayItems(day, ctx) {
   return out.sort((a, b) => (a.k === 'abs') - (b.k === 'abs') || (a.t || '99').localeCompare(b.t || '99'));
 }
 
-/** Ετικέτα στοιχείου (ημέρα της εβδομάδας) */
-function chip(x) {
+/** Γραμμή στοιχείου μέσα στην κάρτα της ημέρας: εικονίδιο · τι · ποιος · ώρα */
+function wkRow(x) {
   const cls = x.k === 'ev' ? `wk-ev cat-${x.cat}` : `wk-${x.k}`;
-  const label = `${x.t ? x.t + ' ' : ''}${x.text}`;
   const attrs = x.href ? `href="${x.href}"` : `href="#" data-act="${x.act}"`;
-  return `<a class="wk-chip ${cls}" ${attrs} title="${esc([label, x.sub].filter(Boolean).join(' · '))}">${icon(x.ic)}<span>${esc(label)}</span></a>`;
+  const time = x.t || (x.k === 'abs' ? L('όλη μέρα', 'all day') : '');
+  return `<a class="wk-row ${cls}" ${attrs}>${icon(x.ic)}<div class="main-col"><div class="t">${esc(x.text)}</div>${x.sub ? `<div class="s">${esc(x.sub)}</div>` : ''}</div>${time ? `<b>${esc(time)}</b>` : ''}</a>`;
 }
 
-function weekGrid(monday, ctx, today) {
+/** Η εβδομάδα ως λίστα καρτών ανά ημέρα (3 στήλες στον υπολογιστή, 1 στο κινητό).
+ *  Στην τρέχουσα εβδομάδα οι ημέρες που πέρασαν δεν εμφανίζονται. */
+function weekList(monday, ctx, today, hidePast) {
   const dows = LANG === 'en' ? DOW_SHORT_EN : DOW_SHORT_EL;
-  return `<div class="wk-grid">${[...Array(7).keys()].map((i) => {
+  const cards = [...Array(7).keys()].map((i) => {
     const day = addDays(monday, i);
+    if (hidePast && day < today) return '';
     const items = dayItems(day, ctx);
     const st = day < today ? 'past' : day === today ? 'today' : day === addDays(today, 1) ? 'tomorrow' : '';
     const tag = st === 'today' ? ` · ${L('σήμερα', 'today')}` : st === 'tomorrow' ? ` · ${L('αύριο', 'tomorrow')}` : '';
-    return `<div class="wk-day ${st}"><div class="wk-dh">${esc(dows[i])} ${parseISO(day).getDate()}${esc(tag)}</div>${items.map(chip).join('') || `<div class="wk-free">${esc(L('ελεύθερη', 'free'))}</div>`}</div>`;
-  }).join('')}</div>`;
+    const dh = `<div class="wk-dh">${esc(dows[i])} ${parseISO(day).getDate()}${esc(tag)}</div>`;
+    if (!items.length) return `<div class="wk-card free ${st}">${dh}<span class="wk-free">${esc(L('ελεύθερη', 'free'))}</span></div>`;
+    return `<div class="wk-card ${st}">${dh}${items.map(wkRow).join('')}</div>`;
+  }).join('');
+  return `<div class="wk-list">${cards}</div>`;
 }
 const rangeTxt = (monday) => {
   const a = parseISO(monday), b = parseISO(addDays(monday, 6));
@@ -124,7 +130,7 @@ export function renderHome(root) {
     };
     const eyebrow = (n) => `<div class="eyebrow">${icon('events')} ${esc(n > 1 ? (admin ? L(`Επόμενες εκδηλώσεις · ${n}`, `Next events · ${n}`) : L(`Οι επόμενες εκδηλώσεις σου · ${n}`, `Your next events · ${n}`)) : (admin ? L('Επόμενη εκδήλωση', 'Next event') : L('Η επόμενη εκδήλωσή σου', 'Your next event')))}</div>`;
     if (group.length === 1) {
-      hero = `<a class="hero-card" href="#/event/${next.e.id}">${count}${eyebrow(1)}<h2>${big(next)}</h2>${meta(next, true)}<div class="hero-wx" data-wx="${next.e.id}" hidden></div>${pills(next)}</a>`;
+      hero = `<a class="hero-card" href="#/event/${next.e.id}"><div class="hero-top">${eyebrow(1)}${count}</div><h2>${big(next)}</h2>${meta(next, true)}<div class="hero-wx" data-wx="${next.e.id}" hidden></div>${pills(next)}</a>`;
     } else {
       let lastDate = '';
       const items = group.map((v) => {
@@ -132,7 +138,7 @@ export function renderHome(root) {
         lastDate = v.e.event_date;
         return `${head}<a class="hero-item" href="#/event/${v.e.id}"><h3>${big(v)}</h3>${meta(v, isMultiDay(v.e))}<div class="hero-wx" data-wx="${v.e.id}" hidden></div>${pills(v)}</a>`;
       }).join('');
-      hero = `<div class="hero-card multi">${count}${eyebrow(group.length)}<div class="hero-list">${items}</div></div>`;
+      hero = `<div class="hero-card multi"><div class="hero-top">${eyebrow(group.length)}${count}</div><div class="hero-list">${items}</div></div>`;
     }
   } else {
     hero = `<div class="hero-card"><div class="eyebrow">${icon('events')} Image Makers</div><h2>${esc(admin ? L('Δεν υπάρχουν προγραμματισμένες εκδηλώσεις', 'No upcoming events') : L('Δεν σου έχει ανατεθεί ακόμη εκδήλωση', 'No events assigned to you yet'))}</h2></div>`;
@@ -143,7 +149,7 @@ export function renderHome(root) {
     const attrs = x.href ? `href="${x.href}"` : `href="#" data-act="${x.act}"`;
     return `<a class="t-item" ${attrs} style="--soft:${soft}">${bub(x.ic, x.k === 'ev' ? `var(--cat-${x.cat})` : c)}<div class="main-col"><div class="t">${esc(x.text)}</div>${x.sub ? `<div class="s">${esc(x.sub)}</div>` : ''}</div><b class="t-time">${esc(x.t || (x.k === 'abs' ? L('όλη μέρα', 'all day') : ''))}</b></a>`;
   };
-  const todayCard = `<div class="today-card"><div class="today-h">${icon('sun')} ${esc(L('Σήμερα', 'Today'))}</div>${todayList.map(todayRow).join('') || `<div class="today-empty">${icon('checkCircle')}<span>${esc(L('Τίποτα για σήμερα. Καλή ξεκούραση!', 'Nothing for today. Enjoy!'))}</span></div>`}</div>`;
+  const todayCard = `<div class="today-card"><div class="today-h">${icon('sun')} ${esc(L('Σήμερα', 'Today'))}</div>${todayList.map(todayRow).join('') || `<div class="today-empty">${icon('checkCircle')}<span>${esc(L('Δεν υπάρχει κάτι προγραμματισμένο για σήμερα.', 'Nothing scheduled for today.'))}</span></div>`}</div>`;
   html += `<div class="home-top">${hero}${todayCard}</div>`;
 
   // ---------- Εβδομάδα (Δευτέρα → Κυριακή) · την Κυριακή και η επόμενη από κάτω
@@ -152,11 +158,11 @@ export function renderHome(root) {
   const wkTitle = weekOffset === 0 ? L('Αυτή η εβδομάδα', 'This week') : weekOffset === 1 ? L('Επόμενη εβδομάδα', 'Next week') : weekOffset === -1 ? L('Προηγούμενη εβδομάδα', 'Last week') : L('Εβδομάδα', 'Week');
   html += `<div class="h-sec"><div class="h-sec-l">${bub('calendar', 'var(--accent)')}<h2>${esc(wkTitle)}</h2><span class="h-sec-sub">${esc(rangeTxt(monday))}</span></div>
     <div class="h-sec-r">${weekOffset !== 0 ? `<button class="btn small plain" data-wk="0">${esc(L('Σήμερα', 'Today'))}</button>` : ''}<button class="h-round" data-wk="-1" aria-label="${esc(L('Προηγούμενη εβδομάδα', 'Previous week'))}">${icon('chevL')}</button><button class="h-round" data-wk="1" aria-label="${esc(L('Επόμενη εβδομάδα', 'Next week'))}">${icon('chevR')}</button><a href="#/calendar" class="h-link">${esc(L('Ημερολόγιο', 'Calendar'))} ${icon('chevR')}</a></div></div>`;
-  html += `<div class="wk-scroll">${weekGrid(monday, ctx, today)}</div>`;
+  html += weekList(monday, ctx, today, weekOffset === 0);
   if (isSunday && weekOffset === 0) {
     const nm = addDays(thisMonday, 7);
     html += `<div class="h-sub2"><h3>${esc(L('Επόμενη εβδομάδα', 'Next week'))}</h3><span class="h-sec-sub">${esc(rangeTxt(nm))}</span><span class="h-tag">${icon('sparkles')} ${esc(L('εμφανίζεται μόνο την Κυριακή', 'shown on Sundays only'))}</span></div>`;
-    html += `<div class="wk-scroll">${weekGrid(nm, ctx, today)}</div>`;
+    html += weekList(nm, ctx, today, false);
   }
   const lg = (c, t) => `<span><i style="background:${c}"></i>${esc(t)}</span>`;
   html += `<div class="wk-legend">${lg('var(--cat-wedding)', L('Γάμος', 'Wedding'))}${lg('var(--cat-baptism)', L('Βάπτιση', 'Baptism'))}${lg('var(--cat-wedding_baptism)', L('Γάμος + Βάπτιση', 'Wedding + Baptism'))}${lg('var(--cat-promo)', L('Διαφημιστικό', 'Promo'))}${admin ? lg('#f2cf55', L('Ραντεβού', 'Appointment')) : ''}${lg('rgba(142,91,214,.35)', 'Meeting')}${lg('#f4b4ae', L('Απουσία', 'Away'))}</div>`;
@@ -229,12 +235,6 @@ export function renderHome(root) {
 
   root.innerHTML = html;
   fillWeather(root, S.events, today);
-  // στο κινητό η εβδομάδα κυλάει: ξεκίνα από σήμερα (ή αύριο), όχι από τη Δευτέρα
-  root.querySelectorAll('.wk-scroll').forEach((sc) => {
-    if (sc.scrollWidth <= sc.clientWidth) return;
-    const d = sc.querySelector('.wk-day.today, .wk-day.tomorrow, .wk-day:not(.past)');
-    if (d) sc.scrollLeft = Math.max(0, d.offsetLeft - sc.offsetLeft - 8);
-  });
   root.querySelectorAll('[data-meeting]').forEach((b) => b.addEventListener('click', () => meetingActions(S.meetings.find((m) => m.id === b.dataset.meeting))));
   const on = (k, fn) => root.querySelectorAll(`[data-act="${k}"]`).forEach((b) => b.addEventListener('click', fn));
   on('newevent', () => go('#/new-event'));
