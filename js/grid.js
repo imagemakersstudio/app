@@ -90,6 +90,35 @@ function bindFit() {
   let t = null;
   window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => document.querySelectorAll('.xl-wrap').forEach(fitWrap), 120); });
 }
+/**
+ * Καρφιτσωμένες στήλες: όσες έχουν sticky μένουν σταθερές αριστερά όταν κυλάτε τον πίνακα.
+ * Μετράει τα πραγματικά πλάτη για να μπει η καθεμία ακριβώς δίπλα στην προηγούμενη.
+ * Σε στενές οθόνες (κινητό) μένει καρφιτσωμένη μόνο η πρώτη, για να χωράει ο πίνακας.
+ */
+function pinCols(wrap, cols) {
+  const idx = cols.map((c, i) => (c.sticky ? i : -1)).filter((i) => i >= 0);
+  if (idx.length < 2) return;
+  const apply = () => {
+    if (!wrap.isConnected) return;
+    const narrow = window.innerWidth < 760;
+    const ths = wrap.querySelectorAll('thead tr.h th');
+    const g = wrap.querySelector('thead tr.g th.sticky');
+    let left = 0;
+    idx.forEach((i, n) => {
+      const on = n === 0 || !narrow;
+      const cells = [ths[i], ...wrap.querySelectorAll(`tbody td[data-c="${i}"]`), wrap.querySelector(`tfoot td:nth-child(${i + 1})`)].filter(Boolean);
+      cells.forEach((el) => { el.classList.toggle('sticky', on); el.classList.toggle('pin-last', on && (n === idx.length - 1 || narrow)); el.style.left = on ? left + 'px' : ''; });
+      if (on && ths[i]) left += ths[i].getBoundingClientRect().width;
+    });
+    if (g) g.style.left = '0px';
+  };
+  apply();
+  if (!wrap._pinBound) {
+    wrap._pinBound = true;
+    let t = null;
+    window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(apply, 150); });
+  }
+}
 export function renderGrid(container, cols, opts) {
   bindFit();
   const { id, rowKey, rowClass = () => '', groups = {}, onEdit, filters: useFilters = false } = opts;
@@ -177,7 +206,7 @@ export function renderGrid(container, cols, opts) {
   if (cols.some((c) => c.sum) && rows.length) {
     html += `<tfoot><tr>${cols.map((c, ci) => {
       if (ci === 0) return `<td class="sticky"><div class="c" style="--w:${c.w || 110}px">${esc(L('Σύνολο', 'Total'))} (${rows.length})</div></td>`;
-      if (!c.sum) return '<td><div class="c"></div></td>';
+      if (!c.sum) return `<td class="${c.sticky ? 'sticky' : ''}"><div class="c"></div></td>`;
       const s = rows.reduce((n, r) => n + (Number(typeof c.sum === 'function' ? c.sum(r) : raw(c, r)) || 0), 0);
       return `<td class="num"><div class="c" style="--w:${c.w || 110}px">${esc(money(s))}</div></td>`;
     }).join('')}</tr></tfoot>`;
@@ -187,6 +216,7 @@ export function renderGrid(container, cols, opts) {
 
   const wrap = container.querySelector('.xl-wrap');
   fitWrap(wrap); wheelPass(wrap); floatingBar(wrap);
+  pinCols(wrap, cols);
   if (useFilters) {
     const again = () => { document.querySelector('.xf-menu')?.remove(); renderGrid(container, cols, opts); };
     container.querySelector('[data-fclear]')?.addEventListener('click', () => { Object.keys(F).forEach((k) => delete F[k]); mem.sort = null; again(); });

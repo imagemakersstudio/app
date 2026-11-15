@@ -157,8 +157,9 @@ function eventsSheet(body, tab, redraw) {
   add('money', { key: 'enotes', label: L('Σημειώσεις εκδήλωσης', 'Event notes'), w: 220, editable: true, get: (v) => v.e.notes, set: (v, val) => patchEvent(v.e.id, { notes: val }) });
   // οριστική διαγραφή από το φύλλο (με τους ίδιους ελέγχους ασφαλείας όπως στην καρτέλα της εκδήλωσης)
   cols.push({ group: cols.length ? cols[cols.length - 1].group : 'basic', key: 'del', label: L('Διαγραφή', 'Delete'), w: 84, align: 'center', get: () => '', exportValue: () => '', display: (v) => `<button class="del-btn" data-delev="${v.e.id}" title="${esc(L('Οριστική διαγραφή εκδήλωσης', 'Delete event permanently'))}">${icon('trash')}</button>` });
-  // πρώτα ο μήνας (σταθερός αριστερά) και μετά η ημερομηνία
+  // πρώτα ο μήνας και μετά η ημερομηνία· Μήνας, Ημερομηνία και Τοποθεσία μένουν καρφιτσωμένα αριστερά
   if (cols.length) cols[0].sticky = true;
+  cols.forEach((c) => { if (['month', 'date', 'loc'].includes(c.key)) c.sticky = true; });
   // αντιγραφή group στην πρώτη (για ομαδοποίηση)
   if (cols[0]) cols[0].group = cols[1]?.group === 'basic' ? 'basic' : cols[0].group;
 

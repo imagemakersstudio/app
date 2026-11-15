@@ -8,6 +8,12 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.15.1', date: '15/11/2026',
+    items: [
+      ['📌', 'Φύλλα: ο Μήνας, η Ημερομηνία και η Τοποθεσία μένουν πάντα καρφιτσωμένα αριστερά όταν σύρετε τον πίνακα δεξιά (στο κινητό μόνο ο Μήνας, για να χωράει η οθόνη).', 'Sheets: Month, Date and Location stay pinned on the left when you scroll right (on phones only Month, to fit the screen).'],
+    ],
+  },
+  {
     v: '1.15.0', date: '15/11/2026',
     items: [
       ['🔽', 'Φύλλα (Image Makers, Πελάτες, Πληρωμές, Φωτογραφίες & editing): φίλτρα όπως στο Excel στις στήλες Μήνας, Κατηγορία Εκδήλωσης, Ανάλυση, Κατάσταση Φωτογραφίες, Κατάσταση Editing και Εξόφληση OK. Αντικαθιστούν τις παλιές λίστες «Όλοι οι μήνες / Όλες οι κατηγορίες».', 'Sheets (Image Makers, Clients, Payments, Photos & editing): Excel-style filters on Month, Event category, Resolution, Photos status and Editing status. They replace the old “All months / All categories” lists.'],
