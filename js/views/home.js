@@ -1,7 +1,6 @@
 // =====================================================================
 //  Αρχική (v1.11.0)
-//  Διαχειριστές: επόμενη εκδήλωση + Σήμερα · εβδομάδα (Δευ–Κυρ, και την Κυριακή
-//  η επόμενη από κάτω) · Χρειάζονται προσοχή + Ταμείο μήνα · η χρονιά με μια ματιά.
+//  Διαχειριστές: επόμενη εκδήλωση + Σήμερα · εβδομάδα (Δευ–Κυρ) · Χρειάζονται προσοχή + Ταμείο μήνα · η χρονιά με μια ματιά.
 //  Συνεργείο: μόνο οι δικές τους εκδηλώσεις, χωρίς οικονομικά.
 // =====================================================================
 import { evEnd, fmtRange, isMultiDay, CATEGORIES, needsOffer, L, LANG, vocative, esc, icon, money, fmtDateLong, fmtTime, todayISO, daysBetween, sum, addDays, parseISO, monthShort, DOW_SHORT_EL, DOW_SHORT_EN } from '../core.js';
@@ -78,13 +77,18 @@ function weekList(monday, ctx, today, hidePast) {
  *  πολυήμερων) μπαίνει στη γραμμή «όλη μέρα» επάνω. Δεν υπάρχει ώρα λήξης στη βάση,
  *  οπότε η διάρκεια είναι ενδεικτική (εκδήλωση 3 ώρες, τα υπόλοιπα 1 ώρα). */
 const DUR = { ev: 180, sess: 120, appt: 60, meet: 60, note: 60 };
-const HPX = 50; // ύψος μίας ώρας σε pixels
+const HPX = 42; // ύψος μίας ώρας σε pixels
 const toMin = (t) => { const [a, b] = t.split(':').map(Number); return a * 60 + (b || 0); };
 function weekHours(monday, ctx, today) {
   const dows = LANG === 'en' ? DOW_SHORT_EN : DOW_SHORT_EL;
   const days = [...Array(7).keys()].map((i) => { const day = addDays(monday, i); return { i, day, items: dayItems(day, ctx) }; });
-  let h0 = 9, h1 = 21;
+  // Το πλέγμα ξεκινά στην πρώτη ώρα που έχει κάτι και τελειώνει εκεί που τελειώνει το τελευταίο
+  // (τουλάχιστον 3 ώρες). Αν η εβδομάδα δεν έχει τίποτα με ώρα, μένει ένα χαμηλό πλαίσιο.
+  let h0 = 24, h1 = 0;
   days.forEach((d) => d.items.forEach((x) => { if (!x.t) return; const m = toMin(x.t); h0 = Math.min(h0, Math.floor(m / 60)); h1 = Math.max(h1, Math.min(24, Math.ceil((m + DUR[x.k]) / 60))); }));
+  const emptyWeek = h1 === 0;
+  if (emptyWeek) { h0 = 9; h1 = 11; } // χαμηλό πλαίσιο, να μην πιάνει χώρο
+  else if (h1 - h0 < 3) { h1 = Math.min(24, h0 + 3); h0 = h1 - 3; }
   const hours = [...Array(h1 - h0).keys()].map((k) => h0 + k);
   const attrs = (x) => (x.href ? `href="${x.href}"` : `href="#" data-act="${x.act}"`);
   const color = (x) => (x.k === 'ev' ? `var(--cat-${x.cat})` : `var(--wh-${x.k})`);
@@ -116,7 +120,8 @@ function weekHours(monday, ctx, today) {
   });
   const head = cols.map(({ st, d }) => `<div class="wh-dh ${st}"><span>${esc(dows[d.i])}</span><b>${parseISO(d.day).getDate()}</b></div>`).join('');
   const allRow = anyAllDay ? `<div class="wh-lab wh-alllab">${esc(L('όλη μέρα', 'all day'))}</div>${cols.map((c) => `<div class="wh-all ${c.st}">${c.allDay}</div>`).join('')}` : '';
-  return `<div class="wh-wrap"><div class="wh-grid"><div></div>${head}${allRow}<div class="wh-hours">${hours.map((x) => `<div class="wh-lab">${String(x).padStart(2, '0')}:00</div>`).join('')}</div>${cols.map((c) => c.body).join('')}</div></div>`;
+  const emptyMsg = emptyWeek && !days.some((d) => d.items.length) ? `<div class="wh-emptymsg"><span class="wh-em">${icon('checkCircle')} ${esc(L('Δεν υπάρχει τίποτα προγραμματισμένο αυτή την εβδομάδα.', 'Nothing scheduled this week.'))}</span></div>` : '';
+  return `<div class="wh-wrap ${emptyMsg ? 'is-empty' : ''}">${emptyMsg}<div class="wh-grid"><div></div>${head}${allRow}<div class="wh-hours">${hours.map((x) => `<div class="wh-lab">${String(x).padStart(2, '0')}:00</div>`).join('')}</div>${cols.map((c) => c.body).join('')}</div></div>`;
 }
 const rangeTxt = (monday) => {
   const a = parseISO(monday), b = parseISO(addDays(monday, 6));
@@ -199,16 +204,10 @@ export function renderHome(root) {
 
   // ---------- Εβδομάδα (Δευτέρα → Κυριακή) · την Κυριακή και η επόμενη από κάτω
   const monday = addDays(thisMonday, weekOffset * 7);
-  const isSunday = parseISO(today).getDay() === 0;
   const wkTitle = weekOffset === 0 ? L('Αυτή η εβδομάδα', 'This week') : weekOffset === 1 ? L('Επόμενη εβδομάδα', 'Next week') : weekOffset === -1 ? L('Προηγούμενη εβδομάδα', 'Last week') : L('Εβδομάδα', 'Week');
   html += `<div class="h-sec"><div class="h-sec-l">${bub('calendar', 'var(--accent)')}<h2>${esc(wkTitle)}</h2><span class="h-sec-sub">${esc(rangeTxt(monday))}</span></div>
     <div class="h-sec-r">${weekOffset !== 0 ? `<button class="btn small plain" data-wk="0">${esc(L('Σήμερα', 'Today'))}</button>` : ''}<button class="h-round" data-wk="-1" aria-label="${esc(L('Προηγούμενη εβδομάδα', 'Previous week'))}">${icon('chevL')}</button><button class="h-round" data-wk="1" aria-label="${esc(L('Επόμενη εβδομάδα', 'Next week'))}">${icon('chevR')}</button><a href="#/calendar" class="h-link">${esc(L('Ημερολόγιο', 'Calendar'))} ${icon('chevR')}</a></div></div>`;
   html += weekHours(monday, ctx, today) + weekList(monday, ctx, today, weekOffset === 0);
-  if (isSunday && weekOffset === 0) {
-    const nm = addDays(thisMonday, 7);
-    html += `<div class="h-sub2"><h3>${esc(L('Επόμενη εβδομάδα', 'Next week'))}</h3><span class="h-sec-sub">${esc(rangeTxt(nm))}</span><span class="h-tag">${icon('sparkles')} ${esc(L('εμφανίζεται μόνο την Κυριακή', 'shown on Sundays only'))}</span></div>`;
-    html += weekHours(nm, ctx, today) + weekList(nm, ctx, today, false);
-  }
   const lg = (c, t) => `<span><i style="background:${c}"></i>${esc(t)}</span>`;
   html += `<div class="wk-legend">${lg('var(--cat-wedding)', L('Γάμος', 'Wedding'))}${lg('var(--cat-baptism)', L('Βάπτιση', 'Baptism'))}${lg('var(--cat-wedding_baptism)', L('Γάμος + Βάπτιση', 'Wedding + Baptism'))}${lg('var(--cat-promo)', L('Διαφημιστικό', 'Promo'))}${admin ? lg('#f2cf55', L('Ραντεβού', 'Appointment')) : ''}${lg('var(--wh-meet)', 'Meeting')}${lg('#f4b4ae', L('Απουσία', 'Away'))}</div>`;
   if (admin) html += `<div class="home-mob-actions"><div class="h-sec"><div class="h-sec-l">${bub('plus', 'var(--accent)')}<h2>${esc(L('Γρήγορες ενέργειες', 'Quick actions'))}</h2></div></div>${actBtns('mob')}</div>`;

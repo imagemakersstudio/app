@@ -1612,7 +1612,7 @@ button.mp-r:hover { background: var(--fill-2); }
 .wh-dh.today b { background: var(--accent); color: var(--on-accent, #fff); }
 .wh-dh.today span { color: var(--accent); }
 .wh-dh.past { opacity: .5; }
-.wh-lab { height: 50px; font-size: 11px; color: var(--label-3); text-align: right; padding-right: 8px; transform: translateY(-7px); font-variant-numeric: tabular-nums; }
+.wh-lab { height: 42px; font-size: 11px; color: var(--label-3); text-align: right; padding-right: 8px; transform: translateY(-7px); font-variant-numeric: tabular-nums; }
 .wh-alllab { height: auto; transform: none; padding-top: 8px; font-size: 10.5px; white-space: nowrap; }
 .wh-hours .wh-lab:first-child { transform: translateY(-1px); }
 .wh-all { border-left: 1px solid var(--sep); border-bottom: 1px solid var(--sep); padding: 3px; display: flex; flex-direction: column; gap: 3px; min-height: 30px; }
@@ -1620,7 +1620,7 @@ button.mp-r:hover { background: var(--fill-2); }
 .wh-all.past > *, .wh-col.past > .wh-blk { opacity: .55; }
 .wh-col { position: relative; border-left: 1px solid var(--sep); }
 .wh-col.today { background: var(--accent-soft); }
-.wh-cell { height: 50px; border-top: 1px solid var(--sep); }
+.wh-cell { height: 42px; border-top: 1px solid var(--sep); }
 .wh-chip, .wh-blk { display: flex; border-radius: 8px; overflow: hidden; color: #fff; background: var(--c); min-width: 0; }
 .wh-chip { align-items: center; gap: 5px; padding: 3px 6px; font-size: 11.5px; font-weight: 650; }
 .wh-chip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1695,3 +1695,11 @@ button.mp-r:hover { background: var(--fill-2); }
   .ev-main, .ev-side { display: contents; }
   .ev-box { order: var(--o, 0); }
 }
+/* v1.13.1: πιο συμπτυγμένη εβδομάδα με ώρες */
+.wh-wrap { position: relative; }
+.wh-emptymsg { position: absolute; left: 60px; right: 16px; top: 50%; transform: translateY(-20%); z-index: 4; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--label-2); font-weight: 600; font-size: 14.5px; pointer-events: none; }
+.wh-emptymsg .ic { width: 18px; height: 18px; color: var(--green); }
+.wh-wrap.is-empty .wh-cell { border-top-color: transparent; }
+.wh-wrap.is-empty .wh-hours { visibility: hidden; }
+.wh-wrap.is-empty .wh-emptymsg { top: auto; bottom: 34px; transform: none; }
+.wh-emptymsg span.wh-em { background: var(--bg-grouped); padding: 6px 14px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 0 0 1px var(--sep); }
