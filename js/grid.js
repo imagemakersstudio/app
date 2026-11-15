@@ -5,6 +5,8 @@
 import { L, esc, money, fmtDate, parseMoney, normTime, opt, sheet, toast, toastErr, haptic, latinName, icon } from './core.js';
 
 const memory = {}; // id → { scrollLeft, scrollTop, sel: {rk, ck} }
+/** Καθαρίζει φίλτρα & ταξινόμηση ενός πίνακα (π.χ. σε κάθε νέα είσοδο στη σελίδα) */
+export function resetGridFilters(id) { if (memory[id]) { memory[id].filters = {}; memory[id].sort = null; } }
 /** Χρωματιστή ετικέτα επιλογής (tone: red, green, blue, yellow, orange, grey, solid-green, solid-red, ή CSS χρώμα μέσω o.color) */
 export const toneChip = (o, caret = true) => `<span class="tchip t-${esc(o.tone || 'grey')}${caret ? ' caret' : ''}"${o.color ? ` style="--tc:${esc(o.color)}"` : ''}>${esc(L(o.el, o.en))}</span>`;
 const coarse = () => window.matchMedia('(pointer: coarse)').matches;

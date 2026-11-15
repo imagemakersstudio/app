@@ -7,7 +7,7 @@ import { S, isAdmin, isVideoAdmin, allEventViews, eventView, saveCustomer, patch
 import { pageHead, setTopActions } from '../layout.js';
 import { pickYear, yearOf, yearSelect, bindYear, catShort } from '../components.js';
 import { toastErr as tErr } from '../core.js';
-import { renderGrid, exportGrid } from '../grid.js';
+import { resetGridFilters, renderGrid, exportGrid } from '../grid.js';
 import { openIncomeForm, openExpenseForm, expenseTitle, paymentActions, expenseActions } from './money.js';
 import { openCrewSheet, deleteEventFlow } from './events.js';
 import { uploadPdfForEvent } from '../offer.js';
@@ -47,10 +47,13 @@ const st = { year: null, q: '', month: '', cat: '', unpaid: false, groups: null,
 export function renderSheets(root, params = {}) {
   if (!isAdmin()) return;
   const tab = params.tab || 'main';
+  // Dimitris: κάθε νέα είσοδος ξεκινά στο «Όλα», χωρίς φίλτρα (μένουν μόνο όσο δουλεύετε μέσα στο φύλλο)
+  if (tab === 'mitsos' && !root.querySelector('.dim-grid')) { st.mitsosFilter = 'all'; st.q = ''; resetGridFilters('mitsos'); }
   if (params.unpaid) st.unpaid = true;
   // χρονιές μόνο όπου υπάρχει κάτι (εκδηλώσεις, πληρωμές, έξοδα) · η ίδια επιλογή σε όλα τα tabs
   const { ys: years, y: selY } = pickYear([...[...S.events.values()].map((e) => yearOf(e.event_date)), ...S.payments.map((p) => yearOf(p.paid_on)), ...S.expenses.map((x) => yearOf(x.paid_on))]);
   st.year = selY;
+  if (tab === 'mitsos' && st.dimYear !== st.year) { if (st.dimYear) resetGridFilters('mitsos'); st.dimYear = st.year; } // άλλη χρονιά → χωρίς φίλτρα
   const tabs = TABS();
   // Το Mitsos είναι ξεχωριστή σελίδα (μενού), χωρίς τις καρτέλες των υπόλοιπων φύλλων
   const cur = tab === 'mitsos' ? { v: 'mitsos', t: 'Dimitris' } : (tabs.find((t) => t.v === tab) || tabs[0]);
