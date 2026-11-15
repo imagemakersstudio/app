@@ -1,14 +1,14 @@
 // =====================================================================
 //  Εκδηλώσεις: λίστα & λεπτομέρειες
 // =====================================================================
-import { VIDEO_STATUS, evDays, evOverlaps, evEnd, isMultiDay, fmtRange, dayCount, needsOffer, L, esc, icon, money, fmtDate, fmtDateLong, fmtTime, todayISO, daysBetween, matches, mapsUrl, telUrl, smsUrl, mailUrl, lbl, CATEGORIES, RESOLUTIONS, PHOTO_STATUS, EDIT_STATUS, PCS, METHODS, options, segmented, initSegmented, segValue, sheet, confirmBox, promptBox, toastErr, actionSheet, toast, download, icsFor, busy, monthName } from '../core.js';
+import { VIDEO_STATUS, evDays, evOverlaps, evEnd, isMultiDay, fmtRange, dayCount, needsOffer, L, esc, icon, money, fmtDate, fmtDateLong, fmtTime, todayISO, daysBetween, matches, mapsUrl, telUrl, smsUrl, mailUrl, lbl, CATEGORIES, RESOLUTIONS, PHOTO_STATUS, EDIT_STATUS, PCS, METHODS, options, segmented, initSegmented, segValue, sheet, confirmBox, promptBox, toastErr, actionSheet, toast, download, icsFor, busy, monthName, crewDutyEmoji, crewDutyText } from '../core.js';
 import { S, isAdmin, isVideoAdmin, allEventViews, eventView, coupleName, profileName, patchEvent, deleteEvent, setCrew, saveCrewBrief, absencesOn, absenceWhen, openOffer, deletePayment, myEventIds } from '../data.js';
 import { pageHead, setTopActions, emptyState, go, backBtn, UI } from '../layout.js';
 import { pickYear, yearOf, yearSelect, bindYear, dutyPicker, crewBriefTexts, eventHasDrone, eventRow, catPill, offerSummaryHTML, crewBriefHTML, crewChips, avatar, photoStatusPill, editStatusPill } from '../components.js';
 import { openIncomeForm } from './money.js';
 import { pickLocation, geoUrl } from '../mappicker.js';
 import { editOfferForEvent, uploadPdfForEvent } from '../offer.js';
-import { sessionsSectionHTML, bindSessionsSection } from './sessions.js';
+import { sessionsParts, bindSessionsSection } from './sessions.js';
 
 const st = { q: '', when: 'upcoming', cat: '' };
 
@@ -87,71 +87,74 @@ export function renderEventDetail(root, { id }) {
   setTopActions(admin ? `<a class="btn small" href="#/event/${id}/edit">${icon('edit')} <span class="hide-mobile">${esc(L('Επεξεργασία', 'Edit'))}</span></a>` : '');
 
   let html = backBtn('#/events');
-  html += `<div class="ev-hero cat-${e.category}" style="--c:var(--cat-${e.category})">
-    ${days >= 0 ? `<div class="countdown"><b>${days}</b><small>${esc(days === 1 ? L('ημέρα', 'day') : L('ημέρες', 'days'))}</small></div>` : ''}
-    <div class="hstack">${catPill(e.category)}${e.status === 'cancelled' ? `<span class="pill red">${esc(L('Ακυρωμένη', 'Cancelled'))}</span>` : ''}${(e.coverage || 'both') !== 'both' ? `<span class="pill orange">${esc(e.coverage === 'photo' ? L('📷 Μόνο φωτογραφία', '📷 Photo only') : L('🎥 Μόνο βίντεο', '🎥 Video only'))}</span>` : ''}${e.resolution && e.coverage !== 'photo' ? `<span class="pill blue">${esc(e.resolution === '4k' ? '4K' : 'Full HD')}</span>` : ''}${eventHasDrone(e, v.crew) ? '<span class="pill purple">🚁 Drone</span>' : ''}</div>
-    <h1 style="margin-top:10px">${esc(v.title)}</h1>
-    <div class="when"><span>${icon('calendar')} ${esc(fmtRange(e, true))}${isMultiDay(e) ? ` · ${esc(L(`${dayCount(e)} ημέρες`, `${dayCount(e)} days`))}` : ''}</span>${e.event_time ? `<span>${icon('clock')} ${esc(fmtTime(e.event_time))}</span>` : `<span class="no-time">${icon('clock')} ${esc(L('Ώρα: δεν γνωρίζουμε ακόμη', 'Time: not known yet'))}</span>`}</div>
-    <div class="quick-actions">
-      ${phone ? `<a class="qa" href="${telUrl(phone)}">${icon('phone')}${esc(L('Κλήση', 'Call'))}</a>${admin ? `<a class="qa" href="${smsUrl(phone)}">${icon('sms')}SMS</a>` : ''}` : ''}
-      ${email && admin ? `<a class="qa" href="${mailUrl(email)}">${icon('mail')}Email</a>` : ''}
-      ${geoUrl(e.church_geo) ? `<a class="qa" href="${esc(geoUrl(e.church_geo))}" target="_blank" rel="noopener">${icon('map')}${esc(L('Χάρτης', 'Map'))}</a>` : ''}
-      <button class="qa" data-act="ics">${icon('calendar')}${esc(L('Στο κινητό', 'To phone'))}</button>
+  // Κουτί ενότητας: εικονίδιο + τίτλος (+ κουμπί δεξιά) και από κάτω το περιεχόμενο
+  const box = (ic, color, title, body, act = '', o = 0) => `<section class="ev-box" style="--o:${o}"><div class="ev-box-h"><span class="h-bub" style="background:${color}">${icon(ic)}</span><h2>${esc(title)}</h2>${act ? `<div class="ev-box-act">${act}</div>` : ''}</div>${body}</section>`;
+
+  // ---------- Κεφαλίδα: τι, πότε, πού + γρήγορες ενέργειες
+  const where = e.church_location ? `<span>${icon('pin')} ${esc(e.church_location)}</span>` : '';
+  html += `<div class="ev-hero ev-hero2 cat-${e.category}" style="--c:var(--cat-${e.category})">
+    <div class="ev-hero-top">
+      <div class="main-col">
+        <div class="hstack ev-pills">${catPill(e.category)}${e.status === 'cancelled' ? `<span class="pill red">${esc(L('Ακυρωμένη', 'Cancelled'))}</span>` : ''}${(e.coverage || 'both') !== 'both' ? `<span class="pill orange">${esc(e.coverage === 'photo' ? L('📷 Μόνο φωτογραφία', '📷 Photo only') : L('🎥 Μόνο βίντεο', '🎥 Video only'))}</span>` : ''}${e.resolution && e.coverage !== 'photo' ? `<span class="pill blue">${esc(e.resolution === '4k' ? '4K' : 'Full HD')}</span>` : ''}${eventHasDrone(e, v.crew) ? '<span class="pill purple">🚁 Drone</span>' : ''}</div>
+        <h1>${esc(v.title)}</h1>
+        <div class="when"><span>${icon('calendar')} ${esc(fmtRange(e, true))}${isMultiDay(e) ? ` · ${esc(L(`${dayCount(e)} ημέρες`, `${dayCount(e)} days`))}` : ''}</span>${e.event_time ? `<span>${icon('clock')} ${esc(fmtTime(e.event_time))}</span>` : `<span class="no-time">${icon('clock')} ${esc(L('Ώρα: δεν γνωρίζουμε ακόμη', 'Time: not known yet'))}</span>`}${where}</div>
+      </div>
+      ${days >= 0 ? `<div class="countdown2"><b>${days === 0 ? '' : days}</b><small>${esc(days === 0 ? L('σήμερα', 'today') : days === 1 ? L('ημέρα ακόμη', 'day to go') : L('ημέρες ακόμη', 'days to go'))}</small></div>` : `<div class="countdown2 done"><small>${esc(L('έγινε', 'done'))}</small></div>`}
+    </div>
+    <div class="quick-actions qa2">
+      ${phone ? `<a class="qa" href="${telUrl(phone)}">${icon('phone')}<span>${esc(L('Κλήση', 'Call'))}</span></a>${admin ? `<a class="qa" href="${smsUrl(phone)}">${icon('sms')}<span>SMS</span></a>` : ''}` : ''}
+      ${email && admin ? `<a class="qa" href="${mailUrl(email)}">${icon('mail')}<span>Email</span></a>` : ''}
+      ${geoUrl(e.church_geo) ? `<a class="qa" href="${esc(geoUrl(e.church_geo))}" target="_blank" rel="noopener">${icon('map')}<span>${esc(L('Χάρτης', 'Map'))}</span></a>` : ''}
+      <button class="qa" data-act="ics">${icon('calendar')}<span>${esc(L('Στο ημερολόγιο του κινητού', 'Add to phone calendar'))}</span></button>
     </div>
   </div>`;
 
-  // Τοποθεσίες
-  // Τοποθεσίες: «Χάρτης» ανοίγει το ακριβές pin· ο διαχειριστής βάζει/αλλάζει pin από εδώ
+  let main = '', side = '';
+
+  // ---------- Τοποθεσίες: «Χάρτης» ανοίγει το ακριβές pin· ο διαχειριστής βάζει/αλλάζει pin από εδώ
   const legacyHouse = !e.bride_house && !e.groom_house ? e.house_location : null;
   const locRow = (ic, t, val, geoKey, extra = '') => {
     const url = geoKey ? geoUrl(e[geoKey]) : null;
     if (!val && !url) return '';
     return `<div class="row has-icon loc-row"><span class="row-icon" style="background:${ic}">${icon('pin')}</span><div class="main-col"><div class="s">${esc(t)}${url ? ` <span class="loc-pin">· 📍 pin</span>` : ''}</div><div class="t" style="white-space:normal">${esc(val || L('Σημείο στον χάρτη', 'Point on the map'))}${extra}</div></div>
-      ${url ? `<a class="btn small" href="${esc(url)}" target="_blank" rel="noopener">${icon('map')} ${esc(L('Χάρτης', 'Map'))}</a>` : ''}${admin && geoKey ? `<button class="btn small pin-btn ${url ? 'on' : ''}" data-setpin="${geoKey}" data-label="${esc(val || '')}" title="${esc(url ? L('Αλλαγή pin', 'Change pin') : L('Βάλτε pin στον χάρτη', 'Drop a pin'))}">${icon('pin')}${url ? '' : ` ${esc(L('Pin', 'Pin'))}`}</button>` : ''}</div>`;
+      ${url ? `<a class="btn small" href="${esc(url)}" target="_blank" rel="noopener">${icon('map')} <span class="hide-mobile">${esc(L('Χάρτης', 'Map'))}</span></a>` : ''}${admin && geoKey ? `<button class="btn small pin-btn ${url ? 'on' : ''}" data-setpin="${geoKey}" data-label="${esc(val || '')}" title="${esc(url ? L('Αλλαγή pin', 'Change pin') : L('Βάλτε pin στον χάρτη', 'Drop a pin'))}">${icon('pin')}${url ? '' : ` ${esc(L('Pin', 'Pin'))}`}</button>` : ''}</div>`;
   };
-  html += `<div class="group-label">${esc(L('Τοποθεσίες', 'Locations'))}</div><div class="list">
-    ${locRow('var(--red)', ['promo', 'other'].includes(e.category) ? L('Τοποθεσία', 'Location') : L('Εκκλησία / Μυστήριο', 'Church / Ceremony'), e.church_location, 'church_geo', e.event_time ? ` · ${esc(fmtTime(e.event_time))}` : '')}
-    ${locRow('var(--accent)', L('Σπίτι νύφης', 'Bride’s home'), e.bride_house, 'bride_geo')}
-    ${locRow('var(--blue)', L('Σπίτι γαμπρού', 'Groom’s home'), e.groom_house, 'groom_geo')}
-    ${legacyHouse ? locRow('var(--accent)', L('Σπίτι νύφης / γαμπρού', 'Bride / groom home'), legacyHouse, null) : ''}
-    ${locRow('var(--purple)', L('Χώρος δεξίωσης', 'Reception venue'), e.reception_location, 'reception_geo')}
-    ${!e.church_location && !e.bride_house && !e.groom_house && !legacyHouse && !e.reception_location ? `<div class="row muted">${esc(L('Δεν έχουν οριστεί τοποθεσίες', 'No locations set'))}</div>` : ''}
-  </div>`;
+  const locs = [
+    locRow('var(--red)', ['promo', 'other'].includes(e.category) ? L('Τοποθεσία', 'Location') : L('Εκκλησία / Μυστήριο', 'Church / Ceremony'), e.church_location, 'church_geo', e.event_time ? ` · ${esc(fmtTime(e.event_time))}` : ''),
+    locRow('var(--accent)', L('Σπίτι νύφης', 'Bride’s home'), e.bride_house, 'bride_geo'),
+    locRow('var(--blue)', L('Σπίτι γαμπρού', 'Groom’s home'), e.groom_house, 'groom_geo'),
+    legacyHouse ? locRow('var(--accent)', L('Σπίτι νύφης / γαμπρού', 'Bride / groom home'), legacyHouse, null) : '',
+    locRow('var(--purple)', L('Χώρος δεξίωσης', 'Reception venue'), e.reception_location, 'reception_geo'),
+  ].join('');
+  main += box('pin', 'var(--red)', L('Τοποθεσίες', 'Locations'), `<div class="ev-list">${locs.trim() || `<div class="ev-empty">${esc(L('Δεν έχουν οριστεί τοποθεσίες', 'No locations set'))}</div>`}</div>`, '', 1);
 
-  // Ζευγάρι
-  if (c) {
-    const cr = (n, p, m) => `<div class="row"><div class="main-col"><div class="t">${esc(n || '—')}</div><div class="s">${[p, m].filter(Boolean).map(esc).join(' · ') || '—'}</div></div>
-      ${p ? `<a class="icon-btn filled" href="${telUrl(p)}" aria-label="${esc(L('Κλήση', 'Call'))}">${icon('phone')}</a>` : ''}${m ? `<a class="icon-btn filled" href="${mailUrl(m)}" aria-label="Email">${icon('mail')}</a>` : ''}</div>`;
-    html += `<div class="group-label">${esc(L('Ζευγάρι / Πελάτης', 'Couple / Customer'))}</div><div class="list">
-      ${cr(c.name1, c.phone1, c.email1)}${c.name2 || c.phone2 || c.email2 ? cr(c.name2, c.phone2, c.email2) : ''}
-      ${admin ? `<a class="row" href="#/customer/${c.id}"><div class="main-col"><div class="t" style="color:var(--accent)">${esc(L('Καρτέλα πελάτη', 'Customer card'))}</div></div>${icon('chevR', 'chev')}</a>` : ''}
-    </div>`;
-  }
-
-  // Συνεργείο
-  html += `<div class="group-label spread"><span>${esc(L('Συνεργείο', 'Crew'))}</span>${admin ? `<button class="btn plain small" data-act="crew">${icon('edit')} ${esc(L('Αλλαγή', 'Change'))}</button>` : ''}</div>
-    <div class="card pad">${e.crew_mode === 'double' ? crewChips(v) : `<div class="chips">${crewChips(v)}</div>`}${e.extra_crew ? `<div class="small muted mt-s">${esc(L('Εξωτερικοί συνεργάτες', 'External crew'))}: ${esc(e.extra_crew)}</div>` : ''}</div>`;
-  // Κείμενα ανάθεσης ανά μέλος (δημιουργούνται από τις επιλογές συνεργείου· ο διαχειριστής μπορεί να τα αλλάξει)
+  // ---------- Συνεργείο: ένα μέλος ανά γραμμή, μαζί με το κείμενο ανάθεσής του
   const me = v.crew.find((c) => c.user_id === S.profile?.id);
-  if (admin && v.crew.length) {
-    html += `<div class="group-label">${esc(L('Κείμενα ανάθεσης', 'Assignment notes'))}</div><div class="list">${v.crew.map((c) => {
+  let crewBody;
+  if (admin) {
+    const dbl = e.crew_mode === 'double';
+    crewBody = v.crew.length ? `<div class="ev-list">${v.crew.map((c) => {
       const un = evDays(e).map((d) => absenceWhen(absencesOn(c.user_id, d))).filter(Boolean).join('; ');
-      return `<div class="row brief-row"><span>${avatar(c.profile, 'sm')}</span><div class="main-col"><div class="t">${esc(profileName(c.profile))}${un ? ` <span class="unavail">(${esc(L('δήλωσε απουσία', 'declared absence'))}: ${esc(un)})</span>` : ''}</div><div class="s brief-text">${esc(c.brief || L('Δεν υπάρχει κείμενο ανάθεσης.', 'No assignment note.'))}</div></div><button class="btn small" data-brief="${c.user_id}">${icon('edit')}<span class="hide-mobile"> ${esc(L('Επεξεργασία', 'Edit'))}</span></button></div>`;
-    }).join('')}</div>`;
-  } else if (me?.brief) {
-    html += `<div class="group-label">${esc(L('Η ανάθεσή σου', 'Your assignment'))}</div><div class="card pad brief-text">${esc(me.brief)}</div>`;
+      const team = dbl ? `<span class="pill ${c.team === 2 ? 'purple' : ''}">${esc(c.team === 2 ? L('Συνεργείο 2', 'Crew 2') : L('Συνεργείο 1', 'Crew 1'))}</span>` : '';
+      return `<div class="row crew-row">${avatar(c.profile, 'sm')}<div class="main-col"><div class="t">${esc(profileName(c.profile))} <span class="crew-duty">${esc(crewDutyEmoji(c))} ${esc(crewDutyText(c))}</span> ${team}</div>${un ? `<div class="unavail">⚠️ ${esc(L('Έχει δηλώσει απουσία', 'Declared absence'))}: ${esc(un)}</div>` : ''}<div class="brief-text clamp" data-more title="${esc(L('Πατήστε για όλο το κείμενο', 'Tap for the full text'))}">${esc(c.brief || L('Δεν υπάρχει κείμενο ανάθεσης.', 'No assignment note.'))}</div></div><button class="btn small" data-brief="${c.user_id}" title="${esc(L('Αλλαγή κειμένου ανάθεσης', 'Edit assignment note'))}">${icon('edit')}<span class="hide-mobile"> ${esc(L('Κείμενο', 'Note'))}</span></button></div>`;
+    }).join('')}</div>` : `<div class="ev-list"><div class="ev-empty">${esc(L('Δεν έχει οριστεί συνεργείο', 'No crew assigned'))}</div></div>`;
+  } else {
+    crewBody = `<div class="ev-pad">${e.crew_mode === 'double' ? crewChips(v) : `<div class="chips">${crewChips(v)}</div>`}</div>${me?.brief ? `<div class="ev-sub">${esc(L('Η ανάθεσή σου', 'Your assignment'))}</div><div class="ev-pad brief-text">${esc(me.brief)}</div>` : ''}`;
   }
+  if (e.extra_crew) crewBody += `<div class="ev-foot">${esc(L('Εξωτερικοί συνεργάτες', 'External crew'))}: ${esc(e.extra_crew)}</div>`;
+  main += box('users', 'var(--blue)', L('Συνεργείο', 'Crew'), crewBody, admin ? `<button class="btn plain small" data-act="crew">${icon('edit')} ${esc(L('Αλλαγή', 'Change'))}</button>` : '', 2);
 
-  // Next day / Ευχολόγιο
-  html += sessionsSectionHTML(id);
+  // ---------- Next day / Ευχολόγιο
+  const sp = sessionsParts(id);
+  if (sp) main += box('camera', 'var(--purple)', L('Next day / Ευχολόγιο', 'Next day / Blessing'), sp.body, sp.actions, 4);
 
-  // Πακέτο / Προσφορά
+  // ---------- Πακέτο / Προσφορά
   const withOffer = needsOffer(e.category);
-  html += `<div class="group-label">${esc(admin ? (withOffer ? L('Πακέτο & προσφορά', 'Package & offer') : L('Πακέτο', 'Package')) : L('Τι περιλαμβάνει η κάλυψη', 'What the coverage includes'))}</div>`;
+  let pk;
   if (admin && !withOffer) {
-    html += `<div class="list"><div class="row"><div class="main-col"><div class="t">${esc(f.package_name || L('Πακέτο', 'Package'))}</div><div class="s">${esc(L('Χωρίς PDF προσφοράς (δεν χρειάζεται σε αυτή την κατηγορία)', 'No offer PDF (not needed for this category)'))}</div></div></div></div>`;
+    pk = `<div class="ev-list"><div class="row"><div class="main-col"><div class="t">${esc(f.package_name || L('Πακέτο', 'Package'))}</div><div class="s">${esc(L('Χωρίς PDF προσφοράς (δεν χρειάζεται σε αυτή την κατηγορία)', 'No offer PDF (not needed for this category)'))}</div></div></div></div>`;
   } else if (admin) {
-    html += `<div class="list">
+    pk = `<div class="ev-list">
       <div class="offer-box">
         <div class="pdf-thumb">PDF</div>
         <div class="main-col" style="flex:1;min-width:0">
@@ -161,60 +164,69 @@ export function renderEventDetail(root, { id }) {
         ${e.offer_path ? `<button class="btn small primary" data-act="pdf">${icon('doc')} ${esc(L('Άνοιγμα', 'Open'))}</button>` : ''}
       </div>
       <button class="row" data-act="offer-edit"><span class="row-icon" style="background:var(--accent)">${icon('wand')}</span><div class="main-col"><div class="t">${esc(e.offer_data ? L('Επεξεργασία της συγκεκριμένης προσφοράς', 'Edit this offer') : L('Δημιουργία προσφοράς', 'Create offer'))}</div></div>${icon('chevR', 'chev')}</button>
-    </div>`;
-    if (e.offer_data) html += `<div class="card pad mt-s">${offerSummaryHTML(e.offer_data)}</div>`;
+    </div>${e.offer_data ? `<div class="ev-pad ev-sep">${offerSummaryHTML(e.offer_data)}</div>` : ''}`;
   } else {
     const myDuty = v.crew.find((x) => x.user_id === S.profile?.id) || null;
-    html += `<div class="card pad">${crewBriefHTML(e, myDuty)}</div>`;
+    pk = `<div class="ev-pad">${crewBriefHTML(e, myDuty)}</div>`;
+  }
+  main += box('doc', 'var(--accent)', admin ? (withOffer ? L('Πακέτο & προσφορά', 'Package & offer') : L('Πακέτο', 'Package')) : L('Τι περιλαμβάνει η κάλυψη', 'What the coverage includes'), pk, '', 5);
+
+  if (e.notes) main += box('edit', 'var(--label-2)', ['promo', 'other'].includes(e.category) ? L('Σχόλια', 'Comments') : L('Σημειώσεις', 'Notes'), `<div class="ev-pad" style="white-space:pre-wrap">${esc(e.notes)}</div>`, '', 6);
+
+  // ---------- Πελάτης (στήλη δεξιά)
+  if (c) {
+    const cr = (n, p, m) => `<div class="row"><div class="main-col"><div class="t">${esc(n || '—')}</div><div class="s">${[p, m].filter(Boolean).map(esc).join(' · ') || '—'}</div></div>
+      ${p ? `<a class="icon-btn filled" href="${telUrl(p)}" aria-label="${esc(L('Κλήση', 'Call'))}">${icon('phone')}</a>` : ''}${m ? `<a class="icon-btn filled" href="${mailUrl(m)}" aria-label="Email">${icon('mail')}</a>` : ''}</div>`;
+    side += box('user', 'var(--accent)', L('Ζευγάρι / Πελάτης', 'Couple / Customer'), `<div class="ev-list">${cr(c.name1, c.phone1, c.email1)}${c.name2 || c.phone2 || c.email2 ? cr(c.name2, c.phone2, c.email2) : ''}
+      ${admin ? `<a class="row" href="#/customer/${c.id}"><div class="main-col"><div class="t" style="color:var(--accent)">${esc(L('Καρτέλα πελάτη', 'Customer card'))}</div></div>${icon('chevR', 'chev')}</a>` : ''}</div>`, '', 3);
   }
 
-  // Κατάσταση παραγωγής (μόνο διαχειριστές)
   if (admin) {
-    html += `<div class="group-label">${esc(L('Παραγωγή', 'Production'))}</div>`;
-    html += `<div class="card pad"><div class="form-grid">
-      <div class="field"><label>${esc(L('Κατάσταση φωτογραφιών', 'Photos status'))}</label><select class="select" data-patch="photo_status">${options(PHOTO_STATUS, e.photo_status)}</select></div>
-      ${e.coverage === 'photo' ? '' : `<div class="field"><label>${esc(L('Κατάσταση βίντεο', 'Video status'))}</label><select class="select" data-patch="video_status">${options(VIDEO_STATUS, e.video_status || 'not_ready')}</select><div class="help">${esc(L('Κατάσταση editing (αυτόματα)', 'Editing status (automatic)'))}: <b>${esc(lbl(EDIT_STATUS, e.editing_status))}</b></div></div>`}
-      ${isVideoAdmin() ? `<div class="field"><label>${esc(L('Υπολογιστής μοντάζ', 'Editing computer'))}</label><select class="select" data-patch="editing_pc">${options(PCS, e.editing_pc, { blank: '—' })}</select></div>
-      <div class="field"><label>${esc(L('Σχόλια βίντεο', 'Video notes'))}</label><input class="input" data-patch="video_notes" value="${esc(e.video_notes || '')}"></div>` : ''}
-    </div><div class="help mt-s">${esc(L('Το editing ακολουθεί αυτόματα την κατάσταση βίντεο (φύλλο Dimitris). Όταν οι φωτογραφίες γίνουν «Αλλαγές» και το βίντεο δεν έχει ξεκινήσει, γίνεται «Να γίνει».', 'Editing follows the video status (Dimitris sheet). When photos become “Changes” and the video has not started, it becomes “To do”.'))}</div></div>`;
-  }
-
-  if (e.notes) html += `<div class="group-label">${esc(['promo', 'other'].includes(e.category) ? L('Σχόλια', 'Comments') : L('Σημειώσεις', 'Notes'))}</div><div class="card pad" style="white-space:pre-wrap">${esc(e.notes)}</div>`;
-
-  // Οικονομικά
-  if (admin) {
+    // ---------- Οικονομικά
     const pct = v.price ? Math.min(100, Math.round((v.paid / v.price) * 100)) : 0;
-    html += `<div class="group-label spread"><span>${esc(L('Οικονομικά', 'Finances'))}</span><button class="btn plain small" data-act="pay">${icon('plus')} ${esc(L('Προσθήκη δόσης', 'Add installment'))}</button></div>
-      <div class="card pad">
-        <div class="grid cols-3" style="gap:10px">
-          <div><div class="small muted">${esc(L('Αξία πακέτου', 'Package'))}</div><div class="money" style="font-size:20px;font-weight:700">${esc(money(v.price))}</div></div>
-          <div><div class="small muted">${esc(L('Εισπράχθηκαν', 'Paid'))}</div><div class="money pos" style="font-size:20px;font-weight:700">${esc(money(v.paid))}</div></div>
-          <div><div class="small muted">${esc(L('Υπόλοιπο', 'Balance'))}</div><div class="money ${v.balance > 0 ? 'neg' : ''}" style="font-size:20px;font-weight:700">${esc(money(v.balance))}</div></div>
+    side += box('euro', 'var(--green)', L('Οικονομικά', 'Finances'), `<div class="ev-pad">
+        <div class="ev-money">
+          <div><div class="small muted">${esc(L('Αξία πακέτου', 'Package'))}</div><b class="money">${esc(money(v.price))}</b></div>
+          <div><div class="small muted">${esc(L('Εισπράχθηκαν', 'Paid'))}</div><b class="money pos">${esc(money(v.paid))}</b></div>
+          <div><div class="small muted">${esc(L('Υπόλοιπο', 'Balance'))}</div><b class="money ${v.balance > 0 ? 'neg' : ''}">${esc(money(v.balance))}</b></div>
         </div>
         <div class="progress ${v.fullyPaid ? 'green' : ''} mt"><i style="width:${pct}%"></i></div>
         <div class="small muted mt-s">${v.fullyPaid ? `<span class="pos">✓ ${esc(L('Εξοφλήθηκε πλήρως', 'Fully paid'))}</span>` : esc(L(`${pct}% εξοφλημένο`, `${pct}% paid`))}${f.second_crew ? ' · ' + esc(L('2ο συνεργείο', '2nd crew')) : ''}</div>
         ${f.office_notes ? `<div class="small mt-s"><b>${esc(L('Σημειώσεις γραφείου', 'Office notes'))}:</b> ${esc(f.office_notes)}</div>` : ''}
       </div>
-      ${v.pays.length ? `<div class="list mt-s">${v.pays.map((p) => `<button class="row" data-pay="${p.id}"><div class="main-col"><div class="t">${esc(p.label || L('Πληρωμή', 'Payment'))}</div><div class="s">${esc(fmtDate(p.paid_on))} · ${esc(lbl(METHODS, p.method))}${p.notes ? ' · ' + esc(p.notes) : ''}</div></div><div class="v money ${p.amount < 0 ? 'neg' : 'pos'}">${esc(money(p.amount))}</div>${icon('chevR', 'chev')}</button>`).join('')}</div>` : ''}`;
+      ${v.pays.length ? `<div class="ev-list ev-sep">${v.pays.map((p) => `<button class="row" data-pay="${p.id}"><div class="main-col"><div class="t">${esc(p.label || L('Πληρωμή', 'Payment'))}</div><div class="s">${esc(fmtDate(p.paid_on))} · ${esc(lbl(METHODS, p.method))}${p.notes ? ' · ' + esc(p.notes) : ''}</div></div><div class="v money ${p.amount < 0 ? 'neg' : 'pos'}">${esc(money(p.amount))}</div>${icon('chevR', 'chev')}</button>`).join('')}</div>` : ''}`,
+      `<button class="btn plain small" data-act="pay">${icon('plus')} ${esc(L('Δόση', 'Installment'))}</button>`, 7);
 
+    // ---------- Παραγωγή
+    side += box('flow', 'var(--orange)', L('Παραγωγή', 'Production'), `<div class="ev-pad"><div class="form-grid ev-form">
+      <div class="field"><label>${esc(L('Κατάσταση φωτογραφιών', 'Photos status'))}</label><select class="select" data-patch="photo_status">${options(PHOTO_STATUS, e.photo_status)}</select></div>
+      ${e.coverage === 'photo' ? '' : `<div class="field"><label>${esc(L('Κατάσταση βίντεο', 'Video status'))}</label><select class="select" data-patch="video_status">${options(VIDEO_STATUS, e.video_status || 'not_ready')}</select><div class="help">${esc(L('Editing (αυτόματα)', 'Editing (automatic)'))}: <b>${esc(lbl(EDIT_STATUS, e.editing_status))}</b></div></div>`}
+      ${isVideoAdmin() ? `<div class="field"><label>${esc(L('Υπολογιστής μοντάζ', 'Editing computer'))}</label><select class="select" data-patch="editing_pc">${options(PCS, e.editing_pc, { blank: '—' })}</select></div>
+      <div class="field"><label>${esc(L('Σχόλια βίντεο', 'Video notes'))}</label><input class="input" data-patch="video_notes" value="${esc(e.video_notes || '')}"></div>` : ''}
+    </div><details class="ev-info"><summary>${icon('help')} ${esc(L('Πώς λειτουργεί το editing;', 'How does editing work?'))}</summary><div class="help">${esc(L('Το editing ακολουθεί αυτόματα την κατάσταση βίντεο (φύλλο Dimitris). Όταν οι φωτογραφίες γίνουν «Αλλαγές» και το βίντεο δεν έχει ξεκινήσει, γίνεται «Να γίνει».', 'Editing follows the video status (Dimitris sheet). When photos become “Changes” and the video has not started, it becomes “To do”.'))}</div></details></div>`, '', 8);
+
+    // ---------- Μηνύματα προς τον πελάτη
     const msgs = S.queue.filter((m) => m.event_id === id);
     if (msgs.length) {
-      html += `<div class="group-label">${esc(L('Μηνύματα προς τον πελάτη', 'Messages to the client'))}</div><div class="list">${msgs.map((m) => {
+      side += box('message', 'var(--blue)', L('Μηνύματα προς τον πελάτη', 'Messages to the client'), `<div class="ev-list">${msgs.map((m) => {
         const t = S.templates.find((x) => x.id === m.template_id);
         const pill = m.status === 'sent' ? `<span class="pill green">${esc(L('Στάλθηκε', 'Sent'))}</span>` : m.status === 'dismissed' ? `<span class="pill">${esc(L('Παραλείφθηκε', 'Skipped'))}</span>` : `<span class="pill orange">${esc(L('Προς αποστολή', 'To send'))}</span>`;
         return `<a class="row" href="#/outbox/${m.id}"><div class="main-col"><div class="t">${esc(t?.name || m.title || L('Μήνυμα', 'Message'))}</div><div class="s">${esc((m.body || '').slice(0, 90))}${(m.body || '').length > 90 ? '…' : ''}</div></div>${pill}${icon('chevR', 'chev')}</a>`;
-      }).join('')}</div>`;
+      }).join('')}</div>`, '', 9);
     }
 
-    html += `<div class="group-label">${esc(L('Ενέργειες', 'Actions'))}</div><div class="list">
+    // ---------- Ενέργειες
+    side += box('settings', 'var(--label-2)', L('Ενέργειες', 'Actions'), `<div class="ev-list">
       <a class="row" href="#/event/${id}/edit"><span class="row-icon">${icon('edit')}</span><div class="main-col"><div class="t">${esc(L('Επεξεργασία στοιχείων', 'Edit details'))}</div></div>${icon('chevR', 'chev')}</a>
       <button class="row" data-act="cancel"><span class="row-icon" style="background:var(--orange)">${icon(e.status === 'cancelled' ? 'refresh' : 'x')}</span><div class="main-col"><div class="t">${esc(e.status === 'cancelled' ? L('Επαναφορά εκδήλωσης', 'Restore event') : L('Ακύρωση εκδήλωσης', 'Cancel event'))}</div><div class="s">${esc(L('Μένει στο ιστορικό, ενημερώνεται το συνεργείο', 'Kept in history, crew is notified'))}</div></div></button>
       <button class="row" data-act="delete"><span class="row-icon" style="background:var(--red)">${icon('trash')}</span><div class="main-col"><div class="t neg">${esc(L('Οριστική διαγραφή', 'Delete permanently'))}</div><div class="s">${esc(v.pays.length ? L('Μαζί με τις πληρωμές της (ζητείται επιβεβαίωση)', 'Together with its payments (asks for confirmation)') : L('Δεν γίνεται αναίρεση', 'Cannot be undone'))}</div></div></button>
-    </div>`;
+    </div>`, '', 10);
   }
+  html += `<div class="ev-layout"><div class="ev-main">${main}</div><div class="ev-side">${side}</div></div>`;
 
   root.innerHTML = html;
   bindSessionsSection(root, id);
+  root.querySelectorAll('[data-more]').forEach((b) => b.addEventListener('click', () => b.classList.toggle('clamp')));
 
   // ---- ενέργειες ----
   root.querySelector('[data-act="ics"]')?.addEventListener('click', () => {
