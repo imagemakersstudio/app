@@ -7,6 +7,8 @@ import { L, esc, money, fmtDate, parseMoney, normTime, opt, sheet, toast, toastE
 const memory = {}; // id → { scrollLeft, scrollTop, sel: {rk, ck} }
 /** Καθαρίζει φίλτρα & ταξινόμηση ενός πίνακα (π.χ. σε κάθε νέα είσοδο στη σελίδα) */
 export function resetGridFilters(id) { if (memory[id]) { memory[id].filters = {}; memory[id].sort = null; } }
+/** Ξεκινά τον πίνακα με ένα συγκεκριμένο φίλτρο (π.χ. από σύνδεσμο της Αρχικής) */
+export function setGridFilter(id, key, vals) { const m = (memory[id] ||= { scrollLeft: 0, scrollTop: 0, sel: null }); m.filters = { [key]: vals }; m.sort = null; }
 /** Χρωματιστή ετικέτα επιλογής (tone: red, green, blue, yellow, orange, grey, solid-green, solid-red, ή CSS χρώμα μέσω o.color) */
 export const toneChip = (o, caret = true) => `<span class="tchip t-${esc(o.tone || 'grey')}${caret ? ' caret' : ''}"${o.color ? ` style="--tc:${esc(o.color)}"` : ''}>${esc(L(o.el, o.en))}</span>`;
 const coarse = () => window.matchMedia('(pointer: coarse)').matches;
@@ -14,7 +16,7 @@ const coarse = () => window.matchMedia('(pointer: coarse)').matches;
 /**
  * cols: [{ key, label, group, w, type, get(row), display(row)->html, editable(row)->bool|bool, options(row)->[{v,el,en}], cls(row), sum: bool }]
  * opts: { id, rows, rowKey(row), rowClass(row), groups: {key: {label, cls}}, onEdit(row, col, value) → Promise, empty, filters: bool }
- * filters: κουμπί φίλτρου σε κάθε επικεφαλίδα (όπως στο Excel)· στήλη με filter:false δεν έχει· col.filterSort='appear' = σειρά εμφάνισης
+ * filters: true (όλες οι στήλες) ή λίστα με keys στηλών — κουμπί φίλτρου στην επικεφαλίδα (όπως στο Excel)· στήλη με filter:false δεν έχει· col.filterSort='appear' = σειρά εμφάνισης
  */
 /** Ο πίνακας χωράει στο παράθυρο: το κάτω μέρος (και η οριζόντια μπάρα κύλισης) φαίνεται πάντα */
 function fitWrap(wrap) {
@@ -151,8 +153,9 @@ export function renderGrid(container, cols, opts) {
   const hasGroups = cols.some((c) => c.group);
   let html = `<div class="xl-wrap" tabindex="0"><table class="xl"><thead>`;
   if (hasGroups) html += `<tr class="g">${groupRow.map((g, i) => `<th colspan="${g.n}" class="${groups[g.g]?.cls || 'gc-plain'} ${i === 0 && cols[0].sticky ? 'sticky' : ''}">${esc(groups[g.g]?.label || '')}</th>`).join('')}</tr>`;
+  const filterable = (c) => useFilters && c.filter !== false && (!Array.isArray(useFilters) || useFilters.includes(c.key));
   const fbtn = (c, ci) => {
-    if (!useFilters || c.filter === false) return '';
+    if (!filterable(c)) return '';
     const on = !!F[c.key], so = SORT?.key === c.key ? SORT.dir : '';
     return `<button type="button" class="xl-fbtn ${on ? 'on' : ''} ${so ? 'sorted' : ''}" data-f="${ci}" title="${esc(L('Φίλτρο & ταξινόμηση', 'Filter & sort'))}" aria-label="${esc(L('Φίλτρο', 'Filter'))}: ${esc(c.label)}">${so ? `<b>${so === 'asc' ? '↑' : '↓'}</b>` : ''}${icon(on ? 'filter' : 'chevD')}</button>`;
   };
@@ -161,7 +164,7 @@ export function renderGrid(container, cols, opts) {
     const names = [...Object.keys(F).map((k) => cols.find((c) => c.key === k)?.label), SORT ? `${cols.find((c) => c.key === SORT.key)?.label || ''} ${SORT.dir === 'asc' ? '↑' : '↓'}` : null].filter(Boolean);
     html = `<div class="xl-fbar">${icon('filter')}<span>${esc(fCount ? L('Φίλτρα', 'Filters') : L('Ταξινόμηση', 'Sort'))}: <b>${names.map(esc).join(', ')}</b> · ${esc(L(`εμφανίζονται ${rows.length} από ${allRows.length}`, `showing ${rows.length} of ${allRows.length}`))}</span><button type="button" class="btn small plain" data-fclear>${icon('x')} ${esc(L('Καθαρισμός όλων', 'Clear all'))}</button></div>` + html;
   }
-  html += `<tr class="h">${cols.map((c, ci) => `<th class="${groups[c.group]?.cls || 'gc-plain'} ${c.sticky ? 'sticky' : ''} ${useFilters && c.filter !== false ? 'has-f' : ''}" style="${hasGroups ? '' : 'top:0'}"><div style="min-width:${c.w || 110}px">${esc(c.label)}${fbtn(c, ci)}</div></th>`).join('')}</tr></thead><tbody>`;
+  html += `<tr class="h">${cols.map((c, ci) => `<th class="${groups[c.group]?.cls || 'gc-plain'} ${c.sticky ? 'sticky' : ''} ${filterable(c) ? 'has-f' : ''}" style="${hasGroups ? '' : 'top:0'}"><div style="min-width:${c.w || 110}px">${esc(c.label)}${fbtn(c, ci)}</div></th>`).join('')}</tr></thead><tbody>`;
   if (!rows.length) html += `<tr><td colspan="${cols.length}"><div class="c muted" style="justify-content:center;max-width:none;height:80px">${esc(empty)}</div></td></tr>`;
   rows.forEach((r, ri) => {
     html += `<tr class="${rowClass(r)}" data-rk="${esc(rowKey(r))}">${cols.map((c, ci) => {

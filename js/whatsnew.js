@@ -8,6 +8,15 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.15.0', date: '15/11/2026',
+    items: [
+      ['🔽', 'Φύλλα (Image Makers, Πελάτες, Πληρωμές, Φωτογραφίες & editing): φίλτρα όπως στο Excel στις στήλες Μήνας, Κατηγορία Εκδήλωσης, Ανάλυση, Κατάσταση Φωτογραφίες, Κατάσταση Editing και Εξόφληση OK. Αντικαθιστούν τις παλιές λίστες «Όλοι οι μήνες / Όλες οι κατηγορίες».', 'Sheets (Image Makers, Clients, Payments, Photos & editing): Excel-style filters on Month, Event category, Resolution, Photos status and Editing status. They replace the old “All months / All categories” lists.'],
+      ['🧹', 'Αφαιρέθηκαν τα κουμπιά «Μόνο ανεξόφλητα» και «Με ακυρωμένες». Για τα ανεξόφλητα υπάρχει φίλτρο στη στήλη «Εξόφληση OK»· οι ακυρωμένες εκδηλώσεις φαίνονται στη λίστα Εκδηλώσεις.', 'Removed the “Unpaid only” and “Include cancelled” buttons. For unpaid use the “Paid OK” column filter; cancelled events are in the Events list.'],
+      ['📅', 'Πρώτη στήλη ο Μήνας και μετά η Ημερομηνία.', 'Month is now the first column, then the Date.'],
+      ['✨', 'Οι καρτέλες των φύλλων χωράνε σε μία γραμμή και τα κουμπιά ενοτήτων (Βασικά, Ζευγάρι, …) είναι πιο ελαφριά.', 'Sheet tabs fit on one line and the section buttons (Basics, Couple, …) are lighter.'],
+    ],
+  },
+  {
     v: '1.14.0', date: '15/11/2026',
     items: [
       ['🔽', 'Φύλλο Dimitris: φίλτρα όπως στο Excel! Δίπλα σε κάθε επικεφαλίδα υπάρχει ένα βελάκι — πατήστε το για ταξινόμηση ή για να διαλέξετε με τικ ποιες τιμές θα φαίνονται (π.χ. μόνο κάποιους μήνες ή μόνο «υπό επεξεργασία»). Πάνω από τον πίνακα φαίνεται ποια φίλτρα είναι ενεργά, με κουμπί «Καθαρισμός όλων».', 'Dimitris sheet: Excel-style filters! Each header has a small arrow — tap it to sort or tick which values to show (e.g. only some months or only “in progress”). Active filters are shown above the table with a “Clear all” button.'],
