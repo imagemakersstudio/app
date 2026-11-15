@@ -4,11 +4,12 @@
 import { safeColor, L, LANG, esc, icon, setLang, getThemePref, setThemePref, segmented, initSegmented, toast, toastErr, confirmBox, infoBox, busy, isIOS, isStandalone, colorFor, initials, lbl, ROLES, timeAgo } from '../core.js';
 import { sb, S, isAdmin, profileName, saveSetting, business, reload, friendlyError, emit } from '../data.js';
 import { pageHead } from '../layout.js';
+import { avatar } from '../components.js';
 import { pushState, enablePush, disablePushHere, sendTest, setupServerPush, serverStatus, checkFunction, deviceName } from '../push.js';
 import { verifyPinPrompt, showNewPin, lockAfterMinutes, TERMS_ENABLED } from './auth.js';
 import { exportAllXlsx, exportFullZip, importBackup, importOldSheet } from '../backup.js';
 
-export const APP_VERSION = '1.15.1';
+export const APP_VERSION = '1.16.0';
 let installEvt = null;
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; });
 
@@ -20,7 +21,9 @@ export function renderSettings(root) {
   const b = business();
   const cr = S.settings.crew_reminder || { enabled: true, days_before: 1, hour: 18 };
   let html = pageHead(L('Ρυθμίσεις', 'Settings'));
-  html += `<div class="list"><div class="row"><span class="avatar lg" style="--c:${safeColor(p.color, p.id)}">${esc(initials(profileName(p)))}</span><div class="main-col"><div class="t" style="font-size:19px">${esc(profileName(p))}</div><div class="s">@${esc(p.username)} · ${esc(p.email)}</div><div class="s">${esc(lbl(ROLES, p.role))}</div></div></div></div>`;
+  html += `<div class="list"><div class="row me-row"><button type="button" class="av-edit" id="av_pick" title="${esc(L('Αλλαγή φωτογραφίας', 'Change photo'))}">${avatar(p, 'xl')}<span class="av-cam">${icon('camera')}</span></button><div class="main-col"><div class="t" style="font-size:19px">${esc(profileName(p))}</div><div class="s">@${esc(p.username)} · ${esc(p.email)}</div><div class="s">${esc(lbl(ROLES, p.role))}</div>
+    <div class="hstack mt-s" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small" id="av_pick2">${icon('camera')} ${esc(p.avatar_path ? L('Αλλαγή φωτογραφίας', 'Change photo') : L('Προσθήκη φωτογραφίας', 'Add photo'))}</button>${p.avatar_path ? `<button type="button" class="btn small plain" id="av_del">${esc(L('Αφαίρεση', 'Remove'))}</button>` : ''}</div></div>
+    <input type="file" id="av_file" accept="image/*" hidden></div></div>`;
 
   html += `<div class="group-label">${esc(L('Προφίλ', 'Profile'))}</div><div class="card pad"><div class="form-grid">
     <div class="field"><label>${esc(L('Ονοματεπώνυμο', 'Full name'))}</label><input class="input" id="pf_name" value="${esc(p.full_name)}"></div>
@@ -71,6 +74,40 @@ export function renderSettings(root) {
   </div>
   <div class="center small muted mt" style="padding-bottom:10px">Image Makers · Studio Manager v${APP_VERSION} · <a href="#/whatsnew">${esc(L('Τι νέο υπάρχει', 'What’s new'))}</a><br>${esc(L('Αναπτύσσεται με το Claude (Anthropic)', 'Developed with Claude (Anthropic)'))}</div>`;
   root.innerHTML = html;
+
+  // φωτογραφία προφίλ: μικραίνει στο κινητό/υπολογιστή (τετράγωνη 320×320, ~30 KB) και ανεβαίνει στον φάκελο του χρήστη
+  const avFile = root.querySelector('#av_file');
+  ['#av_pick', '#av_pick2'].forEach((s) => root.querySelector(s)?.addEventListener('click', () => avFile.click()));
+  avFile.addEventListener('change', async () => {
+    const f = avFile.files?.[0]; avFile.value = '';
+    if (!f) return;
+    const btn = root.querySelector('#av_pick2'); busy(btn, true);
+    try {
+      const blob = await squareJpeg(f, 320);
+      const path = `${p.id}/${Date.now()}.jpg`;
+      const up = await sb.storage.from('avatars').upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000', upsert: false });
+      if (up.error) throw up.error;
+      const old = p.avatar_path;
+      const { data, error } = await sb.from('profiles').update({ avatar_path: path }).eq('id', p.id).select().single();
+      if (error) { await sb.storage.from('avatars').remove([path]); throw error; }
+      if (old) sb.storage.from('avatars').remove([old]).catch(() => {});
+      Object.assign(S.profile, data);
+      const me = S.profiles.find((x) => x.id === p.id); if (me) Object.assign(me, data);
+      toast(L('Η φωτογραφία αποθηκεύτηκε', 'Photo saved'));
+      emit('me');
+    } catch (e) { busy(btn, false); toastErr(e?.message === 'decode' ? L('Δεν μπορέσαμε να διαβάσουμε αυτή την εικόνα. Δοκιμάστε μια άλλη (JPG ή PNG).', 'Could not read this image. Try another one (JPG or PNG).') : e); }
+  });
+  root.querySelector('#av_del')?.addEventListener('click', async (e) => {
+    if (!await confirmBox(L('Αφαίρεση φωτογραφίας;', 'Remove photo?'), L('Θα εμφανίζονται ξανά τα αρχικά σας.', 'Your initials will show again.'), { ok: L('Αφαίρεση', 'Remove'), destructive: true })) return;
+    busy(e.currentTarget, true);
+    const old = p.avatar_path;
+    const { data, error } = await sb.from('profiles').update({ avatar_path: null }).eq('id', p.id).select().single();
+    if (error) { busy(e.currentTarget, false); toastErr(error); return; }
+    if (old) sb.storage.from('avatars').remove([old]).catch(() => {});
+    Object.assign(S.profile, data);
+    const me = S.profiles.find((x) => x.id === p.id); if (me) Object.assign(me, data);
+    emit('me');
+  });
 
   // προφίλ
   let color = safeColor(p.color, p.id);
@@ -165,3 +202,21 @@ async function drawServerBox(root) {
   });
 }
 void infoBox; void timeAgo; void emit;
+
+/** Εικόνα → τετράγωνο JPEG (κόβει το κέντρο), για φωτογραφία προφίλ */
+async function squareJpeg(file, size) {
+  let img;
+  try { img = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+  catch {
+    img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('decode')); i.src = URL.createObjectURL(file); });
+  }
+  const w = img.width, h = img.height, s = Math.min(w, h);
+  if (!s) throw new Error('decode');
+  const c = document.createElement('canvas'); c.width = size; c.height = size;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, (w - s) / 2, (h - s) / 2, s, s, 0, 0, size, size);
+  const blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.86));
+  if (!blob) throw new Error('decode');
+  return blob;
+}

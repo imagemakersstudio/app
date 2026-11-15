@@ -1756,3 +1756,15 @@ button.mp-r:hover { background: var(--fill-2); }
 .xl td.sticky.pin-last, .xl thead th.sticky.pin-last { box-shadow: 2px 0 0 var(--sep-strong), 6px 0 8px -6px rgba(0,0,0,.18); }
 .xl tfoot td.sticky { z-index: 3; }
 @media (min-width: 900px) { .sheet-tabs { flex-wrap: nowrap; } }
+/* ---------- Φωτογραφίες προφίλ (v1.16.0) ---------- */
+.avatar { position: relative; overflow: hidden; }
+.avatar > i { font-style: normal; }
+.avatar > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.avatar.has-img > i { visibility: hidden; }
+.avatar.has-img { background: var(--fill-2); }
+.avatar.xl { width: 84px; height: 84px; flex-basis: 84px; font-size: 28px; }
+.me-row { align-items: center; gap: 16px; }
+.av-edit { position: relative; border: 0; padding: 0; background: none; border-radius: 50%; cursor: pointer; flex: none; }
+.av-edit .av-cam { position: absolute; right: -2px; bottom: -2px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; box-shadow: 0 0 0 3px var(--bg-grouped); }
+.av-edit .av-cam .ic { width: 15px; height: 15px; }
+.av-edit:hover .avatar { filter: brightness(.94); }

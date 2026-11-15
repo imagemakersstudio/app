@@ -2,7 +2,7 @@
 //  Κοινά κομμάτια UI (κάρτες εκδηλώσεων, πακέτο προσφοράς κ.λπ.)
 // =====================================================================
 import { crewDutyText, crewDutyEmoji, segmented, isMultiDay, fmtDate, dutyLabel, dutyEmoji, safeColor, L, esc, icon, fmtTime, parseISO, monthShort, lbl, CATEGORIES, PHOTO_STATUS, EDIT_STATUS, money, initials, colorFor, relDays, daysBetween, todayISO, LANG } from './core.js';
-import { isAdmin, profileName, profileById } from './data.js';
+import { isAdmin, profileName, profileById, sb } from './data.js';
 
 export const catPill = (cat) => `<span class="pill cat-pill cat-${esc(cat)}">${esc(lbl(CATEGORIES, cat))}</span>`;
 export const catShort = (cat) => ({ wedding: L('Γάμος', 'Wedding'), baptism: L('Βάπτιση', 'Baptism'), wedding_baptism: L('Γαμοβάπτιση', 'Wed+Bapt.'), promo: 'Promo', other: L('Άλλο', 'Other') }[cat] || cat);
@@ -13,9 +13,17 @@ export function dateTile(iso, cat) {
   return `<div class="date-tile cat-${esc(cat)}"><small>${esc(monthShort(d.getMonth()))}</small><b>${d.getDate()}</b><span>${esc(dow)}</span></div>`;
 }
 
+/** Διεύθυνση της φωτογραφίας προφίλ (ή null αν δεν έχει) */
+export function avatarUrl(p) {
+  if (!p?.avatar_path || !sb) return null;
+  try { return sb.storage.from('avatars').getPublicUrl(p.avatar_path).data.publicUrl; } catch { return null; }
+}
+/** Κυκλάκι μέλους: η φωτογραφία του αν έχει, αλλιώς τα αρχικά σε χρώμα */
 export function avatar(p, cls = '') {
   if (!p) return '';
-  return `<span class="avatar ${cls}" style="--c:${safeColor(p.color, p.id)}" title="${esc(profileName(p))}">${esc(initials(profileName(p)))}</span>`;
+  const url = avatarUrl(p);
+  const ini = esc(initials(profileName(p)));
+  return `<span class="avatar ${cls} ${url ? 'has-img' : ''}" style="--c:${safeColor(p.color, p.id)}" title="${esc(profileName(p))}">${url ? `<img src="${esc(url)}" alt="" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has-img');this.remove()">` : ''}<i>${ini}</i></span>`;
 }
 
 export function photoStatusPill(v) {

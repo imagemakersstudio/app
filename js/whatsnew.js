@@ -8,6 +8,12 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.16.0', date: '15/11/2026',
+    items: [
+      ['🖼️', 'Φωτογραφία προφίλ! Ρυθμίσεις → πατήστε την εικόνα σας ή «Προσθήκη φωτογραφίας». Φαίνεται στο συνεργείο κάθε εκδήλωσης, στην ομάδα, στο μενού και στην οθόνη κλειδώματος. Όσοι δεν βάλουν φωτογραφία συνεχίζουν να φαίνονται με τα αρχικά τους.', 'Profile photo! Settings → tap your picture or “Add photo”. It shows in each event’s crew, the team, the menu and the lock screen. Anyone without a photo keeps showing their initials.'],
+    ],
+  },
+  {
     v: '1.15.1', date: '15/11/2026',
     items: [
       ['📌', 'Φύλλα: ο Μήνας, η Ημερομηνία και η Τοποθεσία μένουν πάντα καρφιτσωμένα αριστερά όταν σύρετε τον πίνακα δεξιά (στο κινητό μόνο ο Μήνας, για να χωράει η οθόνη).', 'Sheets: Month, Date and Location stay pinned on the left when you scroll right (on phones only Month, to fit the screen).'],

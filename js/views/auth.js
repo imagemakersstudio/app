@@ -4,6 +4,7 @@
 import { safeColor, L, vocative, esc, icon, $, toast, toastErr, setLang, LANG, setThemePref, getThemePref, busy, initials, colorFor, debounce, infoBox, sleep, haptic } from '../core.js';
 import { sb, S, friendlyError, loadProfile, reload, profileName } from '../data.js';
 import { enablePush, pushState } from '../push.js';
+import { avatar } from '../components.js';
 
 const PIN_LEN = 6;
 // Διακόπτης όρων χρήσης: false = χωρίς οθόνη αποδοχής και χωρίς συνδέσμους (προσωρινά, μέχρι την παράδοση).
@@ -264,7 +265,7 @@ export function showLock() {
     const name = S.profile ? profileName(S.profile) : '';
     const elx = document.createElement('div');
     elx.className = 'lockscreen';
-    elx.innerHTML = `<span class="avatar lg" style="--c:${safeColor(S.profile?.color, uid)}">${esc(initials(name))}</span>
+    elx.innerHTML = `${S.profile ? avatar(S.profile, 'lg') : `<span class="avatar lg" style="--c:${safeColor(S.profile?.color, uid)}">${esc(initials(name))}</span>`}
       <h2>${esc(L('Εισαγάγετε το PIN σας', 'Enter your PIN'))}</h2>
       <div class="muted small">${esc(name)}</div>
       <div id="lpad"></div>

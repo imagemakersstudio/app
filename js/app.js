@@ -5,6 +5,7 @@
 import { safeColor, L, esc, icon, $, $$, on, applyTheme, toast, hasLayer, closeAllLayers, debounce, initials, colorFor, lbl, ROLES, setLang, LANG } from './core.js';
 import { sb, S, configured, loadProfile, loadAll, startRealtime, stopRealtime, subscribe, isAdmin, isVideoAdmin, hasRole, setNotificationHandler, unreadCount, pendingMessages, newRequests, pendingUsers, pendingAppointments, staleAppointments, markRead, updateBadge, profileName, emit } from './data.js';
 import { UI, go } from './layout.js';
+import { avatar } from './components.js';
 import { registerSW, onSWMessage, ensureSubscription } from './push.js';
 import { renderAuth, renderWelcome, showLock, needsLock, showNewPin, renderNotConfigured, needsTerms, renderTermsGate, legalLinks } from './views/auth.js';
 import { renderHome } from './views/home.js';
@@ -125,7 +126,7 @@ function shellHTML() {
       <nav class="nav" id="nav"></nav>
       <div class="sidebar-foot">
         <a class="me-chip" href="#/settings">
-          <span class="avatar" style="--c:${safeColor(p.color, p.id)}">${esc(initials(profileName(p)))}</span>
+          ${avatar(p)}
           <span class="who"><b>${esc(profileName(p))}</b><small>${esc(lbl(ROLES, p.role))}</small></span>
         </a>
         <div class="credit">${legalLinks() ? `<div>${legalLinks()}</div>` : ''}${esc(L('Αναπτύσσεται με το Claude (Anthropic)', 'Developed with Claude (Anthropic)'))}</div>
@@ -318,6 +319,7 @@ subscribe((what) => {
   if (what === 'me') {
     if (!S.profile?.active) { location.reload(); return; }
     if (hasRole() !== !!$('#page')) { location.reload(); return; }
+    const mc = $('.me-chip .avatar'); if (mc) mc.outerHTML = avatar(S.profile); // νέα φωτογραφία προφίλ
   }
   renderNav();
   refresh();
