@@ -9,7 +9,7 @@ import { S, isStaleAppt, STALE_DAYS, saveAppointment, deleteAppointment, uploadA
 import { pageHead, emptyState, setTopActions, go, backBtn } from '../layout.js';
 import { catPill, catShort, packageNameFrom, offerSummaryHTML, pickYear, yearOf, yearSelect, bindYear } from '../components.js';
 import { openOfferBuilder, generateOfferPdf, requestToOfferState, pickPdfFile, offerIsStale, refreshOfferPdf, offerKindFor, offerKindOf, offerFits } from '../offer.js';
-import { clientPageUrl, downloadClientFile } from './requests.js';
+import { clientPageUrl, clientPagePath, downloadClientFile } from './requests.js';
 import { barPairs, hbars, bindTips } from '../charts.js';
 
 const st = { mode: 'store', view: 'list', status: 'all', q: '', year: null, statsOpen: false, show: false };
@@ -275,7 +275,8 @@ export async function ensurePdf(a, btn) {
   const w = window.open('about:blank', '_blank');
   busy(btn, true);
   try {
-    const res = await generateOfferPdf(offerPrefill(a), offerKindOf(a.offer_data));
+    const pre = offerPrefill(a);
+    const res = await generateOfferPdf(pre, offerKindOf(pre));
     const path = await uploadAppointmentOffer(a.id, new File([res.pdf], 'offer.pdf', { type: 'application/pdf' }));
     await saveAppointment({ id: a.id, offer_path: path, offer_data: res.state, total: res.total ?? a.total });
     toast(L('Το PDF δημιουργήθηκε', 'PDF created'));
@@ -308,7 +309,8 @@ export async function confirmAppt(a) {
   if (!a.offer_path && (a.selections || a.offer_data)) {
     toast(L('Δημιουργία PDF προσφοράς…', 'Creating offer PDF…'), { type: 'info' });
     try {
-      const res = await generateOfferPdf(offerPrefill(a), offerKindOf(a.offer_data));
+      const pre = offerPrefill(a);
+      const res = await generateOfferPdf(pre, offerKindOf(pre));
       const path = await uploadAppointmentOffer(a.id, new File([res.pdf], 'offer.pdf', { type: 'application/pdf' }));
       await saveAppointment({ id: a.id, offer_path: path, offer_data: res.state, total: res.total ?? a.total });
     } catch (e) { console.warn(e); }
@@ -386,12 +388,28 @@ export function openAppointment(a) {
 // ---------------------------------------------------------------------
 //  Αποστολή link (ηλεκτρονική παρουσίαση)
 // ---------------------------------------------------------------------
+// τύποι προσφοράς που έχουν σελίδα για τον πελάτη
+const LINK_KINDS = [
+  { v: 'wedding', el: 'Γάμος', gen: 'γάμου', en: 'Wedding', for: ['τον γάμο σας', 'your wedding'], who: ['Το ζευγάρι', 'The couple'] },
+  { v: 'baptism', el: 'Βάπτιση', gen: 'βάπτισης', en: 'Christening', for: ['τη βάπτιση', 'the christening'], who: ['Ο πελάτης', 'The client'] },
+  { v: 'wedding_baptism', el: 'Γαμοβάπτιση', gen: 'γαμοβάπτισης', en: 'Wedding & christening', for: ['τη γαμοβάπτισή σας', 'your wedding & christening'], who: ['Το ζευγάρι', 'The couple'] },
+];
+
+/** Πρώτα επιλογή τύπου (γάμος / βάπτιση / γαμοβάπτιση), μετά η αποστολή του σωστού link */
 export function openSendLink() {
-  const url = clientPageUrl();
+  const body = `<p class="muted small" style="margin:0 0 12px">${esc(L('Ποια προσφορά θέλετε να στείλετε στον πελάτη;', 'Which offer do you want to send to the client?'))}</p>
+    <div class="list">${LINK_KINDS.map((k) => `<button type="button" class="row" data-kind="${k.v}"><span class="cat-dot cat-${k.v}" style="width:12px;height:12px"></span><div class="main-col"><div class="t">${esc(L(k.el, k.en))}</div></div>${icon('chevR', 'chev')}</button>`).join('')}</div>`;
+  const s = sheet({ title: L('Αποστολή link σε πελάτη', 'Send link to client'), body });
+  s.body.querySelectorAll('[data-kind]').forEach((b) => b.addEventListener('click', () => { s.close(); setTimeout(() => openSendLinkFor(b.dataset.kind), 250); }));
+}
+
+function openSendLinkFor(kind) {
+  const k = LINK_KINDS.find((x) => x.v === kind) || LINK_KINDS[0];
+  const url = clientPageUrl(k.v);
   const f = { phone: '', email: '', name: '' };
-  const msg = () => L(`Γεια σας${f.name ? ' ' + f.name : ''}! Σας στέλνουμε την προσφορά μας για τη μεγάλη σας μέρα. Διαλέξτε ό,τι θέλετε και πατήστε «Αποστολή» — θα σας καλέσουμε αμέσως. ${url}\n${business().name} · ${business().phone}`,
-    `Hello${f.name ? ' ' + f.name : ''}! Here is our offer for your big day. Choose what you like and tap “Send” — we will call you right away. ${url}\n${business().name} · ${business().phone}`);
-  const body = `<div class="banner">${icon('link')}<div><b>${esc(L('Πώς λειτουργεί', 'How it works'))}</b><span>${esc(L('Το ζευγάρι ανοίγει το link, διαλέγει πακέτο και πατάει «Αποστολή». Το ραντεβού εμφανίζεται αμέσως στην «Ηλεκτρονική παρουσίαση» με ειδοποίηση, και το PDF φτιάχνεται με ένα πάτημα.', 'The couple opens the link, picks a package and taps “Send”. The appointment appears instantly under “Online presentation” with a notification, and the PDF is created with one tap.'))}</span></div></div>
+  const msg = () => L(`Γεια σας${f.name ? ' ' + f.name : ''}! Σας στέλνουμε την προσφορά μας για ${k.for[0]}. Διαλέξτε ό,τι θέλετε και πατήστε «Αποστολή» — θα σας καλέσουμε αμέσως. ${url}\n${business().name} · ${business().phone}`,
+    `Hello${f.name ? ' ' + f.name : ''}! Here is our offer for ${k.for[1]}. Choose what you like and tap “Send” — we will call you right away. ${url}\n${business().name} · ${business().phone}`);
+  const body = `<div class="banner">${icon('link')}<div><b>${esc(L('Πώς λειτουργεί', 'How it works'))}</b><span>${esc(L(`${k.who[0]} ανοίγει το link, διαλέγει πακέτο και πατάει «Αποστολή». Το ραντεβού εμφανίζεται αμέσως στην «Ηλεκτρονική παρουσίαση» ως «${k.el}» με ειδοποίηση, και το PDF φτιάχνεται με ένα πάτημα.`, `${k.who[1]} opens the link, picks a package and taps “Send”. The appointment appears instantly under “Online presentation” as “${k.en}” with a notification, and the PDF is created with one tap.`))}</span></div></div>
     <div class="field"><label>${esc(L('Σύνδεσμος προσφοράς', 'Offer link'))}</label><div class="input-wrap"><input class="input" readonly value="${esc(url)}"><button class="btn small act" data-copy>${icon('copy')}</button></div></div>
     <div class="form-grid">
       <div class="field"><label>${esc(L('Όνομα (προαιρετικό)', 'Name (optional)'))}</label><input class="input" name="name" placeholder="${esc(L('π.χ. Μαρία', 'e.g. Maria'))}"></div>
@@ -403,20 +421,20 @@ export function openSendLink() {
       <button class="btn primary" data-send="email">${icon('mail')} Email</button>
       <button class="btn" data-send="viber">${icon('message')} Viber</button>
       <button class="btn" data-send="whatsapp">${icon('message')} WhatsApp</button>
-      <a class="btn" href="offer/client.html" target="_blank" rel="noopener">${icon('eye')} ${esc(L('Προβολή σελίδας', 'Preview page'))}</a>
+      <a class="btn" href="${esc(clientPagePath(k.v))}" target="_blank" rel="noopener">${icon('eye')} ${esc(L('Προβολή σελίδας', 'Preview page'))}</a>
       <button class="btn" data-file>${icon('download')} ${esc(L('Αρχείο για email', 'File for email'))}</button>
     </div>`;
-  const s = sheet({ title: L('Ηλεκτρονική παρουσίαση', 'Online presentation'), body });
+  const s = sheet({ title: L(`Ηλεκτρονική παρουσίαση · ${k.el}`, `Online presentation · ${k.en}`), body });
   s.body.querySelectorAll('[name]').forEach((i) => i.addEventListener('input', () => { f[i.name] = i.value.trim(); }));
   s.body.querySelector('[data-copy]').addEventListener('click', async () => { await copyText(url); toast(L('Ο σύνδεσμος αντιγράφηκε', 'Link copied')); });
-  s.body.querySelector('[data-file]').addEventListener('click', () => downloadClientFile());
+  s.body.querySelector('[data-file]').addEventListener('click', () => downloadClientFile(k.v));
   s.body.querySelectorAll('[data-send]').forEach((b) => b.addEventListener('click', async () => {
     const how = b.dataset.send;
     if ((how === 'sms' || how === 'whatsapp') && !f.phone) return toastErr(L('Γράψτε κινητό', 'Enter a mobile'));
     if (how === 'email' && !f.email) return toastErr(L('Γράψτε email', 'Enter an email'));
     if (how === 'sms') window.location.href = smsUrl(f.phone, msg());
     if (how === 'whatsapp') window.location.href = waUrl(f.phone, msg());
-    if (how === 'email') window.location.href = mailUrl(f.email, L('Image Makers · Η προσφορά μας για εσάς', 'Image Makers · Our offer for you'), msg());
+    if (how === 'email') window.location.href = mailUrl(f.email, L(`Image Makers · Προσφορά ${k.gen}`, `Image Makers · ${k.en} offer`), msg());
     if (how === 'viber') { await copyText(msg()); window.location.href = viberUrl(msg()); }
   }));
 }

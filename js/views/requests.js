@@ -9,14 +9,22 @@ import { requestToOfferState } from '../offer.js';
 
 const st = { tab: 'new' };
 
-export function clientPageUrl() { return new URL('offer/client.html', location.href.split('#')[0]).href; }
+// σελίδα προσφοράς για τον πελάτη, ανά τύπο εκδήλωσης
+export const CLIENT_PAGES = {
+  wedding: { path: 'offer/client.html', file: 'IMAGE_MAKERS_WEDDING_OFFER_2027.html' },
+  baptism: { path: 'offer/client-baptism.html', file: 'IMAGE_MAKERS_CHRISTENING_OFFER.html' },
+  wedding_baptism: { path: 'offer/client-wedding-baptism.html', file: 'IMAGE_MAKERS_WEDDING_CHRISTENING_OFFER.html' },
+};
+const pageFor = (kind) => CLIENT_PAGES[kind] || CLIENT_PAGES.wedding;
+export function clientPagePath(kind = 'wedding') { return pageFor(kind).path; }
+export function clientPageUrl(kind = 'wedding') { return new URL(pageFor(kind).path, location.href.split('#')[0]).href; }
 
-export async function downloadClientFile() {
-  const res = await fetch('offer/client.html', { cache: 'no-cache' });
+export async function downloadClientFile(kind = 'wedding') {
+  const res = await fetch(pageFor(kind).path, { cache: 'no-cache' });
   let html = await res.text();
   const cfg = { SUPABASE_URL: window.IM_CONFIG.SUPABASE_URL, SUPABASE_ANON_KEY: window.IM_CONFIG.SUPABASE_ANON_KEY };
   html = html.replace('/*__IM_INLINE_CONFIG__*/', `window.IM_CONFIG = ${JSON.stringify(cfg)};`).replace('<script src="../config.js"></script>', '').replace('href="../legal.html#privacy"', `href="${new URL('legal.html#privacy', location.href.split('#')[0]).href}"`);
-  download(new Blob([html], { type: 'text/html' }), 'IMAGE_MAKERS_WEDDING_OFFER_2027.html');
+  download(new Blob([html], { type: 'text/html' }), pageFor(kind).file);
 }
 
 export function renderRequests(root) {
