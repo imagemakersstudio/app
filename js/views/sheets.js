@@ -206,23 +206,23 @@ function mitsosSheet(body, tab, redraw) {
   views.sort((a, b) => a.e.event_date.localeCompare(b.e.event_date) || String(a.e.event_time || '').localeCompare(String(b.e.event_time || '')));
   const mi = (v) => Number(v.e.event_date.slice(5, 7)) - 1;
   const cols = [
-    { key: 'month', label: L('Μήνας', 'Month'), w: 126, sticky: true, get: (v) => MONTHS_EL_UP[mi(v)],
+    { key: 'month', label: L('Μήνας', 'Month'), w: 114, sticky: true, get: (v) => MONTHS_EL_UP[mi(v)],
       display: (v) => `<span class="tchip" style="background:${MONTH_COLORS[mi(v)]};color:${MONTH_DARK[mi(v)] ? '#fff' : '#1c2a17'}">${esc(MONTHS_EL_UP[mi(v)])}</span>` },
-    { key: 'date', label: L('Ημερομηνία', 'Date'), w: 132, type: 'date', align: 'center', get: (v) => v.e.event_date,
+    { key: 'date', label: L('Ημερομηνία', 'Date'), w: 112, type: 'date', align: 'center', get: (v) => v.e.event_date,
       display: (v) => `${isSOS(v.e) ? '<span class="sos-tag" title="SOS: το album πάει για εκτύπωση">SOS</span> ' : ''}${esc(fmtDate(v.e.event_date))}` },
-    { key: 'cat', label: L('Κατηγορία Εκδήλωσης', 'Event category'), w: 168, get: (v) => lbl(CATEGORIES, v.e.category),
+    { key: 'cat', label: L('Κατηγορία', 'Category'), w: 118, get: (v) => lbl(CATEGORIES, v.e.category),
       display: (v) => `<span class="tchip cat-${v.e.category}" style="background:var(--c);color:#fff">${esc(catShort(v.e.category).toLocaleUpperCase('el-GR').normalize('NFD').replace(/\p{M}/gu, ''))}</span>` },
-    { key: 'loc', label: L('ΤΟΠΟΘΕΣΙΑ', 'LOCATION'), w: 220, align: 'center', get: (v) => v.e.church_location || '',
+    { key: 'loc', label: L('Τοποθεσία', 'Location'), w: 180, get: (v) => v.e.church_location || '',
       display: (v) => `<a href="#/event/${v.e.id}" class="dim-loc" title="${esc(v.title)}">${esc(v.e.church_location || '—')}</a>` },
-    { key: 'files', label: L('Περασμένα αρχεία', 'Files copied'), w: 120, type: 'select', chips: true, options: FILES_COPIED, editable: true, get: (v) => v.e.files_copied, set: (v, val) => patchEvent(v.e.id, { files_copied: val }) },
-    { key: 'vst', label: L('Κατάσταση Βίντεο', 'Video status'), w: 190, type: 'select', chips: true, blank: false, options: VIDEO_STATUS, editable: true,
+    { key: 'files', label: L('Περασμένα αρχεία', 'Files copied'), w: 84, type: 'select', chips: true, options: FILES_COPIED, editable: true, get: (v) => v.e.files_copied, set: (v, val) => patchEvent(v.e.id, { files_copied: val }) },
+    { key: 'vst', label: L('Κατάσταση Βίντεο', 'Video status'), w: 172, type: 'select', chips: true, blank: false, options: VIDEO_STATUS, editable: true,
       get: (v) => v.e.video_status || 'not_ready', set: (v, val) => patchEvent(v.e.id, { video_status: val || 'not_ready' }) },
-    { key: 'prio', label: L('Προτεραιότητα', 'Priority'), w: 130, align: 'center', get: (v) => L(priority(v.e).el, priority(v.e).en),
+    { key: 'prio', label: L('Προτεραιό\u00ADτητα', 'Priority'), w: 92, align: 'center', get: (v) => L(priority(v.e).el, priority(v.e).en),
       display: (v) => { const p = priority(v.e); return p.v === 'none' ? '<span class="ph"></span>' : `<span class="tchip t-${p.tone}${p.v === 'sos' ? ' sos-pulse' : ''}">${esc(L(p.el, p.en))}</span>`; } },
-    { key: 'shop', label: L('Είναι στο μαγαζί;', 'In the shop?'), w: 200, type: 'select', chips: true, options: SHOP_STATUS, editable: true, get: (v) => v.e.shop_status, set: (v, val) => patchEvent(v.e.id, { shop_status: val }) },
-    { key: 'pc', label: L('Υπολογιστής', 'Computer'), w: 110, type: 'select', chips: true, options: PCS, editable: true, get: (v) => v.e.editing_pc, set: (v, val) => patchEvent(v.e.id, { editing_pc: val }) },
-    { key: 'stored', label: L('Αποθηκευμένο σε', 'Stored at'), w: 120, type: 'select', chips: true, options: STORED_AT, editable: true, get: (v) => v.e.stored_at, set: (v, val) => patchEvent(v.e.id, { stored_at: val }) },
-    { key: 'vn', label: L('Σχόλια', 'Comments'), w: 240, editable: true, get: (v) => v.e.video_notes, set: (v, val) => patchEvent(v.e.id, { video_notes: val }) },
+    { key: 'shop', label: L('Είναι στο μαγαζί;', 'In the shop?'), w: 192, type: 'select', chips: true, options: SHOP_STATUS, editable: true, get: (v) => v.e.shop_status, set: (v, val) => patchEvent(v.e.id, { shop_status: val }) },
+    { key: 'pc', label: L('Υπολογιστής', 'Computer'), w: 100, type: 'select', chips: true, options: PCS, editable: true, get: (v) => v.e.editing_pc, set: (v, val) => patchEvent(v.e.id, { editing_pc: val }) },
+    { key: 'stored', label: L('Αποθηκευμένο σε', 'Stored at'), w: 96, type: 'select', chips: true, options: STORED_AT, editable: true, get: (v) => v.e.stored_at, set: (v, val) => patchEvent(v.e.id, { stored_at: val }) },
+    { key: 'vn', label: L('Σχόλια', 'Comments'), w: 200, editable: true, get: (v) => v.e.video_notes, set: (v, val) => patchEvent(v.e.id, { video_notes: val }) },
   ];
   const hint = { icon: 'film', title: L('Πώς δουλεύει το Editing Workflow', 'How the Editing Workflow works'), text: L('Κάθε εκδήλωση μπαίνει εδώ μόλις κλειστεί. Η «Προτεραιότητα» αλλάζει μόνη της: φωτογραφίες σε «Αλλαγές» → «Να γίνει» (με ειδοποίηση) · album σε «Εκτύπωση στο εργαστήριο» → SOS (κόκκινη γραμμή). Η «Κατάσταση Editing» του μεγάλου Excel ακολουθεί την Κατάσταση Βίντεο: υπό επεξεργασία / έτοιμο να γίνει export → «Σε επεξεργασία» · «Ολοκληρώθηκε» μόνο όταν η Κατάσταση Βίντεο είναι «έτοιμο» και το «Είναι στο μαγαζί;» είναι «παραδόθηκε στο μαγαζί». Πατήστε την τοποθεσία για να ανοίξει η εκδήλωση.', 'Every event appears here once booked. “Priority” changes by itself: photos to “Changes” → “To do” (with a notification) · album to the lab → SOS (red row). The main Excel “Editing status” follows Video status: in progress / ready for export → “In progress” · “Done” only when Video status is “ready” and “In the shop?” is “delivered to the shop”. Tap the location to open the event.') };
   body.innerHTML = toolbar({ months: false, cats: false, hint, extra: segmented('mf', [{ v: 'all', label: L('Όλα', 'All') }, { v: 'open', label: L(`Εκκρεμή (${counts.open})`, `Pending (${counts.open})`) }, { v: 'sos', label: `SOS (${counts.sos})` }], st.mitsosFilter) }) + '<div id="grid" class="dim-grid"></div>';
