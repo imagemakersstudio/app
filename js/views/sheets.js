@@ -49,11 +49,14 @@ export function renderSheets(root, params = {}) {
   const tab = params.tab || 'main';
   // Dimitris: κάθε νέα είσοδος ξεκινά στο «Όλα», χωρίς φίλτρα (μένουν μόνο όσο δουλεύετε μέσα στο φύλλο)
   if (tab === 'mitsos' && !root.querySelector('.dim-grid')) { st.mitsosFilter = 'all'; st.q = ''; resetGridFilters('mitsos'); }
+  // Φύλλα εκδηλώσεων: κάθε νέα είσοδος (ή άλλη καρτέλα) ξεκινά χωρίς φίλτρα στήλων
+  const EVTABS = ['main', 'clients', 'payments', 'photos'];
+  if (EVTABS.includes(tab) && root.querySelector('#grid')?.dataset.tab !== tab) resetGridFilters('ev-' + tab);
   if (params.unpaid) st.unpaid = true;
   // χρονιές μόνο όπου υπάρχει κάτι (εκδηλώσεις, πληρωμές, έξοδα) · η ίδια επιλογή σε όλα τα tabs
   const { ys: years, y: selY } = pickYear([...[...S.events.values()].map((e) => yearOf(e.event_date)), ...S.payments.map((p) => yearOf(p.paid_on)), ...S.expenses.map((x) => yearOf(x.paid_on))]);
   st.year = selY;
-  if (tab === 'mitsos' && st.dimYear !== st.year) { if (st.dimYear) resetGridFilters('mitsos'); st.dimYear = st.year; } // άλλη χρονιά → χωρίς φίλτρα
+  if (st.fYear !== st.year) { if (st.fYear) ['mitsos', 'ev-main', 'ev-clients', 'ev-payments', 'ev-photos'].forEach(resetGridFilters); st.fYear = st.year; } // άλλη χρονιά → χωρίς φίλτρα
   const tabs = TABS();
   // Το Mitsos είναι ξεχωριστή σελίδα (μενού), χωρίς τις καρτέλες των υπόλοιπων φύλλων
   const cur = tab === 'mitsos' ? { v: 'mitsos', t: 'Dimitris' } : (tabs.find((t) => t.v === tab) || tabs[0]);
@@ -107,14 +110,14 @@ function eventsSheet(body, tab, redraw) {
   const G = GROUPS();
   const visible = new Set(tab === 'main' ? (st.groups || PRESETS.main) : PRESETS[tab]);
   let views = allEventViews({ year: st.year }).filter((v) => st.showCancelled || v.e.status !== 'cancelled');
-  views = views.filter((v) => (!st.month || v.e.event_date.slice(5, 7) === st.month) && (!st.cat || v.e.category === st.cat) && (!st.unpaid || !v.fullyPaid)
+  views = views.filter((v) => (!st.unpaid || !v.fullyPaid)
     && matches(st.q, v.title, v.c?.phone1, v.c?.phone2, v.c?.email1, v.c?.email2, v.e.church_location, v.f.package_name, fmtDate(v.e.event_date), v.f.office_notes));
   const maxPays = Math.max(4, ...views.map((v) => v.pays.filter((p) => p.amount > 0).length - 1));
 
   const updCust = async (v, field, val) => { if (!v.c) return; if (field === 'name1' && !val) throw new Error('required'); await patchCustomer(v.c.id, { [field]: val || null }); };
   const cols = [];
   const add = (g, c) => { if (visible.has(g)) cols.push({ group: g, ...c }); };
-  add('basic', { key: 'month', label: L('Μήνας', 'Month'), w: 126, get: (v) => monthUp(v.e.event_date) });
+  add('basic', { key: 'month', label: L('Μήνας', 'Month'), w: 112, filterSort: 'appear', get: (v) => monthUp(v.e.event_date) });
   add('basic', { key: 'date', label: L('Ημερομηνία', 'Date'), w: 96, type: 'date', editable: true, required: true, get: (v) => v.e.event_date, set: (v, val) => val && patchEvent(v.e.id, { event_date: val }) });
   add('basic', { key: 'loc', label: L('Τοποθεσία', 'Location'), w: 210, editable: true, get: (v) => v.e.church_location, set: (v, val) => patchEvent(v.e.id, { church_location: val }) });
   add('couple', { key: 'name1', label: L('Όνομα 1', 'Name 1'), w: 160, editable: (v) => !!v.c, get: (v) => v.c?.name1, set: (v, val) => updCust(v, 'name1', val) });
@@ -124,7 +127,7 @@ function eventsSheet(body, tab, redraw) {
   add('couple', { key: 'email1', label: 'Email 1', w: 190, editable: (v) => !!v.c, get: (v) => v.c?.email1, set: (v, val) => updCust(v, 'email1', val) });
   add('couple', { key: 'email2', label: 'Email 2', w: 170, editable: (v) => !!v.c, get: (v) => v.c?.email2, set: (v, val) => updCust(v, 'email2', val) });
   add('cat', { key: 'cat', label: L('Κατηγορία Εκδήλωσης', 'Event category'), w: 130, type: 'select', blank: false, options: CATEGORIES, editable: true, get: (v) => v.e.category, set: (v, val) => patchEvent(v.e.id, { category: val }) });
-  add('cat', { key: 'cov', label: L('Κάλυψη', 'Coverage'), w: 150, type: 'select', blank: false, options: COVERAGE, editable: true, get: (v) => v.e.coverage || 'both', set: (v, val) => patchEvent(v.e.id, { coverage: val || 'both' }) });
+  add('cat', { key: 'cov', label: L('Κάλυψη', 'Coverage'), w: 172, type: 'select', blank: false, options: COVERAGE, editable: true, get: (v) => v.e.coverage || 'both', set: (v, val) => patchEvent(v.e.id, { coverage: val || 'both' }) });
   add('cat', { key: 'pdf', label: 'PDF', w: 62, align: 'center', get: (v) => (v.e.offer_path ? 'PDF' : ''), display: (v) => v.e.offer_path ? `<button class="pdf-btn" data-pdf="${v.e.id}" title="${esc(L('Άνοιγμα προσφοράς', 'Open offer'))}">${icon('doc')}PDF</button>` : `<button class="pdf-btn" data-upl="${v.e.id}" style="color:var(--label-3)" title="${esc(L('Ανέβασμα PDF', 'Upload PDF'))}">${icon('upload')}</button>` });
   add('cat', { key: 'second', label: L('Δεύτερο Συνεργείο', 'Second crew'), w: 92, type: 'select', blank: false, options: yesNo, editable: true, get: (v) => (v.f.second_crew ? 'true' : 'false'), set: (v, val) => saveFinance(v.e.id, { second_crew: val === 'true' }) });
   add('cat', { key: 'crew', label: L('Συνεργείο', 'Crew'), w: 170, editable: true, onOpen: (v) => openCrewSheet(v.e.id), get: (v) => v.crew.map((c) => profileName(c.profile)).join(', '), display: (v) => v.crew.length ? esc(v.crew.map((c) => profileName(c.profile).split(' ')[0] + (' ' + dutyEmoji(c.duty))).join(', ')) : `<span class="muted">+ ${esc(L('ανάθεση', 'assign'))}</span>` });
@@ -153,15 +156,13 @@ function eventsSheet(body, tab, redraw) {
   add('money', { key: 'enotes', label: L('Σημειώσεις εκδήλωσης', 'Event notes'), w: 220, editable: true, get: (v) => v.e.notes, set: (v, val) => patchEvent(v.e.id, { notes: val }) });
   // οριστική διαγραφή από το φύλλο (με τους ίδιους ελέγχους ασφαλείας όπως στην καρτέλα της εκδήλωσης)
   cols.push({ group: cols.length ? cols[cols.length - 1].group : 'basic', key: 'del', label: L('Διαγραφή', 'Delete'), w: 84, align: 'center', get: () => '', exportValue: () => '', display: (v) => `<button class="del-btn" data-delev="${v.e.id}" title="${esc(L('Οριστική διαγραφή εκδήλωσης', 'Delete event permanently'))}">${icon('trash')}</button>` });
+  // πρώτα ο μήνας (σταθερός αριστερά) και μετά η ημερομηνία
   if (cols.length) cols[0].sticky = true;
-  // ημερομηνία πρώτη & σταθερή στο κινητό
-  const di = cols.findIndex((c) => c.key === 'date');
-  if (di > 0) { const [d] = cols.splice(di, 1); cols.unshift(d); cols.forEach((c, i) => { c.sticky = i === 0; }); }
   // αντιγραφή group στην πρώτη (για ομαδοποίηση)
   if (cols[0]) cols[0].group = cols[1]?.group === 'basic' ? 'basic' : cols[0].group;
 
   const toggles = tab === 'main' ? `<div class="chips col-toggles scroll" style="margin-bottom:10px">${PRESETS.main.map((g) => `<button class="chip ${visible.has(g) ? 'on' : ''}" data-g="${g}"><i style="--g:${{ basic: '#3e4651', couple: '#3e4651', cat: '#2b5797', fin: '#7a1712', photo: '#2b5797', money: '#3f7a2b' }[g]}"></i>${esc(G[g].label)}</button>`).join('')}</div>` : '';
-  body.innerHTML = toolbar({ unpaid: true, extra: `<button class="chip ${st.showCancelled ? 'on' : ''}" id="scx">${esc(L('Με ακυρωμένες', 'Include cancelled'))}</button><a class="btn small primary" href="#/new-event">${icon('plus')} ${esc(L('Εκδήλωση', 'Event'))}</a>` }) + toggles + '<div id="grid"></div>' +
+  body.innerHTML = toolbar({ unpaid: true, months: false, cats: false, extra: `<button class="chip ${st.showCancelled ? 'on' : ''}" id="scx">${esc(L('Με ακυρωμένες', 'Include cancelled'))}</button><a class="btn small primary" href="#/new-event">${icon('plus')} ${esc(L('Εκδήλωση', 'Event'))}</a>` }) + toggles + '<div id="grid"></div>' +
     `<div class="legend"><span><i style="background:var(--row-paid)"></i>${esc(L('Πλήρως εξοφλημένη (οι πληρωμές έφτασαν την αξία πακέτου)', 'Fully paid (payments reached package value)'))}</span><span>${esc(L('Διπλό κλικ ή Enter για επεξεργασία κελιού · στο κινητό ένα πάτημα', 'Double-click or Enter to edit a cell · tap on mobile'))}</span></div>`;
   bindToolbar(body, redraw);
   body.querySelector('#scx')?.addEventListener('click', () => { st.showCancelled = !st.showCancelled; redraw(); });
@@ -170,8 +171,9 @@ function eventsSheet(body, tab, redraw) {
     if (set.has(b.dataset.g)) { if (set.size > 1) set.delete(b.dataset.g); } else set.add(b.dataset.g);
     st.groups = PRESETS.main.filter((g) => set.has(g)); redraw();
   }));
+  body.querySelector('#grid').dataset.tab = tab;
   renderGrid(body.querySelector('#grid'), cols, {
-    id: 'ev-' + tab, rows: views, rowKey: (v) => v.e.id, groups: G,
+    id: 'ev-' + tab, rows: views, filters: ['month', 'cat', 'res', 'pst', 'est'], rowKey: (v) => v.e.id, groups: G,
     rowClass: (v) => [v.fullyPaid ? 'paid' : '', v.e.status === 'cancelled' ? 'cancelled' : ''].join(' '),
     onEdit: async (v, c, val) => { await c.set(v, val); },
     empty: L('Δεν υπάρχουν εκδηλώσεις για αυτά τα φίλτρα.', 'No events for these filters.'),
