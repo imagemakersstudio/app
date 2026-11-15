@@ -12,13 +12,34 @@ const ADD_MAP = {
 };
 const INC_MAP = { droneChurch: 'Drone εκκλησίας', photoNextDay: 'Φωτογράφηση next day', videoNextDay: 'Video next day', droneNextDay: 'Drone next day' };
 
-/** Μετατροπή επιλογών της σελίδας πελάτη σε κατάσταση του Οδηγού */
+// σελίδα πελάτη βάπτισης (offer/client-baptism.html): κλειδί επιλογής → όνομα στον Οδηγό βάπτισης
+const BAPTISM_ADD_MAP = {
+  preBaptismGuestbook: 'Φωτογράφηση πριν & ψηφιακό album ευχολόγιο', churchDrone: 'Drone στην εκκλησία',
+  platinumAlbum: 'Album Platinum series', platinumCase: 'Platinum album case', woodenUsbCase: 'Wooden USB case', video4k: 'Παράδοση video σε 4K',
+};
+
+/** Μετατροπή επιλογών της σελίδας πελάτη σε κατάσταση του Οδηγού (γάμος, γαμοβάπτιση ή βάπτιση) */
 export function requestToOfferState(r) {
   const s = r?.selections || {};
   const inc = s.include || {};
   const up = s.upgrades || {};
   const fmtD = r.wedding_date || '';
+  if (s.category === 'baptism') {
+    return {
+      kind: 'baptism',
+      partner1: r.partner1 || '', partner2: r.partner2 || '', phone1: r.phone1 || '', phone2: r.phone2 || '',
+      eventDate: fmtD, city: '',
+      church: [r.church, r.church_time].filter(Boolean).join(' · '),
+      reception: '', notes: '', removes: [],
+      adds: Object.entries(BAPTISM_ADD_MAP).filter(([k]) => String(up[k]) === '1').map(([, v]) => v),
+      removeAlbums: 0, extraHours: 0,
+      smallAlbums: Number(s.smallAlbums) || 0, largeSpreads: Number(s.largeSpreads) || 0, smallSpreads: Number(s.smallSpreads) || 0,
+      prints: s.prints || '30 φωτογραφίες 13×18 cm',
+      finalPrice: null,
+    };
+  }
   return {
+    ...(s.category === 'wedding_baptism' ? { kind: 'wedding_baptism' } : {}),
     partner1: r.partner1 || '', partner2: r.partner2 || '', phone1: r.phone1 || '', phone2: r.phone2 || '',
     eventDate: fmtD, city: '',
     church: [r.church, r.church_time].filter(Boolean).join(' · '),
