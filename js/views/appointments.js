@@ -8,7 +8,7 @@ import { fmtDateLong, fmtTime, normTime, timeInputAttrs, L, esc, icon, money, fm
 import { S, isStaleAppt, STALE_DAYS, saveAppointment, deleteAppointment, uploadAppointmentOffer, openOffer, offerUrl, business, eventView } from '../data.js';
 import { pageHead, emptyState, setTopActions, go, backBtn } from '../layout.js';
 import { catPill, catShort, packageNameFrom, offerSummaryHTML, pickYear, yearOf, yearSelect, bindYear } from '../components.js';
-import { openOfferBuilder, generateOfferPdf, requestToOfferState, pickPdfFile, offerIsStale, refreshOfferPdf, offerKindFor, offerKindOf, offerFits } from '../offer.js';
+import { openOfferBuilder, generateOfferPdf, requestToOfferState, mergeClientSelections, pickPdfFile, offerIsStale, refreshOfferPdf, offerKindFor, offerKindOf, offerFits } from '../offer.js';
 import { clientPageUrl, clientPagePath, downloadClientFile } from './requests.js';
 import { barPairs, hbars, bindTips } from '../charts.js';
 
@@ -92,6 +92,8 @@ export function renderAppointments(root) {
   root.querySelectorAll('[data-stats]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); st.statsOpen = !st.statsOpen; renderAppointments(root); }));
   bindYear(() => renderAppointments(root));
   root.querySelector('[data-eye]')?.addEventListener('click', () => { st.show = !st.show; renderAppointments(root); });
+  // ό,τι άλλαξαν οι πελάτες από το προσωπικό link περνά στην προσφορά (και αν η λίστα είναι κρυμμένη)
+  if (S.appointments.some(hasPendingClientChange)) applyAllPending();
   document.querySelector('[data-new]')?.addEventListener('click', () => newAppointmentChooser());
   root.querySelector('[data-link]')?.addEventListener('click', () => openSendLink());
   root.querySelector('[data-store]')?.addEventListener('click', () => go('#/appointment-new'));
@@ -233,13 +235,14 @@ function listView(body, redraw) {
         const decision = s === 'rejected' ? `<span class="pill red">Rejected</span>`
           : s === 'confirmed' ? (a.event_id && S.events.has(a.event_id) ? `<a class="pill green" href="#/event/${a.event_id}">✓ Confirmed</a>` : `<span class="pill green">✓ Confirmed</span><button class="btn tiny primary" data-mkev="${a.id}">${esc(L('Δημιουργία εκδήλωσης', 'Create event'))}</button>`)
           : `<button class="btn tiny danger-soft" data-rej="${a.id}">${icon('x')} Reject</button><button class="btn tiny success" data-conf="${a.id}">${icon('check')} Confirm</button>`;
-        const pdf = a.offer_path ? `<button class="pdf-btn" data-pdf="${a.id}">${icon('doc')}PDF</button>`
+        const share = canShare(a) ? `<button class="pdf-btn share-btn ${shareActive(a) ? 'sent' : ''}" data-share="${a.id}" title="${esc(L('Αποστολή στον πελάτη', 'Send to client'))}" aria-label="${esc(L('Αποστολή στον πελάτη', 'Send to client'))}">${icon('send')}</button>` : '';
+        const pdf = share + (a.offer_path ? `<button class="pdf-btn" data-pdf="${a.id}">${icon('doc')}PDF</button>`
           : (a.selections || a.offer_data) ? `<button class="pdf-btn" data-gen="${a.id}" title="${esc(L('Δημιουργία PDF από τις επιλογές', 'Create PDF from the choices'))}">${icon('wand')}PDF</button>`
-          : `<button class="pdf-btn" data-mkpdf="${a.id}" style="color:var(--label-3)" title="${esc(L('Δημιουργία προσφοράς', 'Create offer'))}">${icon('plus')}</button>`;
+          : `<button class="pdf-btn" data-mkpdf="${a.id}" style="color:var(--label-3)" title="${esc(L('Δημιουργία προσφοράς', 'Create offer'))}">${icon('plus')}</button>`);
         return `<div class="at-row ${s}" role="row" data-open="${a.id}">
           <span class="at-date"><b>${esc(fmtDate(a.appt_date))}</b>${s === 'stale' ? `<small class="stale-tag">${esc(L(`${ageDays(a)} ημέρες χωρίς απάντηση`, `${ageDays(a)} days no answer`))}</small>` : ''}</span>
           <span><span class="pill cat-pill cat-${esc(a.category)}">${esc(catShort(a.category))}</span></span>
-          <span class="at-name"><b>${esc(apptName(a))}</b>${a.total ? `<small>${esc(money(a.total, { dec: 0 }))}</small>` : ''}${a.comments ? `<small class="muted">💬 ${esc(a.comments.slice(0, 60))}</small>` : ''}</span>
+          <span class="at-name"><b>${esc(apptName(a))}</b>${a.total ? `<small>${esc(money(a.total, { dec: 0 }))}</small>` : ''}${clientChanged(a) ? `<small class="client-chg">${icon('edit')} ${esc(L('Άλλαξε ο πελάτης', 'Changed by client'))}</small>` : ''}${a.comments ? `<small class="muted">💬 ${esc(a.comments.slice(0, 60))}</small>` : ''}</span>
           <span>${a.phone ? `<a href="${telUrl(a.phone)}" class="at-phone" data-stop>${esc(a.phone)}</a>` : '—'}</span>
           <span class="at-ev"><span class="at-lbl">${esc(L('Εκδήλωση', 'Event'))}: </span>${esc(fmtDate(a.event_date))}</span>
           <span data-stop>${pdf}</span>
@@ -266,8 +269,106 @@ function listView(body, redraw) {
   body.querySelectorAll('[data-pdf]').forEach((b) => b.addEventListener('click', () => openOffer(find(b.dataset.pdf).offer_path)));
   body.querySelectorAll('[data-gen]').forEach((b) => b.addEventListener('click', (e) => ensurePdf(find(b.dataset.gen), e.currentTarget)));
   body.querySelectorAll('[data-mkpdf]').forEach((b) => b.addEventListener('click', () => editOffer(find(b.dataset.mkpdf))));
+  body.querySelectorAll('[data-share]').forEach((b) => b.addEventListener('click', () => openShareOffer(find(b.dataset.share))));
 }
 const find = (id) => S.appointments.find((a) => a.id === id);
+
+// ---------------------------------------------------------------------
+//  Προσωπικό link προσφοράς (ραντεβού στο μαγαζί → ο πελάτης τη βλέπει/αλλάζει από το σπίτι)
+// ---------------------------------------------------------------------
+const SHARE_DAYS = 60;
+/** Όταν το μαγαζί ξαναφτιάχνει την προσφορά, αυτή υπερισχύει των αλλαγών του πελάτη */
+const SHOP_TAKES_OVER = { client_selections: null, client_prev: null, client_total: null, client_changed_at: null, client_applied_at: null };
+const canShare = (a) => a && a.mode === 'store' && !!a.offer_data && a.status === 'pending' && !a.event_id;
+const shareActive = (a) => !!(a?.share_token && a.share_expires_at && new Date(a.share_expires_at) > new Date());
+export const hasPendingClientChange = (a) => !!(a?.client_selections && a.client_changed_at && (!a.client_applied_at || a.client_changed_at > a.client_applied_at));
+const clientChanged = (a) => !!(a?.client_prev);
+function newShareToken() {
+  const b = new Uint8Array(24); crypto.getRandomValues(b);
+  return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/** Περνά τις αλλαγές του πελάτη στην προσφορά: νέο PDF, νέα τιμή (κρατώντας την έκπτωση) */
+const applying = new Set();
+export async function applyClientChange(a, { quiet = false } = {}) {
+  if (!hasPendingClientChange(a) || applying.has(a.id)) return null;
+  applying.add(a.id);
+  try {
+    const kind = offerKindOf(a.offer_data) === 'wedding' ? offerKindFor(a.category) : offerKindOf(a.offer_data);
+    const base = a.offer_data || {};
+    const merged = mergeClientSelections(base, a.client_selections, kind);
+    const prefill = { ...merged, partner1: a.name1 || '', partner2: a.name2 || '', phone1: a.phone || '', eventDate: a.event_date || '', church: base.church || [a.church, a.church_time].filter(Boolean).join(' · '), reception: base.reception ?? a.reception ?? '' };
+    const res = await generateOfferPdf(prefill, kind, { priceFrom: base });
+    const path = await uploadAppointmentOffer(a.id, new File([res.pdf], 'offer.pdf', { type: 'application/pdf' }));
+    const saved = await saveAppointment({ id: a.id, offer_path: path, offer_data: res.state, total: res.total ?? a.client_total ?? a.total, client_applied_at: a.client_changed_at });
+    if (!quiet) toast(L('Ο πελάτης άλλαξε επιλογές', 'The client changed their choices'), { body: `${apptName(a)} · ${money(res.total, { dec: 0 })} · ${L('το PDF ενημερώθηκε', 'PDF updated')}` });
+    return saved;
+  } finally { applying.delete(a.id); }
+}
+/** Περνά αυτόματα ό,τι άλλαξαν οι πελάτες (μία φορά, όταν ανοίγει η καρτέλα) */
+async function applyAllPending() {
+  for (const a of S.appointments.filter(hasPendingClientChange)) {
+    try { await applyClientChange(a); } catch (e) { console.warn('client change', e); }
+  }
+}
+
+/** Επαναφορά στην προσφορά του μαγαζιού (πριν τις αλλαγές του πελάτη) */
+async function revertClientChange(a) {
+  const prev = a.client_prev?.offer_data;
+  if (!prev) return;
+  if (!await confirmBox(L('Επαναφορά στις επιλογές του μαγαζιού;', 'Restore the in-store choices?'), L(`Η προσφορά επιστρέφει όπως ήταν στην παρουσίαση (${money(a.client_prev.total, { dec: 0 })}). Αν ο πελάτης ανοίξει ξανά το link, θα δει αυτή την προσφορά.`, `The offer goes back to the in-store version (${money(a.client_prev.total, { dec: 0 })}). If the client opens the link again, they will see this offer.`), { ok: L('Επαναφορά', 'Restore') })) return;
+  try {
+    const res = await generateOfferPdf({ ...prev, partner1: a.name1 || '', partner2: a.name2 || '', phone1: a.phone || '' }, offerKindOf(prev));
+    const path = await uploadAppointmentOffer(a.id, new File([res.pdf], 'offer.pdf', { type: 'application/pdf' }));
+    await saveAppointment({ id: a.id, offer_path: path, offer_data: res.state, total: a.client_prev.total ?? res.total, ...SHOP_TAKES_OVER });
+    toast(L('Η προσφορά επανήλθε', 'Offer restored'));
+  } catch (e) { console.error(e); toastErr(L('Η επαναφορά δεν έγινε', 'Restore failed'), e.message); }
+}
+
+/** Αποστολή της προσφοράς του μαγαζιού στον πελάτη, με προσωπικό link */
+export async function openShareOffer(a, { renew = false } = {}) {
+  if (!canShare(a)) return toastErr(L('Δεν γίνεται αποστολή', 'Cannot send'), L('Χρειάζεται προσφορά από τον Οδηγό και ραντεβού «σε αναμονή».', 'Needs a builder offer and a pending appointment.'));
+  if (renew || !shareActive(a)) {
+    const exp = new Date(Date.now() + SHARE_DAYS * 864e5).toISOString();
+    try { a = await saveAppointment({ id: a.id, share_token: newShareToken(), share_expires_at: exp }); } catch (e) { console.error(e); return; }
+  }
+  const kind = offerKindFor(a.category);
+  const k = LINK_KINDS.find((x) => x.v === kind) || LINK_KINDS[0];
+  const url = `${clientPageUrl(kind)}?t=${encodeURIComponent(a.share_token)}`;
+  const f = { phone: a.phone || '', email: a.email || '', name: (a.name1 || '').split(' ')[0] };
+  const msg = () => L(`Γεια σας${f.name ? ' ' + f.name : ''}! Όπως τα είπαμε στο μαγαζί, εδώ είναι η προσφορά μας για ${k.for[0]}. Δείτε τη με την ησυχία σας· αν θέλετε να αλλάξετε κάτι, αλλάξτε το και πατήστε «Αποστολή στην Image Makers». ${url}\n${business().name} · ${business().phone}`,
+    `Hello${f.name ? ' ' + f.name : ''}! As discussed at the studio, here is our offer for ${k.for[1]}. Take your time; if you want to change something, change it and tap “Send to Image Makers”. ${url}\n${business().name} · ${business().phone}`);
+  const body = `<div class="banner">${icon('send')}<div><b>${esc(L('Η προσφορά της παρουσίασης, για το σπίτι', 'The in-store offer, for home'))}</b><span>${esc(L(`Ο πελάτης βλέπει ό,τι επιλέξατε μαζί και την τιμή ${money(a.total, { dec: 0 })}. Αν αλλάξει κάτι και το στείλει, ενημερώνεται αυτό το ραντεβού και το PDF. Δεν βλέπει μεταφορικά ούτε σημειώσεις. Το link ισχύει έως ${fmtDate(a.share_expires_at)}.`, `The client sees what you chose together and the price ${money(a.total, { dec: 0 })}. If they change something and send it, this appointment and its PDF are updated. They do not see travel costs or notes. The link is valid until ${fmtDate(a.share_expires_at)}.`))}</span></div></div>
+    <div class="field"><label>${esc(L('Προσωπικός σύνδεσμος', 'Personal link'))}</label><div class="input-wrap"><input class="input" readonly value="${esc(url)}"><button class="btn small act" data-copy>${icon('copy')}</button></div></div>
+    <div class="form-grid">
+      <div class="field"><label>${esc(L('Κινητό', 'Mobile'))}</label><input class="input" name="phone" type="tel" inputmode="tel" value="${esc(f.phone)}"></div>
+      <div class="field"><label>Email</label><input class="input" name="email" type="email" inputmode="email" value="${esc(f.email)}"></div>
+    </div>
+    <div class="grid cols-2" style="gap:8px">
+      <button class="btn primary" data-send="sms">${icon('sms')} SMS</button>
+      <button class="btn primary" data-send="email">${icon('mail')} Email</button>
+      <button class="btn" data-send="viber">${icon('message')} Viber</button>
+      <button class="btn" data-send="whatsapp">${icon('message')} WhatsApp</button>
+      <a class="btn" href="${esc(url)}" target="_blank" rel="noopener">${icon('eye')} ${esc(L('Προβολή όπως ο πελάτης', 'View as the client'))}</a>
+      <button class="btn" data-renew>${icon('refresh')} ${esc(L('Νέο link (ακυρώνει το παλιό)', 'New link (cancels the old one)'))}</button>
+    </div>`;
+  const s = sheet({ title: L(`Αποστολή στον πελάτη · ${k.el}`, `Send to client · ${k.en}`), body });
+  s.body.querySelectorAll('[name]').forEach((i) => i.addEventListener('input', () => { f[i.name] = i.value.trim(); }));
+  s.body.querySelector('[data-copy]').addEventListener('click', async () => { await copyText(url); toast(L('Ο σύνδεσμος αντιγράφηκε', 'Link copied')); });
+  s.body.querySelector('[data-renew]').addEventListener('click', async () => {
+    if (!await confirmBox(L('Νέο link;', 'New link?'), L('Το προηγούμενο link θα σταματήσει να λειτουργεί.', 'The previous link will stop working.'), { ok: L('Νέο link', 'New link') })) return;
+    s.close(); setTimeout(() => openShareOffer(find(a.id), { renew: true }), 250);
+  });
+  s.body.querySelectorAll('[data-send]').forEach((b) => b.addEventListener('click', async () => {
+    const how = b.dataset.send;
+    if ((how === 'sms' || how === 'whatsapp') && !f.phone) return toastErr(L('Γράψτε κινητό', 'Enter a mobile'));
+    if (how === 'email' && !f.email) return toastErr(L('Γράψτε email', 'Enter an email'));
+    if (how === 'sms') window.location.href = smsUrl(f.phone, msg());
+    if (how === 'whatsapp') window.location.href = waUrl(f.phone, msg());
+    if (how === 'email') window.location.href = mailUrl(f.email, L(`Image Makers · Η προσφορά ${k.gen} σας`, `Image Makers · Your ${k.en.toLowerCase()} offer`), msg());
+    if (how === 'viber') { await copyText(msg()); window.location.href = viberUrl(msg()); }
+  }));
+}
 
 /** PDF από τις επιλογές της ηλεκτρονικής προσφοράς (μία φορά, μετά αποθηκεύεται) */
 export async function ensurePdf(a, btn) {
@@ -295,7 +396,7 @@ async function editOffer(a) {
   if (!res) return;
   try {
     const path = await uploadAppointmentOffer(a.id, res.pdf);
-    await saveAppointment({ id: a.id, offer_path: path, offer_data: res.state, total: res.total });
+    await saveAppointment({ id: a.id, offer_path: path, offer_data: res.state, total: res.total, ...SHOP_TAKES_OVER });
     toast(L('Η προσφορά αποθηκεύτηκε', 'Offer saved'));
   } catch (e) { console.error(e); }
 }
@@ -305,6 +406,7 @@ async function editOffer(a) {
 // ---------------------------------------------------------------------
 export async function confirmAppt(a) {
   if (!await confirmBox(L('Confirm: κλείσαμε τη δουλειά;', 'Confirm: is the job booked?'), L(`${apptName(a)}\nΘα ανοίξει η «Νέα εκδήλωση» συμπληρωμένη με τα στοιχεία του ραντεβού, για να προσθέσετε ώρα, συνεργείο κ.λπ.`, `${apptName(a)}\n“New event” will open pre-filled with the appointment details so you can add time, crew etc.`), { ok: 'Confirm' })) return;
+  if (hasPendingClientChange(a)) { try { a = await applyClientChange(a, { quiet: true }) || a; } catch (e) { console.warn(e); } }
   await saveAppointment({ id: a.id, status: 'confirmed', handled_by: S.profile.id });
   if (!a.offer_path && (a.selections || a.offer_data)) {
     toast(L('Δημιουργία PDF προσφοράς…', 'Creating offer PDF…'), { type: 'info' });
@@ -345,7 +447,8 @@ export function openAppointment(a) {
   const banner = s0 === 'stale' ? `<div class="banner">${icon('warning')}<div><b>${esc(L(`${ageDays(a)} ημέρες χωρίς απάντηση`, `${ageDays(a)} days without an answer`))}</b><span>${esc(L('Πάρτε τηλέφωνο το ζευγάρι. Αν μιλήσατε αλλά δεν αποφάσισαν ακόμη, πατήστε «Μιλήσαμε» για να μετρήσει από την αρχή.', 'Call the couple. If you talked but they have not decided, tap “We talked” to restart the count.'))}</span></div></div>`
     : s0 === 'rejected' ? `<div class="banner red">${icon('x')}<div><b>Rejected${a.reason ? ' · ' + esc(lbl(REJECT_REASONS, a.reason)) : ''}</b><span>${esc(fmtDate(a.status_at))}</span></div></div>`
     : s0 === 'confirmed' ? `<div class="banner green">${icon('checkCircle')}<div><b>Confirmed</b><span>${ev ? `<a href="#/event/${ev.e.id}" data-close>${esc(L('Άνοιγμα εκδήλωσης', 'Open event'))} →</a>` : esc(L('Δεν έχει δημιουργηθεί ακόμη εκδήλωση.', 'No event created yet.'))}</span></div></div>` : '';
-  const body = `${banner}<div class="list">
+  const chg = clientChanged(a) ? `<div class="banner">${icon('edit')}<div><b>${esc(L('Ο πελάτης άλλαξε επιλογές από το σπίτι', 'The client changed their choices from home'))}</b><span>${esc(L(`${fmtDate(a.client_changed_at)} · στο μαγαζί: ${money(a.client_prev?.total, { dec: 0 })} → τώρα: ${money(hasPendingClientChange(a) ? a.client_total : a.total, { dec: 0 })}${hasPendingClientChange(a) ? ' · το PDF ενημερώνεται…' : ''}`, `${fmtDate(a.client_changed_at)} · in store: ${money(a.client_prev?.total, { dec: 0 })} → now: ${money(hasPendingClientChange(a) ? a.client_total : a.total, { dec: 0 })}`))}</span></div></div>` : '';
+  const body = `${banner}${chg}<div class="list">
       <div class="row"><div class="main-col"><div class="s">${esc(lbl(APPT_MODES, a.mode))} · ${esc(L('ραντεβού', 'appointment'))} ${esc(fmtDate(a.appt_date))}</div><div class="t">${esc(apptName(a))}</div></div>${catPill(a.category)}</div>
       ${a.phone ? `<div class="row"><div class="main-col"><div class="s">${esc(L('Κινητό', 'Mobile'))}</div><div class="t">${esc(a.phone)}</div></div><a class="icon-btn filled" href="${telUrl(a.phone)}">${icon('phone')}</a><a class="icon-btn filled" href="${smsUrl(a.phone)}">${icon('sms')}</a></div>` : ''}
       ${a.email ? `<div class="row"><div class="main-col"><div class="s">Email</div><div class="t">${esc(a.email)}</div></div><a class="icon-btn filled" href="${mailUrl(a.email)}">${icon('mail')}</a></div>` : ''}
@@ -360,6 +463,8 @@ export function openAppointment(a) {
       ${a.notes ? `<div class="small muted mt-s">${esc(L('Σημειώσεις', 'Notes'))}: ${esc(a.notes)}</div>` : ''}</div>
     <div class="list mt">
       <button class="row has-icon" data-act="offer"><span class="row-icon" style="background:var(--accent)">${icon('wand')}</span><div class="main-col"><div class="t">${esc(a.offer_path || sel ? L('Επεξεργασία προσφοράς (Οδηγός)', 'Edit offer (builder)') : L('Δημιουργία προσφοράς (Οδηγός)', 'Create offer (builder)'))}</div></div>${icon('chevR', 'chev')}</button>
+      ${canShare(a) ? `<button class="row has-icon" data-act="share"><span class="row-icon" style="background:var(--green)">${icon('send')}</span><div class="main-col"><div class="t">${esc(L('Αποστολή προσφοράς στον πελάτη', 'Send offer to the client'))}</div><div class="s">${esc(shareActive(a) ? L(`Έχει σταλεί link · ισχύει έως ${fmtDate(a.share_expires_at)}`, `Link sent · valid until ${fmtDate(a.share_expires_at)}`) : L('Τη βλέπει και την αλλάζει από το σπίτι', 'They view and change it from home'))}</div></div>${icon('chevR', 'chev')}</button>` : ''}
+      ${clientChanged(a) && a.status === 'pending' ? `<button class="row has-icon" data-act="revert"><span class="row-icon" style="background:var(--orange)">${icon('refresh')}</span><div class="main-col"><div class="t">${esc(L('Επαναφορά στις επιλογές του μαγαζιού', 'Restore the in-store choices'))}</div><div class="s">${esc(money(a.client_prev?.total, { dec: 0 }))}</div></div></button>` : ''}
       <button class="row has-icon" data-act="upload"><span class="row-icon" style="background:var(--label-2)">${icon('upload')}</span><div class="main-col"><div class="t">${esc(L('Ανέβασμα έτοιμου PDF', 'Upload ready PDF'))}</div></div>${icon('chevR', 'chev')}</button>
       ${a.mode === 'store' ? `<button class="row has-icon" data-act="edit"><span class="row-icon" style="background:var(--blue)">${icon('edit')}</span><div class="main-col"><div class="t">${esc(L('Επεξεργασία στοιχείων', 'Edit details'))}</div></div>${icon('chevR', 'chev')}</button>` : ''}
       ${a.status === 'pending' ? `<button class="row has-icon" data-act="talked"><span class="row-icon" style="background:var(--orange)">${icon('phone')}</span><div class="main-col"><div class="t">${esc(L('Μιλήσαμε, περιμένουμε απάντηση', 'We talked, waiting for an answer'))}</div><div class="s">${esc(L(`Μηδενίζει τη μέτρηση των ${STALE_DAYS} ημερών`, `Restarts the ${STALE_DAYS}-day count`))}</div></div></button>` : `<button class="row has-icon" data-act="reopen"><span class="row-icon" style="background:var(--label-3)">${icon('refresh')}</span><div class="main-col"><div class="t">${esc(L('Επαναφορά σε «Σε αναμονή»', 'Back to “Pending”'))}</div></div></button>`}
@@ -376,6 +481,8 @@ export function openAppointment(a) {
   s.body.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', async () => {
     const act = b.dataset.act;
     if (act === 'offer') { s.close(); editOffer(a); }
+    if (act === 'share') { s.close(); openShareOffer(a); }
+    if (act === 'revert') { s.close(); revertClientChange(a); }
     if (act === 'upload') { const f = await pickPdfFile(); if (!f) return; const path = await uploadAppointmentOffer(a.id, f); await saveAppointment({ id: a.id, offer_path: path }); s.close(); toast(L('Το PDF ανέβηκε', 'PDF uploaded')); }
     if (act === 'edit') { s.close(); go(`#/appointment/${a.id}/edit`); }
     if (act === 'mkev') { s.close(); go(`#/new-event?appointment=${a.id}`); }
@@ -487,7 +594,7 @@ export function renderAppointmentForm(root, params = {}) {
     const kind = offerKindFor(F.category);
     const res = await openOfferBuilder({ kind, prefill: { ...(F.offer_data && offerFits(F.offer_data, kind) ? F.offer_data : {}), partner1: F.name1, partner2: F.name2, phone1: F.phone, eventDate: F.event_date, church: F.church, reception: F.reception, city: (F.church || '').split(',').slice(1).join(',').trim(), finalPrice: offerKindOf(F.offer_data) === kind ? F.offer_data?.finalPrice ?? undefined : undefined }, saveLabel: L('Αποθήκευση στο ραντεβού', 'Save to appointment') });
     if (!res) return;
-    F.pdf = res.pdf; F.pdfName = res.fileName; F.offer_data = res.state; F.total = res.total;
+    F.pdf = res.pdf; F.pdfName = res.fileName; F.offer_data = res.state; F.total = res.total; F._offerChanged = true;
     // ό,τι γράφτηκε στον Οδηγό περνά και στη φόρμα, ώστε φόρμα και PDF να συμφωνούν
     F.name1 = res.state.partner1 || F.name1; F.name2 = res.state.partner2 || ''; F.phone = res.state.phone1 || F.phone;
     F.event_date = res.state.eventDate || F.event_date; F.church = res.state.church || F.church; F.reception = res.state.reception || F.reception;
@@ -516,7 +623,7 @@ export function renderAppointmentForm(root, params = {}) {
         busy(_btn, true, L('Αποθήκευση…', 'Saving…'));
       }
       const total = parseMoney(F.total);
-      let a = await saveAppointment({ id: F.id, ...(presenting ? { status: 'pending' } : {}), mode: 'store', appt_date: F.appt_date, category: F.category, name1: F.name1.trim(), name2: (F.name2 || '').trim() || null, phone: F.phone.trim(), email: (F.email || '').trim() || null, event_date: F.event_date || null, church: F.church || null, reception: F.reception || null, notes: F.notes || null, offer_data: F.offer_data || null, total });
+      let a = await saveAppointment({ id: F.id, ...(presenting ? { status: 'pending' } : {}), mode: 'store', appt_date: F.appt_date, category: F.category, name1: F.name1.trim(), name2: (F.name2 || '').trim() || null, phone: F.phone.trim(), email: (F.email || '').trim() || null, event_date: F.event_date || null, church: F.church || null, reception: F.reception || null, notes: F.notes || null, offer_data: F.offer_data || null, total, ...(F._offerChanged ? SHOP_TAKES_OVER : {}) });
       if (F.pdf) { const path = await uploadAppointmentOffer(a.id, F.pdf); a = await saveAppointment({ id: a.id, offer_path: path }); }
       toast(edit && !presenting ? L('Οι αλλαγές αποθηκεύτηκαν', 'Changes saved') : L('Το ραντεβού καταχωρήθηκε', 'Appointment saved'), { body: L('Όταν σας απαντήσουν, πατήστε Confirm ή Reject.', 'When they answer, tap Confirm or Reject.') });
       F = null; fKey = ''; st.mode = 'store'; st.view = 'list';
