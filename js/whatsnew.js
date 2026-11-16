@@ -9,6 +9,14 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.18.0', date: '16/11/2026',
+    items: [
+      ['🏠', 'Αρχική: κάτω από την ημερομηνία, μια μικρή λίστα — τι έχετε σήμερα, τα task που είναι για εσάς και πόσες εκδηλώσεις έχει η εβδομάδα. Φαίνεται πλέον και στο κινητό.', 'Home: under the date, a small list — what you have today, the tasks that are for you and how many events this week has. Now on phones too.'],
+      ['📷', 'Κατάσταση φωτογραφιών: νέο στάδιο «Να σταλθούν τα δείγματα», ανάμεσα στο «Να γίνουν δείγματα» και στο «Έλαβαν δείγματα και περιμένουμε».', 'Photos status: new stage “Samples to be sent”, between “Samples to be made” and “Client has samples – waiting”.'],
+      ['🕊️', 'Ηλεκτρονική προσφορά βάπτισης: ο πελάτης συμπληρώνει πρώτα τα στοιχεία της βάπτισης και μετά βλέπει το βασικό πακέτο, τις επιλογές και τη σύνοψη.', 'Online christening offer: the client first fills in the christening details, then sees the basic package, options and summary.', 'admin'],
+    ],
+  },
+  {
     v: '1.17.0', date: '16/11/2026',
     items: [
       ['📋', 'Ημερολόγιο: νέα επιλογή «Task» στο «+». Γράφετε τι πρέπει να γίνει, για πότε και για ποιο άτομο (ώρα, τοποθεσία και σημειώσεις προαιρετικά). Το άτομο παίρνει ειδοποίηση στο κινητό (ακόμη κι αν το task είναι για τον εαυτό σας) και βλέπει πάντα το task του.', 'Calendar: new “Task” option under “+”. Write what needs doing, when and for whom (time, location and notes optional). That person is notified and always sees their task.'],

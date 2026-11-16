@@ -343,6 +343,7 @@ export const CATEGORIES = [
 ];
 export const PHOTO_STATUS = [
   { v: 'samples_todo', el: 'Να γίνουν δείγματα', en: 'Samples to be made' },
+  { v: 'samples_send', el: 'Να σταλθούν τα δείγματα', en: 'Samples to be sent' },
   { v: 'samples_waiting', el: 'Έλαβαν δείγματα και περιμένουμε', en: 'Client has samples – waiting' },
   { v: 'changes', el: 'Αλλαγές', en: 'Changes' },
   { v: 'lab', el: 'Εκτύπωση στο εργαστήριο', en: 'Printing at the lab' },
@@ -351,7 +352,8 @@ export const PHOTO_STATUS = [
 ];
 /** Προειδοποιητικά χρώματα workflow: ημέρες στο ίδιο στάδιο → πορτοκαλί / κόκκινο */
 export const WF_RULES = {
-  samples_todo: { warn: 25, late: 35, next: 'samples_waiting' },
+  samples_todo: { warn: 25, late: 35, next: 'samples_send' },
+  samples_send: { warn: 5, late: 10, next: 'samples_waiting' },
   samples_waiting: { warn: 20, late: 35, next: 'changes' },
   changes: { warn: 20, late: 30, next: 'lab' },
   ready: { warn: 7, late: 14, next: 'delivered' },
