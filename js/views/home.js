@@ -44,7 +44,7 @@ function dayItems(day, ctx) {
   S.sessions.filter((x) => x.day === day && S.events.get(x.event_id)?.status !== 'cancelled' && (ctx.admin || ctx.mine.has(x.event_id))).forEach((x) => out.push({ k: 'sess', t: hm(x.start_time), text: sessionTitle(x), sub: S.events.get(x.event_id) ? '' : '', act: 'sess:' + x.id, ic: 'camera' }));
   S.meetings.filter((m) => m.day === day && (ctx.admin || (m.participants || []).includes(S.profile?.id))).forEach((m) => out.push({ k: 'meet', t: hm(m.start_time), text: meetingTitle(m), sub: L(`${(m.participants || []).length} άτομα`, `${(m.participants || []).length} people`), act: 'meet:' + m.id, ic: 'users' }));
   S.absences.filter((a) => a.day === day).forEach((a) => out.push({ k: 'abs', t: '', text: L(`Απουσία: ${shortName(a.user_id)}`, `Away: ${shortName(a.user_id)}`), sub: absenceWhen([a]), act: 'abs:' + a.id, ic: 'ban' }));
-  S.calNotes.filter((n) => n.day === day).forEach((n) => out.push({ k: 'note', t: hm(n.start_time), text: calNoteTitle(n), sub: n.notes || '', act: 'note:' + n.id, ic: 'pin' }));
+  S.calNotes.filter((n) => n.day === day).forEach((n) => out.push({ k: 'note', t: hm(n.start_time), text: calNoteTitle(n), sub: n.kind === 'task' ? [n.done_at ? L('✓ Ολοκληρώθηκε', '✓ Done') : 'Task', n.notes].filter(Boolean).join(' · ') : (n.notes || ''), act: 'note:' + n.id, ic: n.kind === 'task' ? 'checkCircle' : 'pin' }));
   return out.sort((a, b) => (a.k === 'abs') - (b.k === 'abs') || (a.t || '99').localeCompare(b.t || '99'));
 }
 

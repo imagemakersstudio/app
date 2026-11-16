@@ -402,9 +402,16 @@ export async function deleteMeeting(id) {
 }
 // ---------- «Άλλο» στο ημερολόγιο ----------
 export async function saveCalNote(x) {
-  const row = { day: x.day, start_time: x.start_time || null, title: x.title.trim(), location: (x.location || '').trim() || null, notes: (x.notes || '').trim() || null, team_visible: x.team_visible !== false };
+  const row = { day: x.day, start_time: x.start_time || null, title: x.title.trim(), location: (x.location || '').trim() || null, notes: (x.notes || '').trim() || null, team_visible: x.team_visible !== false,
+    kind: x.kind === 'task' ? 'task' : 'note', assignee_id: x.kind === 'task' ? (x.assignee_id || null) : null };
   const data = x.id ? await q(sb.from('calendar_notes').update(row).eq('id', x.id).select().single()) : await q(sb.from('calendar_notes').insert(row).select().single());
   S.calNotes = [...S.calNotes.filter((y) => y.id !== data.id), data]; emit('calendar_notes');
+  return data;
+}
+/** Task: «Ολοκληρώθηκε» (διαχειριστής ή το άτομο του task) */
+export async function setTaskDone(id, done) {
+  const data = await q(sb.rpc('task_set_done', { p_id: id, p_done: !!done }));
+  if (data && data.id) { S.calNotes = [...S.calNotes.filter((y) => y.id !== data.id), data]; emit('calendar_notes'); }
   return data;
 }
 export async function deleteCalNote(id) {
