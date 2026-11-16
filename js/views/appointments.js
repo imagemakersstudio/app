@@ -295,6 +295,50 @@ function newShareToken() {
   return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+/** Τι άλλαξε ο πελάτης σε σχέση με την προσφορά του μαγαζιού (λίστες «πρόσθεσε / αφαίρεσε / άλλαξε») */
+function clientChangeList(a) {
+  const prev = a.client_prev?.offer_data;
+  if (!prev) return null;
+  const kind = offerKindOf(prev) === 'wedding' ? offerKindFor(a.category) : offerKindOf(prev);
+  const cur = hasPendingClientChange(a) ? mergeClientSelections(a.offer_data || prev, a.client_selections, kind) : (a.offer_data || {});
+  const added = [], removed = [], changed = [];
+  const arr = (x) => (Array.isArray(x) ? x : []);
+  // παροχές του βασικού πακέτου (λίστα «αφαιρέσεις»)
+  arr(cur.removes).filter((x) => !arr(prev.removes).includes(x)).forEach((x) => removed.push(x));
+  arr(prev.removes).filter((x) => !arr(cur.removes).includes(x)).forEach((x) => added.push(`${x} ${L('(ξανά στο πακέτο)', '(back in the package)')}`));
+  // αναβαθμίσεις
+  arr(cur.adds).filter((x) => !arr(prev.adds).includes(x)).forEach((x) => added.push(x));
+  arr(prev.adds).filter((x) => !arr(cur.adds).includes(x)).forEach((x) => removed.push(x));
+  const albums = (o) => (kind === 'baptism' ? Number(o.smallAlbums) || 0 : (o.smallAlbumCount != null ? Number(o.smallAlbumCount) : 3 - (Number(o.removeAlbums) || 0)));
+  const num = (label, f) => { const x = f(prev), y = f(cur); if (x !== y) changed.push(`${label}: ${x} → ${y}`); };
+  num(L('Μικρά album', 'Small albums'), albums);
+  if (kind !== 'baptism') num(L('Επιπλέον ώρες κάλυψης', 'Extra coverage hours'), (o) => Number(o.extraHours) || 0);
+  num(L('Επιπλέον σαλόνια μεγάλου album', 'Extra large-album spreads'), (o) => Number(o.largeSpreads) || 0);
+  num(L('Επιπλέον σαλόνια μικρού album', 'Extra small-album spreads'), (o) => Number(o.smallSpreads) || 0);
+  if ((prev.prints || '') !== (cur.prints || '')) changed.push(`${L('Εκτυπώσεις', 'Prints')}: ${prev.prints || '—'} → ${cur.prints || '—'}`);
+  return { prev, added, removed, changed };
+}
+function clientChangeHTML(a) {
+  const d = clientChangeList(a);
+  if (!d) return '';
+  const now = hasPendingClientChange(a) ? a.client_total : a.total;
+  const li = (items, sign, color) => items.map((x) => `<li style="display:flex;gap:8px;align-items:baseline"><b style="color:${color};width:14px;flex:0 0 14px">${sign}</b><span>${esc(x)}</span></li>`).join('');
+  const none = !d.added.length && !d.removed.length && !d.changed.length;
+  return `<div class="card pad mt-s client-diff">
+      <div class="spread"><b>${icon('edit')} ${esc(L('Ο πελάτης άλλαξε επιλογές από το σπίτι', 'The client changed their choices from home'))}</b><span class="small muted">${esc(fmtDateTime(a.client_changed_at))}</span></div>
+      ${hasPendingClientChange(a) ? `<div class="small muted mt-s">${esc(L('Το PDF ενημερώνεται αυτόματα…', 'The PDF is being updated…'))}</div>` : ''}
+      <div class="small mt-s" style="display:flex;gap:14px;flex-wrap:wrap">
+        <span>${esc(L('Στο μαγαζί', 'In store'))}: <b>${esc(money(a.client_prev?.total, { dec: 0 }))}</b></span>
+        <span>→ ${esc(L('Τελική επιλογή πελάτη', 'Client final choice'))}: <b>${esc(money(now, { dec: 0 }))}</b></span>
+        <span class="muted">(${esc((Number(now) - Number(a.client_prev?.total || 0) >= 0 ? '+' : '−') + money(Math.abs(Number(now) - Number(a.client_prev?.total || 0)), { dec: 0 }))})</span>
+      </div>
+      ${none ? `<div class="small muted mt-s">${esc(L('Ο πελάτης έστειλε τις ίδιες επιλογές με το μαγαζί.', 'The client sent the same choices as in store.'))}</div>` : `<ul class="small mt-s" style="list-style:none;padding:0;margin:0;display:grid;gap:6px">
+        ${li(d.added, '+', 'var(--green)')}${li(d.removed, '−', 'var(--red)')}${li(d.changed, '↔', 'var(--orange)')}
+      </ul>`}
+      <details class="mt-s"><summary class="small" style="cursor:pointer">${esc(L('Τι είχαμε συμφωνήσει στο μαγαζί', 'What we agreed in store'))}</summary><div class="mt-s">${offerSummaryHTML(d.prev)}</div></details>
+    </div>`;
+}
+
 /** Περνά τις αλλαγές του πελάτη στην προσφορά: νέο PDF, νέα τιμή (κρατώντας την έκπτωση) */
 const applying = new Set();
 export async function applyClientChange(a, { quiet = false } = {}) {
@@ -343,8 +387,9 @@ export async function openShareOffer(a, { renew = false } = {}) {
   const k = LINK_KINDS.find((x) => x.v === kind) || LINK_KINDS[0];
   const url = `${clientPageUrl(kind)}?t=${encodeURIComponent(a.share_token)}`;
   const f = { phone: a.phone || '', email: a.email || '', name: (a.name1 || '').split(' ')[0] };
-  const msg = () => L(`Γεια σας${f.name ? ' ' + f.name : ''}! Όπως τα είπαμε στο μαγαζί, εδώ είναι η προσφορά μας για ${k.for[0]}. Δείτε τη με την ησυχία σας· αν θέλετε να αλλάξετε κάτι, αλλάξτε το και πατήστε «Αποστολή στην Image Makers». ${url}\n${business().name} · ${business().phone}`,
-    `Hello${f.name ? ' ' + f.name : ''}! As discussed at the studio, here is our offer for ${k.for[1]}. Take your time; if you want to change something, change it and tap “Send to Image Makers”. ${url}\n${business().name} · ${business().phone}`);
+  const hello = new Date().getHours() < 12 ? ['Καλημέρα σας', 'Good morning'] : ['Καλησπέρα σας', 'Good afternoon'];
+  const msg = () => L(`${hello[0]}${f.name ? ' ' + f.name : ''},\n\nόπως συζητήσαμε, μπορείτε να δείτε την προσφορά μας για ${k.for[0]} στον παρακάτω σύνδεσμο:\n${url}\n\nΑν θέλετε να προσαρμόσετε κάποια επιλογή, μπορείτε να το κάνετε απευθείας στη σελίδα και να πατήσετε «Αποστολή στην Image Makers». Θα λάβουμε αμέσως τις αλλαγές σας.\n\nΓια οποιαδήποτε απορία είμαστε στη διάθεσή σας.\n\nΜε εκτίμηση,\n${business().name}\n${business().phone}`,
+    `${hello[1]}${f.name ? ' ' + f.name : ''},\n\nas discussed, you can view our offer for ${k.for[1]} at the link below:\n${url}\n\nIf you would like to adjust any option, you can do so directly on the page and tap “Send to Image Makers”. We will receive your changes immediately.\n\nWe are at your disposal for any questions.\n\nKind regards,\n${business().name}\n${business().phone}`);
   const body = `<div class="banner">${icon('send')}<div><b>${esc(L('Η προσφορά της παρουσίασης, για το σπίτι', 'The in-store offer, for home'))}</b><span>${esc(L(`Ο πελάτης βλέπει ό,τι επιλέξατε μαζί και την τιμή ${money(a.total, { dec: 0 })}. Αν αλλάξει κάτι και το στείλει, ενημερώνεται αυτό το ραντεβού και το PDF. Δεν βλέπει μεταφορικά ούτε σημειώσεις. Το link ισχύει έως ${fmtDate(a.share_expires_at)}.`, `The client sees what you chose together and the price ${money(a.total, { dec: 0 })}. If they change something and send it, this appointment and its PDF are updated. They do not see travel costs or notes. The link is valid until ${fmtDate(a.share_expires_at)}.`))}</span></div></div>
     <div class="field"><label>${esc(L('Προσωπικός σύνδεσμος', 'Personal link'))}</label><div class="input-wrap"><input class="input" readonly value="${esc(url)}"><button class="btn small act" data-copy>${icon('copy')}</button></div></div>
     <div class="form-grid">
@@ -455,8 +500,7 @@ export function openAppointment(a) {
   const banner = s0 === 'stale' ? `<div class="banner">${icon('warning')}<div><b>${esc(L(`${ageDays(a)} ημέρες χωρίς απάντηση`, `${ageDays(a)} days without an answer`))}</b><span>${esc(L('Πάρτε τηλέφωνο το ζευγάρι. Αν μιλήσατε αλλά δεν αποφάσισαν ακόμη, πατήστε «Μιλήσαμε» για να μετρήσει από την αρχή.', 'Call the couple. If you talked but they have not decided, tap “We talked” to restart the count.'))}</span></div></div>`
     : s0 === 'rejected' ? `<div class="banner red">${icon('x')}<div><b>Rejected${a.reason ? ' · ' + esc(lbl(REJECT_REASONS, a.reason)) : ''}</b><span>${esc(fmtDate(a.status_at))}</span></div></div>`
     : s0 === 'confirmed' ? `<div class="banner green">${icon('checkCircle')}<div><b>Confirmed</b><span>${ev ? `<a href="#/event/${ev.e.id}" data-close>${esc(L('Άνοιγμα εκδήλωσης', 'Open event'))} →</a>` : esc(L('Δεν έχει δημιουργηθεί ακόμη εκδήλωση.', 'No event created yet.'))}</span></div></div>` : '';
-  const chg = clientChanged(a) ? `<div class="banner">${icon('edit')}<div><b>${esc(L('Ο πελάτης άλλαξε επιλογές από το σπίτι', 'The client changed their choices from home'))}</b><span>${esc(L(`${fmtDate(a.client_changed_at)} · στο μαγαζί: ${money(a.client_prev?.total, { dec: 0 })} → τώρα: ${money(hasPendingClientChange(a) ? a.client_total : a.total, { dec: 0 })}${hasPendingClientChange(a) ? ' · το PDF ενημερώνεται…' : ''}`, `${fmtDate(a.client_changed_at)} · in store: ${money(a.client_prev?.total, { dec: 0 })} → now: ${money(hasPendingClientChange(a) ? a.client_total : a.total, { dec: 0 })}`))}</span></div></div>` : '';
-  const body = `${banner}${chg}<div class="list">
+  const body = `${banner}${clientChangeHTML(a)}<div class="list">
       <div class="row"><div class="main-col"><div class="s">${esc(lbl(APPT_MODES, a.mode))} · ${esc(L('ραντεβού', 'appointment'))} ${esc(fmtDate(a.appt_date))}</div><div class="t">${esc(apptName(a))}</div></div>${catPill(a.category)}</div>
       ${a.phone ? `<div class="row"><div class="main-col"><div class="s">${esc(L('Κινητό', 'Mobile'))}</div><div class="t">${esc(a.phone)}</div></div><a class="icon-btn filled" href="${telUrl(a.phone)}">${icon('phone')}</a><a class="icon-btn filled" href="${smsUrl(a.phone)}">${icon('sms')}</a></div>` : ''}
       ${a.email ? `<div class="row"><div class="main-col"><div class="s">Email</div><div class="t">${esc(a.email)}</div></div><a class="icon-btn filled" href="${mailUrl(a.email)}">${icon('mail')}</a></div>` : ''}
@@ -588,12 +632,10 @@ export function renderAppointmentForm(root, params = {}) {
     <div class="card pad mt">
       <div class="spread"><b>${esc(L('Προσφορά (PDF)', 'Offer (PDF)'))}</b>${has ? `<span class="pill green">${icon('check')} ${esc(L('Έτοιμη', 'Ready'))}</span>` : `<span class="pill">${esc(L('Δεν έχει γίνει', 'Not made yet'))}</span>`}</div>
       ${has ? `<div class="small muted mt-s">${esc(F.pdfName || L('Αποθηκευμένη προσφορά', 'Saved offer'))}${F.total ? ' · ' + esc(money(F.total, { dec: 0 })) : ''}</div>` : ''}
-      <div class="grid cols-2 mt" style="gap:10px">
-        <button class="btn primary large" data-builder>${icon('wand')} ${esc(F.offer_data ? L('Επεξεργασία στον Οδηγό προσφοράς', 'Edit in offer builder') : L('Δημιουργία με τον Οδηγό προσφοράς', 'Create with offer builder'))}</button>
-        <button class="btn large" data-upload>${icon('upload')} ${esc(L('Ανέβασμα έτοιμου PDF', 'Upload ready PDF'))}</button>
+      <div class="mt">
+        <button class="btn primary large" style="width:100%" data-builder>${icon('wand')} ${esc(F.offer_data ? L('Επεξεργασία στον Οδηγό προσφοράς', 'Edit in offer builder') : L('Δημιουργία με τον Οδηγό προσφοράς', 'Create with offer builder'))}</button>
       </div>
       ${F.offer_data ? `<div class="mt">${offerSummaryHTML(F.offer_data)}</div>` : ''}
-      <div class="field mt"><label>${esc(L('Αξία προσφοράς (€)', 'Offer value (€)'))}</label><div class="input-wrap"><input class="input" name="total" inputmode="decimal" value="${esc(F.total ?? '')}" placeholder="2800"><span class="suffix">€</span></div><div class="help">${esc(L('Συμπληρώνεται αυτόματα από τον Οδηγό.', 'Filled automatically by the builder.'))}</div></div>
     </div>
     <div class="wizard-foot"><span></span><button class="btn primary large" data-save>${icon('check')} ${esc(edit && !presenting ? L('Αποθήκευση αλλαγών', 'Save changes') : L('Αποθήκευση ραντεβού', 'Save appointment'))}</button></div>`;
   root.querySelectorAll('[name]').forEach((i) => i.addEventListener('input', () => { F[i.name] = i.value; i.classList.remove('invalid'); if (i.name === 'event_date') root.querySelector('#dchk').innerHTML = dateConflictHTML(F.event_date, F.id || null); }));
@@ -609,7 +651,6 @@ export function renderAppointmentForm(root, params = {}) {
     toast(L('Η προσφορά επισυνάφθηκε', 'Offer attached'), { body: `${money(res.total, { dec: 0 })} · ${packageNameFrom(res.state)}` });
     renderAppointmentForm(root, params);
   });
-  root.querySelector('[data-upload]').addEventListener('click', async () => { const f = await pickPdfFile(); if (!f) return; F.pdf = f; F.pdfName = f.name; renderAppointmentForm(root, params); });
   root.querySelector('[data-save]').addEventListener('click', async (e) => {
     const _btn = e.currentTarget;
     let ok = true;
