@@ -1820,3 +1820,7 @@ button.mp-r:hover { background: var(--fill-2); }
 
 /* ---- Tasks στο ημερολόγιο ---- */
 .mbar.x-task.x-done, .tg-ev.x-task.x-done { text-decoration: line-through; }
+
+/* Ολοκληρωμένο task: διαγραμμένο με οριζόντια γραμμή */
+.wk-row.is-done .t, .wk-row.is-done .s, .t-item.is-done .t, .t-item.is-done .s { text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: currentColor; }
+.wk-row.is-done, .t-item.is-done { opacity: .55; }
