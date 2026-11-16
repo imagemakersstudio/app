@@ -9,6 +9,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.19.0', date: '17/11/2026',
+    items: [
+      ['🎬', 'Νέα παρουσίαση γάμου στο στούντιο: πιο καθαρή σε laptop, με κομψά εφέ και πλήρη οθόνη. Η τιμή δεν φαίνεται πια από την αρχή· εμφανίζεται στο τέλος, μετά τη σελίδα «Όλα όσα περιλαμβάνει», μαζί με τα 40% / 40% / 20%.', 'New wedding presentation in the studio: clearer on laptops, with elegant animations and full screen. The price no longer shows from the start; it appears at the end, after “Everything included”, together with 40% / 40% / 20%.', 'admin'],
+      ['➕', 'Στην παρουσίαση υπάρχει πλέον σελίδα «Προαιρετικές προσθήκες» (2ο συνεργείο, pre-wedding, ευχολόγιο, slide show): πατάτε την κάρτα και προστίθεται.', 'The presentation now has an “Optional add-ons” page (2nd crew, pre-wedding, guest book, slide show): tap a card to add it.', 'admin'],
+    ],
+  },
+  {
     v: '1.18.3', date: '16/11/2026',
     items: [
       ['💍', 'Ηλεκτρονική προσφορά γάμου και γαμοβάπτισης: όπως και στη βάπτιση, ο πελάτης συμπληρώνει πρώτα τα στοιχεία και μετά βλέπει το βασικό πακέτο, τις επιλογές και τη σύνοψη.', 'Online wedding and wedding & christening offer: as with christenings, the client first fills in the details, then sees the basic package, options and summary.', 'admin'],

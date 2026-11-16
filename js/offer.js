@@ -175,7 +175,7 @@ export function openOfferBuilder({ prefill = {}, saveLabel = null, kind = 'weddi
         <b>${esc(offerBuilderTitle(kind))}</b>
         <button class="btn primary" data-save>${icon('check')} ${esc(saveLabel || L('Αποθήκευση στην εκδήλωση', 'Save to event'))}</button>
       </div>
-      <iframe title="${esc(L('Οδηγός προσφοράς', 'Offer builder'))}" src="${builderUrl(kind)}"></iframe>
+      <iframe title="${esc(L('Οδηγός προσφοράς', 'Offer builder'))}" src="${builderUrl(kind)}" allow="fullscreen" allowfullscreen></iframe>
       <div class="offer-busy"><div class="center"><div class="spinner"></div>${esc(L('Φόρτωση…', 'Loading…'))}</div></div>`;
     document.body.appendChild(layer);
     document.body.style.overflow = 'hidden';
