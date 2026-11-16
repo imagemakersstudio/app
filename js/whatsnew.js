@@ -9,6 +9,12 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.18.3', date: '16/11/2026',
+    items: [
+      ['💍', 'Ηλεκτρονική προσφορά γάμου και γαμοβάπτισης: όπως και στη βάπτιση, ο πελάτης συμπληρώνει πρώτα τα στοιχεία και μετά βλέπει το βασικό πακέτο, τις επιλογές και τη σύνοψη.', 'Online wedding and wedding & christening offer: as with christenings, the client first fills in the details, then sees the basic package, options and summary.', 'admin'],
+    ],
+  },
+  {
     v: '1.18.2', date: '16/11/2026',
     items: [
       ['➖', 'Αρχική: τα ολοκληρωμένα task εμφανίζονται διαγραμμένα με μια οριζόντια γραμμή, όπως και στο ημερολόγιο.', 'Home: completed tasks are shown struck through with a horizontal line, as in the calendar.'],
