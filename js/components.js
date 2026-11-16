@@ -19,7 +19,7 @@ export function avatar(p, cls = '') {
 }
 
 export function photoStatusPill(v) {
-  const color = { samples_todo: '', samples_pickup: 'blue', samples_waiting: 'orange', changes: 'orange', lab: 'red', ready: 'green', delivered: 'green' }[v] || '';
+  const color = { samples_todo: '', samples_send: 'blue', samples_pickup: 'blue', samples_waiting: 'orange', changes: 'orange', lab: 'red', ready: 'green', delivered: 'green' }[v] || '';
   return `<span class="pill ${color}">${icon('camera')} ${esc(lbl(PHOTO_STATUS, v))}</span>`;
 }
 export function editStatusPill(v) {

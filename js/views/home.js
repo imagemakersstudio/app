@@ -166,7 +166,16 @@ export function renderHome(root) {
   const weekEvents = visible.filter((v) => v.e.event_date <= addDays(thisMonday, 6) && evEnd(v.e) >= thisMonday).length;
   const nAppt = todayList.filter((x) => x.k === 'appt').length, nMeet = todayList.filter((x) => x.k === 'meet').length, nEv = todayList.filter((x) => x.k === 'ev').length;
   const todayBits = [nEv && plural(nEv, L('εκδήλωση', 'event'), L('εκδηλώσεις', 'events')), nAppt && plural(nAppt, L('ραντεβού', 'appointment'), L('ραντεβού', 'appointments')), nMeet && plural(nMeet, 'meeting', 'meetings')].filter(Boolean);
-  const sumLine = `${todayBits.length ? L(`Σήμερα έχετε <b>${todayBits.join('</b> και <b>')}</b>.`, `Today you have <b>${todayBits.join('</b> and <b>')}</b>.`) : L('Σήμερα δεν έχετε κάτι προγραμματισμένο.', 'Nothing scheduled for today.')} ${L(`Αυτή την εβδομάδα: <b>${plural(weekEvents, 'εκδήλωση', 'εκδηλώσεις')}</b>.`, `This week: <b>${plural(weekEvents, 'event', 'events')}</b>.`)}`;
+  // μικρή λίστα κάτω από την ημερομηνία: σήμερα · tasks για εμένα · εβδομάδα
+  const myTasks = S.calNotes.filter((n) => n.kind === 'task' && n.assignee_id === S.profile?.id && !n.done_at && n.day <= today).sort((x, y) => (x.day + (x.start_time || '')).localeCompare(y.day + (y.start_time || '')));
+  const lateTasks = myTasks.filter((n) => n.day < today).length;
+  const taskTitles = myTasks.slice(0, 2).map((n) => n.title).join(', ') + (myTasks.length > 2 ? ` +${myTasks.length - 2}` : '');
+  const sumItems = [
+    todayBits.length ? L(`Σήμερα έχετε <b>${todayBits.join('</b> και <b>')}</b>`, `Today you have <b>${todayBits.join('</b> and <b>')}</b>`) : L('Σήμερα δεν έχετε κάτι προγραμματισμένο', 'Nothing scheduled for today'),
+    myTasks.length ? `<a href="#/calendar">${L(`<b>${plural(myTasks.length, 'task', 'tasks')}</b> για εσάς`, `<b>${plural(myTasks.length, 'task', 'tasks')}</b> for you`)}: ${esc(taskTitles)}${lateTasks ? ` <span class="hs-late">· ${esc(L(`${lateTasks} από προηγούμενες ημέρες`, `${lateTasks} from earlier days`))}</span>` : ''}</a>` : '',
+    L(`Αυτή την εβδομάδα: <b>${plural(weekEvents, 'εκδήλωση', 'εκδηλώσεις')}</b>`, `This week: <b>${plural(weekEvents, 'event', 'events')}</b>`),
+  ].filter(Boolean);
+  const sumLine = `<ul class="home-sum-list">${sumItems.map((x) => `<li>${x}</li>`).join('')}</ul>`;
 
   const actBtns = (cls) => admin ? `<div class="home-actions ${cls}">
       <button class="btn primary" data-act="newevent">${icon('plus')} ${esc(L('Εκδήλωση', 'Event'))}</button>

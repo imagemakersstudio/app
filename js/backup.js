@@ -314,7 +314,7 @@ function EXP_MAP(s) {
   return ['other', 'misc'];
 }
 
-const PHOTO_MAP = (s) => { const n = norm(s); if (!n) return null; if (n.includes('παραδοθ')) return 'delivered'; if (n.includes('ετοιμ')) return 'ready'; if (n.includes('εκτυπω') || n.includes('εργαστηρ') || n.includes('lab')) return 'lab'; if (n.includes('αλλαγ')) return 'changes'; if (n.includes('δειγμα') && (n.includes('ελαβ') || n.includes('περιμεν') || n.includes('παραλαβ'))) return 'samples_waiting'; if (n.includes('δειγμα')) return 'samples_todo'; return null; };
+const PHOTO_MAP = (s) => { const n = norm(s); if (!n) return null; if (n.includes('παραδοθ')) return 'delivered'; if (n.includes('ετοιμ')) return 'ready'; if (n.includes('εκτυπω') || n.includes('εργαστηρ') || n.includes('lab')) return 'lab'; if (n.includes('αλλαγ')) return 'changes'; if (n.includes('δειγμα') && (n.includes('ελαβ') || n.includes('περιμεν') || n.includes('παραλαβ'))) return 'samples_waiting'; if (n.includes('δειγμα') && (n.includes('σταλ') || n.includes('αποστολ'))) return 'samples_send'; if (n.includes('δειγμα')) return 'samples_todo'; return null; };
 function findHeader(aoa, must) {
   must = must.map(norm);
   for (let i = 0; i < Math.min(8, aoa.length); i++) {
