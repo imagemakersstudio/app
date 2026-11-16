@@ -9,6 +9,12 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.18.1', date: '16/11/2026',
+    items: [
+      ['👆', 'Αρχική: στη μικρή λίστα κάτω από την ημερομηνία πατήστε «1 ραντεβού», τον τίτλο ενός task ή «1 εκδήλωση» και ανοίγουν κατευθείαν οι λεπτομέρειες. Αν είναι περισσότερα, διαλέγετε από μια λίστα.', 'Home: in the small list under the date, tap “1 appointment”, a task title or “1 event” to open its details straight away. If there are several, pick from a list.'],
+    ],
+  },
+  {
     v: '1.18.0', date: '16/11/2026',
     items: [
       ['🏠', 'Αρχική: κάτω από την ημερομηνία, μια μικρή λίστα — τι έχετε σήμερα, τα task που είναι για εσάς και πόσες εκδηλώσεις έχει η εβδομάδα. Φαίνεται πλέον και στο κινητό.', 'Home: under the date, a small list — what you have today, the tasks that are for you and how many events this week has. Now on phones too.'],
