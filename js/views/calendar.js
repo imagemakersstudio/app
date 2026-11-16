@@ -11,7 +11,7 @@ import { openSessionSheet, sessionActions, sessionTitle, sessionTip, sessionEmoj
 import { openScheduleSheet, scheduledActions, apptFor, apptName, openAppointment } from './appointments.js';
 import { go } from '../layout.js';
 import { openMeetingSheet, meetingActions, meetingTitle, meetingTip } from './meetings.js';
-import { openCalNoteSheet, calNoteActions, calNoteTitle, calNoteTip } from './calnotes.js';
+import { openCalNoteSheet, calNoteActions, calNoteTitle, calNoteEmoji, calNoteTip } from './calnotes.js';
 
 const catLabel = (c) => { const o = CATEGORIES.find((x) => x.v === c); return o ? L(o.el, o.en).replace(/\s*\(.*\)$/, '') : ''; };
 const HOUR = 48;          // ύψος μίας ώρας (px) στο πλέγμα ωρών
@@ -104,7 +104,7 @@ function buildExtras(admin, onlyMine, mine) {
     out.push({ key: 'm:' + m.id, sub: 'meet', ref: m, date: m.day, time: t, label: `👥 ${meetingTitle(m)}`, tip: meetingTip(m) });
   });
   S.calNotes.forEach((n) => {
-    out.push({ key: 'n:' + n.id, sub: 'note', ref: n, date: n.day, time: n.start_time ? String(n.start_time).slice(0, 5) : '', label: `📌 ${calNoteTitle(n)}`, tip: calNoteTip(n) });
+    out.push({ key: 'n:' + n.id, sub: 'note', kind2: n.kind === 'task' ? 'task' : '', ref: n, date: n.day, time: n.start_time ? String(n.start_time).slice(0, 5) : '', label: `${calNoteEmoji(n)} ${calNoteTitle(n)}`, tip: calNoteTip(n), done: !!n.done_at });
   });
   if (admin) S.appointments.filter((a) => a.appt_time && a.appt_date).forEach((a) => {
     const t = String(a.appt_time).slice(0, 5);
@@ -133,7 +133,7 @@ function xClick(key) {
   else if (x.ref.status === 'scheduled') scheduledActions(x.ref);
   else openAppointment(x.ref);
 }
-const xRow = (x) => (x.sub === 'maybe' ? `<button class="row has-icon maybe-row" data-x="${x.key}"><span class="row-icon ${xCls(x)} cat-${x.cat}">❔</span><div class="main-col"><div class="t">${esc(x.label)}</div><div class="s">${esc([x.time || L('ώρα: ;', 'time: ?'), apptName(x.ref), L('προσφορά σε αναμονή απάντησης', 'offer awaiting an answer')].join(' · '))}</div></div>${icon('chevR', 'chev')}</button>` : `<button class="row has-icon" data-x="${x.key}"><span class="row-icon ${xCls(x)}">${x.sub === 'appt' ? icon('handshake') : x.sub === 'note' ? '📌' : x.sub === 'meet' ? '👥' : sessionEmoji(x.kind2)}</span><div class="main-col"><div class="t">${esc(x.sub === 'appt' ? x.label : x.label.replace(/^\S+\s/, ''))}</div><div class="s">${esc(x.sub === 'appt' ? x.tip.split(' · ').slice(1).join(' · ') : x.sub === 'note' ? ([x.time, x.ref.notes].filter(Boolean).join(' · ') || L('Χωρίς ώρα', 'No time')) : x.sub === 'meet' ? [x.time, (x.ref.reasons || []).join(', ')].join(' · ') : [x.time || L('ώρα: δεν έχει οριστεί', 'time: not set'), x.tip.split(' · ').slice(-2).join(' · ')].join(' · '))}</div></div>${icon('chevR', 'chev')}</button>`);
+const xRow = (x) => (x.sub === 'maybe' ? `<button class="row has-icon maybe-row" data-x="${x.key}"><span class="row-icon ${xCls(x)} cat-${x.cat}">❔</span><div class="main-col"><div class="t">${esc(x.label)}</div><div class="s">${esc([x.time || L('ώρα: ;', 'time: ?'), apptName(x.ref), L('προσφορά σε αναμονή απάντησης', 'offer awaiting an answer')].join(' · '))}</div></div>${icon('chevR', 'chev')}</button>` : `<button class="row has-icon" data-x="${x.key}"><span class="row-icon ${xCls(x)}">${x.sub === 'appt' ? icon('handshake') : x.sub === 'note' ? calNoteEmoji(x.ref) : x.sub === 'meet' ? '👥' : sessionEmoji(x.kind2)}</span><div class="main-col"><div class="t">${esc(x.sub === 'appt' ? x.label : x.label.replace(/^\S+\s/, ''))}</div><div class="s">${esc(x.sub === 'appt' ? x.tip.split(' · ').slice(1).join(' · ') : x.sub === 'note' ? ([x.time, x.ref.notes].filter(Boolean).join(' · ') || L('Χωρίς ώρα', 'No time')) : x.sub === 'meet' ? [x.time, (x.ref.reasons || []).join(', ')].join(' · ') : [x.time || L('ώρα: δεν έχει οριστεί', 'time: not set'), x.tip.split(' · ').slice(-2).join(' · ')].join(' · '))}</div></div>${icon('chevR', 'chev')}</button>`);
 
 /** Όλα τα στοιχεία του ημερολογίου ως διαστήματα ημερών (εκδηλώσεις + απουσίες, οι πολυήμερες ενωμένες) */
 let VIEWS = [];
@@ -273,6 +273,7 @@ function openPlusMenu(anchor, date) {
     { v: 'next_day', emoji: '🌅', t: 'Next day', s: L('Συνδέεται με υπάρχουσα εκδήλωση', 'Linked to an existing event') },
     { v: 'blessing', emoji: '🕯️', t: L('Ευχολόγιο', 'Blessing'), s: L('Συνδέεται με υπάρχουσα εκδήλωση', 'Linked to an existing event') },
     { v: 'meeting', emoji: '👥', t: 'Meeting', s: L('Ώρα, τοποθεσία, άτομα & λόγοι · ειδοποιούνται όσοι αφορά', 'Time, place, people & reasons · everyone involved is notified') },
+    { v: 'task', emoji: '📋', t: 'Task', s: L('Για συγκεκριμένο άτομο · ημερομηνία, ώρα, τοποθεσία · ειδοποιείται', 'For a specific person · date, time, place · they are notified') },
     { v: 'note', emoji: '📌', t: L('Άλλο', 'Other'), s: L('Ελεύθερη καταχώρηση: τίτλος, ώρα, τοποθεσία, σημειώσεις', 'Free entry: title, time, location, notes') },
   ];
   const m = document.createElement('div');
@@ -298,6 +299,7 @@ function openPlusMenu(anchor, date) {
     if (v === 'next_day' || v === 'blessing') openSessionSheet({ kind: v, day: picked });
     if (v === 'meeting') openMeetingSheet({ day: date || todayISO() });
     if (v === 'note') openCalNoteSheet({ day: date || todayISO() });
+    if (v === 'task') openCalNoteSheet({ day: date || todayISO(), kind: 'task' });
   }));
 }
 

@@ -1809,3 +1809,6 @@ button.mp-r:hover { background: var(--fill-2); }
 .share-wrap .pdf-btn.share-btn { margin-right: 0; }
 .share-ok { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #fff; }
 .share-ok .ic { width: 12px; height: 12px; stroke-width: 3; }
+
+/* ---- Tasks στο ημερολόγιο ---- */
+.mbar.x-task.x-done, .tg-ev.x-task.x-done { text-decoration: line-through; }
