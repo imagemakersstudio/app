@@ -44,16 +44,17 @@ function dayItems(day, ctx) {
   S.sessions.filter((x) => x.day === day && S.events.get(x.event_id)?.status !== 'cancelled' && (ctx.admin || ctx.mine.has(x.event_id))).forEach((x) => out.push({ k: 'sess', t: hm(x.start_time), text: sessionTitle(x), sub: S.events.get(x.event_id) ? '' : '', act: 'sess:' + x.id, ic: 'camera' }));
   S.meetings.filter((m) => m.day === day && (ctx.admin || (m.participants || []).includes(S.profile?.id))).forEach((m) => out.push({ k: 'meet', t: hm(m.start_time), text: meetingTitle(m), sub: L(`${(m.participants || []).length} άτομα`, `${(m.participants || []).length} people`), act: 'meet:' + m.id, ic: 'users' }));
   S.absences.filter((a) => a.day === day).forEach((a) => out.push({ k: 'abs', t: '', text: L(`Απουσία: ${shortName(a.user_id)}`, `Away: ${shortName(a.user_id)}`), sub: absenceWhen([a]), act: 'abs:' + a.id, ic: 'ban' }));
-  S.calNotes.filter((n) => n.day === day).forEach((n) => out.push({ k: 'note', t: hm(n.start_time), text: calNoteTitle(n), sub: n.kind === 'task' ? [n.done_at ? L('✓ Ολοκληρώθηκε', '✓ Done') : 'Task', n.notes].filter(Boolean).join(' · ') : (n.notes || ''), act: 'note:' + n.id, ic: n.kind === 'task' ? 'checkCircle' : 'pin' }));
+  S.calNotes.filter((n) => n.day === day).forEach((n) => out.push({ k: 'note', t: hm(n.start_time), text: calNoteTitle(n), sub: n.kind === 'task' ? (n.done_at ? (n.notes || '') : ['Task', n.notes].filter(Boolean).join(' · ')) : (n.notes || ''), act: 'note:' + n.id, ic: n.kind === 'task' ? 'checkCircle' : 'pin', done: n.kind === 'task' && !!n.done_at }));
   return out.sort((a, b) => (a.k === 'abs') - (b.k === 'abs') || (a.t || '99').localeCompare(b.t || '99'));
 }
 
 /** Γραμμή στοιχείου μέσα στην κάρτα της ημέρας: εικονίδιο · τι · ποιος · ώρα */
 function wkRow(x) {
   const cls = x.k === 'ev' ? `wk-ev cat-${x.cat}` : `wk-${x.k}`;
+  const doneCls = x.done ? ' is-done' : '';
   const attrs = x.href ? `href="${x.href}"` : `href="#" data-act="${x.act}"`;
   const time = x.t || (x.k === 'abs' ? L('όλη μέρα', 'all day') : '');
-  return `<a class="wk-row ${cls}" ${attrs}>${icon(x.ic)}<div class="main-col"><div class="t">${esc(x.text)}</div>${x.sub ? `<div class="s">${esc(x.sub)}</div>` : ''}</div>${time ? `<b>${esc(time)}</b>` : ''}</a>`;
+  return `<a class="wk-row ${cls}${doneCls}" ${attrs}>${icon(x.ic)}<div class="main-col"><div class="t">${esc(x.text)}</div>${x.sub ? `<div class="s">${esc(x.sub)}</div>` : ''}</div>${time ? `<b>${esc(time)}</b>` : ''}</a>`;
 }
 
 /** Η εβδομάδα ως λίστα καρτών ανά ημέρα (3 στήλες στον υπολογιστή, 1 στο κινητό).
@@ -225,7 +226,7 @@ export function renderHome(root) {
   const todayRow = (x) => {
     const [c, soft] = TODAY_STYLE[x.k];
     const attrs = x.href ? `href="${x.href}"` : `href="#" data-act="${x.act}"`;
-    return `<a class="t-item" ${attrs} style="--soft:${soft}">${bub(x.ic, x.k === 'ev' ? `var(--cat-${x.cat})` : c)}<div class="main-col"><div class="t">${esc(x.text)}</div>${x.sub ? `<div class="s">${esc(x.sub)}</div>` : ''}</div><b class="t-time">${esc(x.t || (x.k === 'abs' ? L('όλη μέρα', 'all day') : ''))}</b></a>`;
+    return `<a class="t-item${x.done ? ' is-done' : ''}" ${attrs} style="--soft:${soft}">${bub(x.ic, x.k === 'ev' ? `var(--cat-${x.cat})` : c)}<div class="main-col"><div class="t">${esc(x.text)}</div>${x.sub ? `<div class="s">${esc(x.sub)}</div>` : ''}</div><b class="t-time">${esc(x.t || (x.k === 'abs' ? L('όλη μέρα', 'all day') : ''))}</b></a>`;
   };
   const todayCard = `<div class="today-card"><div class="today-h">${icon('sun')} ${esc(L('Σήμερα', 'Today'))}</div>${todayList.map(todayRow).join('') || `<div class="today-empty">${icon('checkCircle')}<span>${esc(L('Δεν υπάρχει κάτι προγραμματισμένο για σήμερα.', 'Nothing scheduled for today.'))}</span></div>`}</div>`;
   html += `<div class="home-top">${hero}${todayCard}</div>`;

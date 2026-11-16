@@ -9,6 +9,12 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.18.2', date: '16/11/2026',
+    items: [
+      ['➖', 'Αρχική: τα ολοκληρωμένα task εμφανίζονται διαγραμμένα με μια οριζόντια γραμμή, όπως και στο ημερολόγιο.', 'Home: completed tasks are shown struck through with a horizontal line, as in the calendar.'],
+    ],
+  },
+  {
     v: '1.18.1', date: '16/11/2026',
     items: [
       ['👆', 'Αρχική: στη μικρή λίστα κάτω από την ημερομηνία πατήστε «1 ραντεβού», τον τίτλο ενός task ή «1 εκδήλωση» και ανοίγουν κατευθείαν οι λεπτομέρειες. Αν είναι περισσότερα, διαλέγετε από μια λίστα.', 'Home: in the small list under the date, tap “1 appointment”, a task title or “1 event” to open its details straight away. If there are several, pick from a list.'],
