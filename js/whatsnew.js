@@ -1,12 +1,32 @@
 // =====================================================================
-//  «Τι νέο υπάρχει» — εμφανίζεται μία φορά στους διαχειριστές μετά από
+//  «Τι νέο υπάρχει» — εμφανίζεται μία φορά σε όλη την ομάδα μετά από
 //  κάθε ενημέρωση. Για νέα έκδοση: προσθέστε μια εγγραφή στην αρχή του RELEASES.
+//  4ο στοιχείο 'admin' = το βλέπουν μόνο οι διαχειριστές.
 // =====================================================================
 import { L, esc, icon, sheet } from './core.js';
 import { S, isAdmin } from './data.js';
 import { pageHead } from './layout.js';
 
 export const RELEASES = [
+  {
+    v: '1.17.0', date: '16/11/2026',
+    items: [
+      ['📋', 'Ημερολόγιο: νέα επιλογή «Task» στο «+». Γράφετε τι πρέπει να γίνει, για πότε και για ποιο άτομο (ώρα, τοποθεσία και σημειώσεις προαιρετικά). Το άτομο παίρνει ειδοποίηση στο κινητό (ακόμη κι αν το task είναι για τον εαυτό σας) και βλέπει πάντα το task του.', 'Calendar: new “Task” option under “+”. Write what needs doing, when and for whom (time, location and notes optional). That person is notified and always sees their task.'],
+      ['✅', 'Όταν τελειώσετε ένα task, πατήστε το και «Ολοκληρώθηκε». Γίνεται ✅ και διαγραμμένο, και όποιος το έφτιαξε παίρνει ειδοποίηση.', 'When you finish a task, tap it and choose “Done”. It turns ✅ and struck through, and whoever created it is notified.'],
+      ['🧾', 'Προσφορές: η φόρμα ραντεβού έχει μόνο τον «Οδηγό προσφοράς» (το έτοιμο PDF ανεβαίνει μέσα από το ραντεβού). Χωρίς χρονολογίες στις σελίδες· γράφουν απλά «Wedding Package», «Christening Package», «Wedding & Christening Package».', 'Offers: the appointment form has only the “Offer wizard” (a ready PDF is uploaded from inside the appointment). No years on the pages; they simply say “Wedding Package”, “Christening Package”, “Wedding & Christening Package”.', 'admin'],
+      ['💬', 'Νέο, πιο επαγγελματικό μήνυμα για την αποστολή του προσωπικού link στον πελάτη, και σαφές μήνυμα στον πελάτη αν ξεχάσει το κουτάκι της συγκατάθεσης.', 'A new, more professional message for sending the personal link, and a clear prompt if the client forgets the consent box.', 'admin'],
+      ['🔄', 'Όταν ο πελάτης αλλάξει επιλογές από το σπίτι, το ραντεβού δείχνει καθαρά τι πρόσθεσε, τι αφαίρεσε, την τιμή πριν και μετά, και τι είχατε συμφωνήσει στο στούντιο.', 'When the client changes choices from home, the appointment clearly shows what was added or removed, the price before and after, and what you agreed in the studio.', 'admin'],
+      ['✨', 'Από εδώ και πέρα, μετά από κάθε ενημέρωση εμφανίζεται σε όλη την ομάδα αυτό το παράθυρο με ό,τι νέο υπάρχει (στον καθένα ό,τι τον αφορά).', 'From now on, after every update the whole team sees this window with what’s new (each person what concerns them).'],
+    ],
+  },
+  {
+    v: '1.16.0', date: '15/11/2026',
+    items: [
+      ['💶', 'Έσοδα & Έξοδα: πιο φιλική εμφάνιση — καθαρότερα σύνολα, μήνες που ανοίγουν/κλείνουν και πιο ευανάγνωστες κινήσεις. Η λειτουργία έμεινε ίδια.', 'Income & Expenses: friendlier look — clearer totals, collapsible months and easier-to-read entries. It works the same way.', 'admin'],
+      ['🔗', 'Ραντεβού: αποστολή link ηλεκτρονικής προσφοράς ανά κατηγορία (γάμος, βάπτιση, γαμοβάπτιση).', 'Appointments: send an online offer link per category (wedding, christening, wedding & christening).', 'admin'],
+      ['👤', 'Προσωπικό link προσφοράς: ο πελάτης βλέπει την προσφορά που φτιάξατε μαζί στο στούντιο, την αλλάζει από το σπίτι και οι αλλαγές έρχονται κατευθείαν στο ραντεβού. Δίπλα στο κουμπί φαίνεται ✓ όταν έχει σταλεί.', 'Personal offer link: the client sees the offer you built together in the studio, changes it from home and the changes go straight to the appointment. A ✓ shows next to the button once it has been sent.', 'admin'],
+    ],
+  },
   {
     v: '1.15.2', date: '15/11/2026',
     items: [
@@ -342,37 +362,49 @@ export const RELEASES = [
 export const LATEST = RELEASES[0].v;
 const WATERMARK = 'Αναπτύσσεται με το Claude (Anthropic)';
 
+const mine = (r) => r.items.filter((it) => it[3] !== 'admin' || isAdmin());
 const releaseHTML = (r) => `<div class="wn-rel">
   <div class="wn-ver"><span class="pill accent">v${esc(r.v)}</span><span class="small muted">${esc(r.date)}</span></div>
-  <ul class="wn-list">${r.items.map(([e, el, en]) => `<li><span class="wn-e">${e}</span><span>${esc(L(el, en))}</span></li>`).join('')}</ul></div>`;
+  <ul class="wn-list">${mine(r).map(([e, el, en]) => `<li><span class="wn-e">${e}</span><span>${esc(L(el, en))}</span></li>`).join('')}</ul></div>`;
 const watermark = () => `<div class="wn-mark">${esc(WATERMARK)}</div>`;
 
 const key = () => 'im.wn.' + (S.profile?.id || '');
 const seen = () => { try { return localStorage.getItem(key()); } catch { return LATEST; } };
 const markSeen = () => { try { localStorage.setItem(key(), LATEST); } catch {} };
 
-/** Μία φορά ανά έκδοση, μόνο για διαχειριστές (οι νέοι χρήστες βλέπουν πρώτα την περιήγηση) */
+/** Οι εκδόσεις που δεν έχει δει ακόμη ο χρήστης (το πολύ 4) και που έχουν κάτι που τον αφορά */
+function unseen() {
+  const s = seen();
+  let i = RELEASES.findIndex((r) => r.v === s);
+  if (i < 0) i = 1; // πρώτη φορά σε αυτή τη συσκευή: μόνο η τελευταία
+  return RELEASES.slice(0, Math.min(i, 4)).filter((r) => mine(r).length);
+}
+
+/** Μία φορά ανά ενημέρωση, για όλη την ομάδα (οι νέοι χρήστες βλέπουν πρώτα την περιήγηση) */
 export function maybeShowWhatsNew() {
-  if (!isAdmin()) return;
+  if (!S.profile) return;
   let tourDone = false;
   try { tourDone = !!localStorage.getItem('im.tour.' + S.profile?.id); } catch { return; }
   if (!tourDone) { markSeen(); return; }
   if (seen() === LATEST) return;
+  if (!unseen().length) { markSeen(); return; }
   setTimeout(() => showWhatsNew(), 900);
 }
 
 export function showWhatsNew() {
+  const list = unseen();
   markSeen();
   const body = document.createElement('div');
   body.className = 'wn';
   body.innerHTML = `<div class="wn-hero"><div class="wn-big">✨</div><h2>${esc(L('Τι νέο υπάρχει', 'What’s new'))}</h2><p class="muted small">${esc(L('Η εφαρμογή ενημερώθηκε. Αυτές είναι οι αλλαγές:', 'The app was updated. Here are the changes:'))}</p></div>
-    ${releaseHTML(RELEASES[0])}${watermark()}`;
+    ${(list.length ? list : [RELEASES[0]]).map(releaseHTML).join('<hr class="wn-sep">')}${watermark()}
+    <div class="center small mt"><a href="#/whatsnew" data-close>${esc(L('Όλες οι προηγούμενες ενημερώσεις', 'All previous updates'))}</a></div>`;
   sheet({ title: L('Ενημέρωση', 'Update'), body, right: `<button class="btn plain" data-close><b>${esc(L('Εντάξει', 'OK'))}</b></button>` });
 }
 
 export function renderWhatsNew(root) {
   markSeen();
   root.innerHTML = pageHead(L('Τι νέο υπάρχει', 'What’s new'), { sub: esc(L('Οι αλλαγές σε κάθε ενημέρωση της εφαρμογής.', 'Changes in every app update.')) })
-    + `<div class="wn card pad">${RELEASES.map(releaseHTML).join('<hr class="wn-sep">')}${watermark()}</div>`
+    + `<div class="wn card pad">${RELEASES.filter((r) => mine(r).length).map(releaseHTML).join('<hr class="wn-sep">')}${watermark()}</div>`
     + `<div class="hstack mt"><a class="btn" href="#/home">${icon('chevL')} ${esc(L('Αρχική', 'Home'))}</a></div>`;
 }
