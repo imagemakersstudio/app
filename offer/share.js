@@ -21,7 +21,7 @@
   var ADD_B = { preBaptismGuestbook: 'Φωτογράφηση πριν & ψηφιακό album ευχολόγιο', churchDrone: 'Drone στην εκκλησία', platinumAlbum: 'Album Platinum series', platinumCase: 'Platinum album case', woodenUsbCase: 'Wooden USB case', video4k: 'Παράδοση video σε 4K' };
   var isBaptismPage = !$('.included-option');
 
-  var S = window.IMShare = { ready: false, token: token };
+  var S = window.IMShare = { ready: false, token: token, successText: 'Οι αλλαγές σας στάλθηκαν με επιτυχία! Η ομάδα της Image Makers θα επικοινωνήσει μαζί σας για τις λεπτομέρειες.' };
   var submitBtn = $('#submitOffer'), resetBtn = $('#resetChoices');
   if (submitBtn) submitBtn.style.visibility = 'hidden';
 
@@ -73,6 +73,11 @@
     set('reception', d.reception); set('receptionTime', (d.reception_time || '').slice(0, 5));
     // τα στοιχεία είναι ήδη καταχωρημένα στο ραντεβού: εδώ αλλάζουν μόνο οι επιλογές του πακέτου
     $$('#weddingDetails input').forEach(function (i) { if (i.id !== 'privacyConsent') { i.disabled = true; i.required = false; } });
+    // οι ώρες δεν συμπληρώνονται από τον πελάτη σε αυτή τη σελίδα
+    ['churchTime', 'receptionTime'].forEach(function (id) { var i = $('#' + id); var f = i && i.closest('.field'); if (f) f.style.display = 'none'; });
+    // η διαθεσιμότητα έχει ήδη συζητηθεί στο ραντεβού
+    var lede = $('#details .section-lede'); if (lede) lede.textContent = 'Τα στοιχεία αυτά θα σταλούν μαζί με τις επιλογές του πακέτου, ώστε να επικοινωνήσουμε μαζί σας για τις λεπτομέρειες.';
+    var note = $('.final-note'); if (note) note.textContent = 'Με την αποστολή, οι αλλαγές σας περνούν στην προσφορά σας και η ομάδα της Image Makers θα επικοινωνήσει μαζί σας για τις λεπτομέρειες.';
   }
 
   function lockAll() {
@@ -121,7 +126,7 @@
       S.ready = true;
       window.IMClient.update();
       var names = [d.name1, d.name2].filter(Boolean).join(' & ');
-      var heroP = $('.hero-copy p'); if (heroP) heroP.textContent = 'Αυτή είναι η προσφορά που διαμορφώσαμε μαζί στο μαγαζί. Μπορείτε να τη διαφοροποιήσετε ή να τη διαμορφώσετε εκ νέου και να πατήσετε ξανά «Αποστολή».';
+      var heroP = $('.hero-copy p'); if (heroP) heroP.textContent = 'Αυτή είναι η προσφορά που διαμορφώσαμε μαζί στο στούντιο. Μπορείτε να τη διαφοροποιήσετε ή να τη διαμορφώσετε εκ νέου και να πατήσετε ξανά «Αποστολή».';
       var hp = $('.hero-price strong'); if (hp) hp.textContent = money(S.agreed);
       var hs = $('.hero-price span'); if (hs) hs.textContent = 'η προσφορά σας · με Φ.Π.Α.';
       if (d.locked) {
