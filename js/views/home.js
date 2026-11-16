@@ -3,10 +3,10 @@
 //  Διαχειριστές: επόμενη εκδήλωση + Σήμερα · εβδομάδα (Δευ–Κυρ) · Χρειάζονται προσοχή + Ταμείο μήνα · η χρονιά με μια ματιά.
 //  Συνεργείο: μόνο οι δικές τους εκδηλώσεις, χωρίς οικονομικά.
 // =====================================================================
-import { evEnd, fmtRange, isMultiDay, CATEGORIES, needsOffer, L, LANG, vocative, esc, icon, money, fmtDateLong, fmtTime, todayISO, daysBetween, sum, addDays, parseISO, monthShort, DOW_SHORT_EL, DOW_SHORT_EN } from '../core.js';
+import { actionSheet, evEnd, fmtRange, isMultiDay, CATEGORIES, needsOffer, L, LANG, vocative, esc, icon, money, fmtDateLong, fmtTime, todayISO, daysBetween, sum, addDays, parseISO, monthShort, DOW_SHORT_EL, DOW_SHORT_EN } from '../core.js';
 import { S, isAdmin, isVideoAdmin, allEventViews, profileName, myEventIds, pendingAppointments, staleAppointments, pendingMessages, pendingUsers, unreadCount, absenceWhen } from '../data.js';
 import { wfLevel } from './workflow.js';
-import { newAppointmentChooser, scheduledAppts, apptFor, apptName } from './appointments.js';
+import { newAppointmentChooser, scheduledAppts, apptFor, apptName, scheduledActions } from './appointments.js';
 import { sessionRow, sessionActions, sessionTitle } from './sessions.js';
 import { meetingRow, meetingActions, meetingTitle } from './meetings.js';
 import { calNoteActions, calNoteTitle } from './calnotes.js';
@@ -165,15 +165,16 @@ export function renderHome(root) {
   const thisMonday = mondayOf(today);
   const weekEvents = visible.filter((v) => v.e.event_date <= addDays(thisMonday, 6) && evEnd(v.e) >= thisMonday).length;
   const nAppt = todayList.filter((x) => x.k === 'appt').length, nMeet = todayList.filter((x) => x.k === 'meet').length, nEv = todayList.filter((x) => x.k === 'ev').length;
-  const todayBits = [nEv && plural(nEv, L('εκδήλωση', 'event'), L('εκδηλώσεις', 'events')), nAppt && plural(nAppt, L('ραντεβού', 'appointment'), L('ραντεβού', 'appointments')), nMeet && plural(nMeet, 'meeting', 'meetings')].filter(Boolean);
+  const sumLink = (k, txt) => `<a href="#" class="hs-link" data-sum="${k}">${txt}</a>`;
+  const todayBits = [nEv && sumLink('ev', plural(nEv, L('εκδήλωση', 'event'), L('εκδηλώσεις', 'events'))), nAppt && sumLink('appt', plural(nAppt, L('ραντεβού', 'appointment'), L('ραντεβού', 'appointments'))), nMeet && sumLink('meet', plural(nMeet, 'meeting', 'meetings'))].filter(Boolean);
   // μικρή λίστα κάτω από την ημερομηνία: σήμερα · tasks για εμένα · εβδομάδα
   const myTasks = S.calNotes.filter((n) => n.kind === 'task' && n.assignee_id === S.profile?.id && !n.done_at && n.day <= today).sort((x, y) => (x.day + (x.start_time || '')).localeCompare(y.day + (y.start_time || '')));
   const lateTasks = myTasks.filter((n) => n.day < today).length;
-  const taskTitles = myTasks.slice(0, 2).map((n) => n.title).join(', ') + (myTasks.length > 2 ? ` +${myTasks.length - 2}` : '');
+  const taskTitles = myTasks.slice(0, 3).map((n) => `<a href="#" class="hs-link" data-sumtask="${n.id}">${esc(n.title)}</a>`).join(', ') + (myTasks.length > 3 ? ` ${sumLink('tasks', '+' + (myTasks.length - 3))}` : '');
   const sumItems = [
     todayBits.length ? L(`Σήμερα έχετε <b>${todayBits.join('</b> και <b>')}</b>`, `Today you have <b>${todayBits.join('</b> and <b>')}</b>`) : L('Σήμερα δεν έχετε κάτι προγραμματισμένο', 'Nothing scheduled for today'),
-    myTasks.length ? `<a href="#/calendar">${L(`<b>${plural(myTasks.length, 'task', 'tasks')}</b> για εσάς`, `<b>${plural(myTasks.length, 'task', 'tasks')}</b> for you`)}: ${esc(taskTitles)}${lateTasks ? ` <span class="hs-late">· ${esc(L(`${lateTasks} από προηγούμενες ημέρες`, `${lateTasks} from earlier days`))}</span>` : ''}</a>` : '',
-    L(`Αυτή την εβδομάδα: <b>${plural(weekEvents, 'εκδήλωση', 'εκδηλώσεις')}</b>`, `This week: <b>${plural(weekEvents, 'event', 'events')}</b>`),
+    myTasks.length ? `${L(`<b>${plural(myTasks.length, 'task', 'tasks')}</b> για εσάς`, `<b>${plural(myTasks.length, 'task', 'tasks')}</b> for you`)}: ${taskTitles}${lateTasks ? ` <span class="hs-late">· ${esc(L(`${lateTasks} από προηγούμενες ημέρες`, `${lateTasks} from earlier days`))}</span>` : ''}` : '',
+    L(`Αυτή την εβδομάδα: <b>${weekEvents ? sumLink('week', plural(weekEvents, 'εκδήλωση', 'εκδηλώσεις')) : '0 εκδηλώσεις'}</b>`, `This week: <b>${weekEvents ? sumLink('week', plural(weekEvents, 'event', 'events')) : '0 events'}</b>`),
   ].filter(Boolean);
   const sumLine = `<ul class="home-sum-list">${sumItems.map((x) => `<li>${x}</li>`).join('')}</ul>`;
 
@@ -314,6 +315,27 @@ export function renderHome(root) {
   on('income', () => openIncomeForm({}));
   on('expense', () => openExpenseForm({}));
   root.querySelectorAll('[data-wk]').forEach((b) => b.addEventListener('click', () => { const n = Number(b.dataset.wk); weekOffset = n === 0 ? 0 : weekOffset + n; renderHome(root); }));
+  // μικρή λίστα κάτω από την ημερομηνία: κάθε κομμάτι ανοίγει κατευθείαν τις λεπτομέρειες
+  const evPick = (list) => list.map((v) => ({ label: `${isMultiDay(v.e) ? fmtRange(v.e, true) : fmtDateLong(v.e.event_date)}${v.e.event_time ? ' · ' + fmtTime(v.e.event_time) : ''} · ${[catLabel(v.e.category), v.e.church_location, v.title].filter(Boolean).join(' · ')}`, run: () => go(`#/event/${v.e.id}`) }));
+  const sumPick = {
+    ev: () => evPick(visible.filter((v) => v.e.event_date <= today && evEnd(v.e) >= today)),
+    week: () => evPick(visible.filter((v) => v.e.event_date <= addDays(thisMonday, 6) && evEnd(v.e) >= thisMonday)),
+    appt: () => S.appointments.filter((a) => a.appt_date === today && a.appt_time && a.status === 'scheduled').sort((a, b) => String(a.appt_time).localeCompare(String(b.appt_time)))
+      .map((a) => ({ label: `${hm(a.appt_time)} · ${apptFor(a.category)} · ${apptName(a)}`, run: () => scheduledActions(a) })),
+    meet: () => S.meetings.filter((m) => m.day === today && (admin || (m.participants || []).includes(S.profile?.id))).sort((a, b) => String(a.start_time).localeCompare(String(b.start_time)))
+      .map((m) => ({ label: `${hm(m.start_time)} · ${meetingTitle(m)}`, run: () => meetingActions(m) })),
+    tasks: () => myTasks.map((n) => ({ label: `${n.day === today ? L('Σήμερα', 'Today') : fmtDateLong(n.day)}${n.start_time ? ' · ' + hm(n.start_time) : ''} · ${n.title}`, run: () => calNoteActions(n) })),
+  };
+  root.querySelectorAll('[data-sum]').forEach((a) => a.addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    const list = sumPick[a.dataset.sum]?.() || [];
+    if (list.length === 1) return list[0].run();
+    if (!list.length) return;
+    const i = await actionSheet({ title: a.textContent, actions: list.map((x, n) => ({ label: x.label, value: String(n) })) });
+    if (i != null && i !== '' && list[Number(i)]) list[Number(i)].run();
+  }));
+  root.querySelectorAll('[data-sumtask]').forEach((a) => a.addEventListener('click', (ev) => { ev.preventDefault(); calNoteActions(S.calNotes.find((x) => x.id === a.dataset.sumtask)); }));
+
   // ενέργειες σε στοιχεία χωρίς δική τους σελίδα (meeting, απουσία, session, σημείωση)
   root.querySelectorAll('a[data-act*=":"]').forEach((a) => a.addEventListener('click', (ev) => {
     ev.preventDefault();
