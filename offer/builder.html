@@ -468,11 +468,11 @@
     .pv-route-line i { position: absolute; left: 0; top: 0; width: 100%; height: calc(var(--fill) * 100%); background: linear-gradient(#a96f45, #e2b48c); transition: height .25s linear; }
     .pv-stop2 { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 22px; align-items: start; padding: 10px 0 clamp(10px, 2vh, 18px); opacity: .38; transform: translateX(-8px); transition: opacity .6s var(--pv-ease), transform .6s var(--pv-ease); }
     .pv-stop2.lit { opacity: 1; transform: none; }
-    .pv-stop2 b { position: relative; z-index: 1; display: grid; place-items: center; width: 52px; height: 52px; color: #a96f45; background: #f6f1ea; border: 1.5px solid #d9c6b2; border-radius: 50%; font: 600 1rem Georgia, serif; transition: background .5s, color .5s, border-color .5s, box-shadow .5s; }
-    .pv-stop2.lit b { color: #fff; background: #a96f45; border-color: #a96f45; box-shadow: 0 0 0 7px rgba(169,111,69,.12); }
+    .pv-stop2 > b { position: relative; z-index: 1; display: grid; place-items: center; width: 52px; height: 52px; color: #a96f45; background: #f6f1ea; border: 1.5px solid #d9c6b2; border-radius: 50%; font: 600 1rem Georgia, serif; transition: background .5s, color .5s, border-color .5s, box-shadow .5s; }
+    .pv-stop2.lit > b { color: #fff; background: #a96f45; border-color: #a96f45; box-shadow: 0 0 0 7px rgba(169,111,69,.12); }
     .pv-stop2 h3 { margin: 4px 0 2px; font: 500 clamp(1.45rem, 1.6vw + .6rem, 2rem)/1.15 Georgia, serif; }
-    .pv-stop2 span { display: block; color: #8c5b3a; font-size: 1.05rem; font-weight: 600; }
-    .pv-stop2 small { display: block; margin-top: 2px; color: #7a6d62; font-size: .98rem; }
+    .pv-stop2 [data-place] { display: block; color: #8c5b3a; font-size: 1.05rem; font-weight: 600; }
+    .pv-stop2 > div > small { display: block; margin-top: 2px; color: #7a6d62; font-size: .98rem; }
     .pv-stop2.is-off { display: none; }
     .pv-next { position: relative; min-height: clamp(340px, 54vh, 500px); overflow: hidden; color: #fff; background: #12110f; border-radius: 10px; box-shadow: 0 40px 90px rgba(30, 20, 10, .25); }
     .pv-next-bg { position: absolute; inset: -8%; background-position: center; background-size: cover; filter: brightness(.42) saturate(.9); transform: translate3d(calc(var(--mx) * -14px), calc(var(--my) * -10px), 0) scale(1.05); transition: transform .9s cubic-bezier(.2,.7,.15,1); }
@@ -560,7 +560,7 @@
     .presentation-slide.tone-b:not(.dark) { background-color: #ada192; }
     .presentation-slide.tone-b:not(.dark)::before { opacity: .55; }
     .presentation-slide.tone-b .pv-photo.small { border-color: #ada192; }
-    .presentation-slide.tone-b .pv-stop2 b { background: #ada192; }
+    .presentation-slide.tone-b .pv-stop2 > b { background: #ada192; }
     .presentation-slide + .presentation-slide { box-shadow: 0 -30px 50px -30px rgba(25, 18, 12, .45); }
     .presentation-slide:not(.dark)::before { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
       background-image: radial-gradient(900px circle at calc(30% + var(--mx) * 10%) calc(30% + var(--my) * 8%), rgba(255, 246, 232, .55), transparent 60%), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='c'><feTurbulence type='fractalNoise' baseFrequency='.008' numOctaves='4' seed='7'/><feColorMatrix values='0 0 0 0 .25  0 0 0 0 .23  0 0 0 0 .21  0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23c)'/></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .28  0 0 0 0 .26  0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
@@ -568,7 +568,7 @@
     .presentation-slide:not(.dark)::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(40, 32, 26, .22) 100%); }
     .presentation-slide > .pv-wrap, .pv-car { z-index: 2; }
     .pv-photo.small { border-color: #e3dfd9; }
-    .pv-stop2 b { background: #e3dfd9; }
+    .pv-stop2 > b { background: #e3dfd9; }
     .pv-prints label { background: rgba(255, 255, 255, .6); }
     /* Μπάρα και τελείες: σκούρα σε ανοιχτές σελίδες, λευκά σε σκούρες */
     .presentation-bar, .presentation-nav { mix-blend-mode: normal; color: #1c1a18; transition: color .4s; }
@@ -594,7 +594,7 @@
     .pv-rows li.disc b { color: #275b49; }
 
     /* Αφαιρέσεις (drone, next day) */
-    .pv-rm { display: inline-flex; align-items: center; margin-top: 8px; padding: 5px 12px; color: #8a3b2c; background: transparent; border: 1px solid rgba(138, 59, 44, .35); border-radius: 999px; font: 700 .76rem inherit; letter-spacing: .03em; cursor: pointer; transition: background .3s, color .3s, border-color .3s; }
+    .pv-rm { white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; margin-top: 8px; padding: 5px 12px; color: #8a3b2c; background: transparent; border: 1px solid rgba(138, 59, 44, .35); border-radius: 999px; font: 700 .76rem inherit; letter-spacing: .03em; cursor: pointer; transition: background .3s, color .3s, border-color .3s; }
     .pv-rm:hover { background: rgba(138, 59, 44, .08); }
     .pv-rm.restore { color: #275b49; border-color: rgba(39, 91, 73, .45); }
     .pv-next .pv-rm { margin: 0; color: #f0b9a8; border-color: rgba(240, 185, 168, .4); }
@@ -621,6 +621,23 @@
     .pv-addon.selected .pv-tick { color: #fff; background: #275b49; border-color: #275b49; transform: scale(1.1); }
     .pv-addon.selected .pv-addon-p em { color: #275b49; }
 
+    /* Κουμπιά − / + (μικρά album, σαλόνια, ώρες) */
+    .pv-li-step { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .pv-steps2 { display: flex; gap: 14px; }
+    .pv-step { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
+    .pv-step-l { display: grid; justify-items: center; color: #5a5049; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; line-height: 1.2; }
+    .pv-step-l em { color: #8c5b3a; font-style: normal; font-weight: 600; letter-spacing: 0; text-transform: none; }
+    .pv-step-c { display: inline-flex; align-items: center; background: rgba(255, 255, 255, .55); border: 1px solid rgba(28, 26, 24, .14); border-radius: 999px; }
+    .pv-step-c button { width: 32px; height: 32px; padding: 0; color: #1c1a18; background: transparent; border: 0; border-radius: 50%; font: 600 1.05rem inherit; cursor: pointer; transition: background .25s, transform .2s; }
+    .pv-step-c button:hover { background: rgba(28, 26, 24, .08); }
+    .pv-step-c button:active { transform: scale(.88); }
+    .pv-step-c button:disabled { opacity: .3; cursor: default; }
+    .pv-step-c b { min-width: 30px; text-align: center; font-size: 1rem; }
+    .pv-step.changed .pv-step-c { border-color: #a96f45; background: rgba(255, 246, 236, .8); }
+    .pv-stop2 .pv-step { flex-direction: row; gap: 12px; margin-top: 8px; }
+    .pv-stop2 .pv-step-l { flex-direction: row; display: flex; gap: 6px; align-items: baseline; }
+    .pv-stop2 .pv-step-l { justify-items: start; }
+
     @keyframes pv-fade { from { opacity: 0; } to { opacity: 1; } }
     @keyframes pv-kb { from { transform: scale(1.12); } to { transform: scale(1); } }
     @keyframes pv-shine { to { background-position: -220% 0; } }
@@ -639,7 +656,10 @@
       .pv-h { font-size: clamp(2.8rem, 4.6vw + 1vh, 5.2rem); }
       .pv-day2 { margin-top: 18px; }
       .pv-stop2 { padding: 5px 0 8px; gap: 18px; grid-template-columns: 44px minmax(0, 1fr); }
-      .pv-stop2 b { width: 44px; height: 44px; }
+      .pv-stop2 > b { width: 44px; height: 44px; }
+      .pv-li-step { padding-top: 6px !important; padding-bottom: 6px !important; }
+      .pv-stop2 .pv-step { margin-top: 4px; }
+      .pv-stop2 .pv-step-c button { width: 28px; height: 28px; }
       .pv-route-line { left: 21px; }
       .pv-stop2 h3 { font-size: clamp(1.3rem, 1.3vw + .6rem, 1.75rem); }
       .pv-pack .pv-items li { padding: 5px 0; font-size: .98rem; }
@@ -1036,7 +1056,7 @@
               <li class="pv-stop2"><b>01</b><div><h3>Προετοιμασία γαμπρού</h3><span data-place="groomHouse"></span></div></li>
               <li class="pv-stop2"><b>02</b><div><h3>Προετοιμασία νύφης</h3><span data-place="brideHouse"></span></div></li>
               <li class="pv-stop2"><b>03</b><div><h3>Εκκλησία</h3><span data-place="church"></span></div></li>
-              <li class="pv-stop2"><b>04</b><div><h3>Δεξίωση</h3><span data-place="reception"></span><small>Έως 3 ώρες μετά την είσοδο<span id="pvExtraHours"></span></small></div></li>
+              <li class="pv-stop2"><b>04</b><div><h3>Δεξίωση</h3><span data-place="reception"></span><small>Έως 3 ώρες μετά την είσοδο<span id="pvExtraHours"></span></small><span class="pv-step" data-step="extraHours"><span class="pv-step-l">Επιπλέον ώρες<em>+100€ / ώρα</em></span><span class="pv-step-c"><button type="button" data-d="-1" aria-label="Λιγότερα">−</button><b>0</b><button type="button" data-d="1" aria-label="Περισσότερα">+</button></span></span></div></li>
               <li class="pv-stop2" data-strike="Drone εκκλησίας"><b>05</b><div><h3>Drone</h3><small>Εναέριες λήψεις στην εκκλησία</small><button class="pv-rm" type="button" data-rm="Drone εκκλησίας"></button></div></li>
             </ol>
             <div class="pv-next" data-r style="--i:3">
@@ -1063,8 +1083,8 @@
               <div class="pv-k" data-r style="--i:1">02</div>
               <h2 class="pv-h"><span class="pv-mask" style="--i:2"><span>Album</span></span></h2>
               <ul class="pv-items" style="margin-top:28px">
-                <li data-r style="--i:3">Μεγάλο album 80×30 cm<small>25 σαλόνια · 50 σελίδες · Silver / Gold</small></li>
-                <li data-r style="--i:4"><span id="pvSmallAlbums">3 μικρά album</span></li>
+                <li class="pv-li-step" data-r style="--i:3"><div>Μεγάλο album 80×30 cm<small><span id="pvLargeSp">25 σαλόνια · 50 σελίδες</span> · Silver / Gold</small></div><span class="pv-step" data-step="largeSpreads"><span class="pv-step-l">Σαλόνια<em>+10€ / σαλόνι</em></span><span class="pv-step-c"><button type="button" data-d="-1" aria-label="Λιγότερα">−</button><b>0</b><button type="button" data-d="1" aria-label="Περισσότερα">+</button></span></span></li>
+                <li class="pv-li-step" data-r style="--i:4"><div><span id="pvSmallAlbums">3 μικρά album</span><small id="pvSmallSp">25 σαλόνια το καθένα</small></div><span class="pv-steps2"><span class="pv-step" data-step="smallAlbumCount"><span class="pv-step-l">Album<em>80€ / album</em></span><span class="pv-step-c"><button type="button" data-d="-1" aria-label="Λιγότερα">−</button><b>0</b><button type="button" data-d="1" aria-label="Περισσότερα">+</button></span></span><span class="pv-step" data-step="smallSpreads"><span class="pv-step-l">Σαλόνια<em>+5€ / σαλόνι</em></span><span class="pv-step-c"><button type="button" data-d="-1" aria-label="Λιγότερα">−</button><b>0</b><button type="button" data-d="1" aria-label="Περισσότερα">+</button></span></span></span></li>
                 <li data-r style="--i:5">Εκτυπώσεις · επιλέξτε ένα
                   <div class="pv-prints">
                     <label><input type="radio" name="pvPrints" value="30 φωτογραφίες 13×18 cm"><i></i><span>30 φωτογραφίες<small>13×18 cm</small></span></label>
@@ -1131,8 +1151,8 @@
           <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span>Wedding Package</span></span></h2>
           <p class="pv-sub" data-r style="--i:2">Σύνοψη όσων περιλαμβάνει το πακέτο.</p>
           <div class="pv-pack">
-            <div class="pv-col" data-r style="--i:2"><h3>Η ημέρα</h3><ul class="pv-items"><li>Προετοιμασία γαμπρού και νύφης</li><li>Εκκλησία</li><li>Δεξίωση<small>Έως και 3 ώρες από την είσοδο</small></li><li data-strike="Drone εκκλησίας">Drone στην εκκλησία</li><li data-strike="Φωτογράφηση next day">Next day φωτογράφηση</li><li data-strike="Video next day">Next day video</li><li data-strike="Drone next day">Next day drone</li></ul></div>
-            <div class="pv-col" data-r style="--i:3"><h3>Album</h3><ul class="pv-items"><li>Μεγάλο album 80×30</li><li class="pv-small-albums">3 μικρά album</li><li>Εκτυπώσεις</li><li>Όλες οι φωτογραφίες<small>Σε πλήρη ανάλυση, σε ηλεκτρονική μορφή</small></li></ul></div>
+            <div class="pv-col" data-r style="--i:2"><h3>Η ημέρα</h3><ul class="pv-items"><li>Προετοιμασία γαμπρού και νύφης</li><li>Εκκλησία</li><li>Δεξίωση<small>Έως και 3 ώρες από την είσοδο<span class="pv-extra-h"></span></small></li><li data-strike="Drone εκκλησίας">Drone στην εκκλησία</li><li data-strike="Φωτογράφηση next day">Next day φωτογράφηση</li><li data-strike="Video next day">Next day video</li><li data-strike="Drone next day">Next day drone</li></ul></div>
+            <div class="pv-col" data-r style="--i:3"><h3>Album</h3><ul class="pv-items"><li>Μεγάλο album 80×30<small class="pv-large-sp">25 σαλόνια</small></li><li class="pv-small-albums">3 μικρά album</li><li>Εκτυπώσεις</li><li>Όλες οι φωτογραφίες<small>Σε πλήρη ανάλυση, σε ηλεκτρονική μορφή</small></li></ul></div>
             <div class="pv-col" data-r style="--i:4"><h3>Video</h3><ul class="pv-items"><li>Wedding short film</li><li>Wedding movie</li><li>Full HD σε USB</li><li>Θήκη USB</li></ul></div>
           </div>
           <div class="pv-price-line" data-r style="--i:5">
@@ -1810,6 +1830,26 @@
         $$('.pv-small-albums').forEach((el) => { el.textContent = smallText; el.classList.toggle('is-off', small === 0); });
         const hours = Number($('#extraHours').value) || 0;
         $('#pvExtraHours').textContent = hours ? ` · +${hours} ${hours === 1 ? 'ώρα' : 'ώρες'}` : '';
+        $$('.pv-extra-h').forEach((el) => { el.textContent = hours ? ` · +${hours} ${hours === 1 ? 'ώρα' : 'ώρες'}` : ''; });
+        const lsp = Math.max(0, Number($('#largeSpreads').value) || 0);
+        const ssp = Math.max(0, Number($('#smallSpreads').value) || 0);
+        $('#pvLargeSp').textContent = `${25 + lsp} σαλόνια · ${(25 + lsp) * 2} σελίδες`;
+        $$('.pv-large-sp').forEach((el) => { el.textContent = `${25 + lsp} σαλόνια`; });
+        $('#pvSmallSp').textContent = ssp ? `+${ssp} επιπλέον σαλόνια` : '';
+        $('#pvSmallSp').hidden = !ssp;
+        $$('[data-step]').forEach((st) => {
+          const inp = document.getElementById(st.dataset.step);
+          if (!inp) return;
+          const v = Math.max(0, Number(inp.value) || 0);
+          const shown = { largeSpreads: 25 + v, smallAlbumCount: v }[st.dataset.step] ?? (v ? `+${v}` : '0');
+          st.querySelector('b').textContent = shown;
+          const def = st.dataset.step === 'smallAlbumCount' ? INCLUDED_SMALL_ALBUMS : 0;
+          st.classList.toggle('changed', v !== def);
+          const min = Number(inp.min || 0);
+          const max = inp.max !== '' ? Number(inp.max) : 99;
+          st.querySelector('[data-d="-1"]').disabled = v <= min;
+          st.querySelector('[data-d="1"]').disabled = v >= max;
+        });
 
         const removed = $$('.remove-option').filter((c) => c.checked).reduce((sum, c) => sum + Number(c.dataset.price || 0), 0);
         const smallDiff = (small - INCLUDED_SMALL_ALBUMS) * SMALL_ALBUM_PRICE;
@@ -1839,13 +1879,14 @@
         $('#pvRemovedNote').textContent = removedTotal < 0 ? ` · με αφαιρέσεις ${pvMoney(removedTotal).replace('-', '−')}` : '';
         const rows = [['Wedding Package', BASE_PRICE]];
         $$('.remove-option').filter((c) => c.checked).forEach((c) => rows.push([rmNames[c.dataset.label] || `Χωρίς ${c.dataset.label}`, Number(c.dataset.price || 0)]));
-        if (smallDiff < 0) rows.push([`${INCLUDED_SMALL_ALBUMS - small} λιγότερα μικρά album`, smallDiff]);
+        if (smallDiff < 0) rows.push([`${INCLUDED_SMALL_ALBUMS - small === 1 ? '1 μικρό album λιγότερο' : `${INCLUDED_SMALL_ALBUMS - small} μικρά album λιγότερα`}`, smallDiff]);
         if (pvDiscount > 0) rows.push(['Έκπτωση', -pvDiscount]);
         else if (pvDiscount < 0) rows.push(['Προσαρμογή τιμής', -pvDiscount]);
-        if (smallDiff > 0) rows.push([`${small - INCLUDED_SMALL_ALBUMS} επιπλέον μικρά album`, smallDiff]);
+        if (smallDiff > 0) rows.push([`${small - INCLUDED_SMALL_ALBUMS} ${small - INCLUDED_SMALL_ALBUMS === 1 ? 'επιπλέον μικρό album' : 'επιπλέον μικρά album'}`, smallDiff]);
         const nice = { 'Album Platinum series': 'Album Platinum', 'Platinum album case': 'Κουτί Platinum', 'Wooden USB case': 'USB Case Platinum', 'Παράδοση video σε 4K': 'Video σε 4K' };
         $$('.add-option').filter((c) => c.checked).forEach((c) => rows.push([nice[c.dataset.label] || c.dataset.label, Number(c.dataset.price || 0)]));
-        $$('.qty').forEach((q) => { const n = Number(q.value) || 0; if (n > 0) rows.push([`${q.dataset.label} × ${n}`, n * Number(q.dataset.unit || 0)]); });
+        const qtyName = { extraHours: (n) => `${n} ${n === 1 ? 'επιπλέον ώρα' : 'επιπλέον ώρες'} δεξίωσης`, largeSpreads: (n) => `${n} ${n === 1 ? 'επιπλέον σαλόνι' : 'επιπλέον σαλόνια'} μεγάλου album`, smallSpreads: (n) => `${n} ${n === 1 ? 'επιπλέον σαλόνι' : 'επιπλέον σαλόνια'} μικρών album` };
+        $$('.qty').forEach((q) => { const n = Number(q.value) || 0; if (n > 0) rows.push([qtyName[q.id] ? qtyName[q.id](n) : `${q.dataset.label} × ${n}`, n * Number(q.dataset.unit || 0)]); });
         const transport = Math.max(0, Number($('#transportCost').value) || 0);
         if (transport) rows.push(['Μεταφορικά', transport]);
         const total = finalPkg + transport;
@@ -1934,6 +1975,17 @@
         }
       });
       shell.addEventListener('mouseleave', () => cursor.classList.remove('on'));
+
+      // κουμπιά − / +
+      $$('[data-step] [data-d]').forEach((btn) => btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const inp = document.getElementById(btn.closest('[data-step]').dataset.step);
+        if (!inp) return;
+        const min = Number(inp.min || 0);
+        const max = inp.max !== '' ? Number(inp.max) : 99;
+        inp.value = String(Math.max(min, Math.min(max, (Number(inp.value) || 0) + Number(btn.dataset.d))));
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+      }));
 
       // αφαιρέσεις (drone, next day)
       $$('[data-rm]').forEach((btn) => btn.addEventListener('click', (e) => {
