@@ -593,12 +593,41 @@
     .pv-transport input:hover, .pv-transport input:focus { border-bottom-color: rgba(255, 255, 255, .55); }
     .pv-rows li.disc b { color: #275b49; }
 
+    /* Αφαιρέσεις (drone, next day) */
+    .pv-rm { display: inline-flex; align-items: center; margin-top: 8px; padding: 5px 12px; color: #8a3b2c; background: transparent; border: 1px solid rgba(138, 59, 44, .35); border-radius: 999px; font: 700 .76rem inherit; letter-spacing: .03em; cursor: pointer; transition: background .3s, color .3s, border-color .3s; }
+    .pv-rm:hover { background: rgba(138, 59, 44, .08); }
+    .pv-rm.restore { color: #275b49; border-color: rgba(39, 91, 73, .45); }
+    .pv-next .pv-rm { margin: 0; color: #f0b9a8; border-color: rgba(240, 185, 168, .4); }
+    .pv-next .pv-rm.restore { color: #b8e3cc; border-color: rgba(184, 227, 204, .45); }
+    .pv-nd { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    [data-strike].is-removed h3, [data-strike].is-removed > span, .pv-items li[data-strike].is-removed:not(.pv-nd) { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+    [data-strike].is-removed h3, [data-strike].is-removed small, [data-strike].is-removed > span, .pv-pack li[data-strike].is-removed { opacity: .5; }
+    .pv-nd.is-removed .pv-rm, .pv-stop2.is-removed .pv-rm { text-decoration: none; opacity: 1; }
+    .pv-pack li[data-strike].is-removed::after { content: attr(data-amt); float: right; color: #f0b9a8; text-decoration: none; }
+    #pvRemovedNote { margin-left: 10px; color: #f0b9a8; }
+
+    /* Προσθήκες */
+    .pv-addons { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: clamp(26px, 5vh, 50px); }
+    .pv-addon { position: relative; display: flex; flex-direction: column; gap: 10px; min-height: clamp(220px, 34vh, 300px); padding: 26px 22px 22px; text-align: left; color: #1c1a18; background: rgba(255, 255, 255, .5); border: 1.5px solid rgba(28, 26, 24, .12); border-radius: 16px; font: inherit; cursor: pointer; backdrop-filter: blur(4px); transition: transform .45s cubic-bezier(.2,.7,.15,1), box-shadow .45s, background .35s, border-color .35s; }
+    .pv-addon:hover { transform: translateY(-6px); box-shadow: 0 26px 60px rgba(30, 20, 10, .18); background: rgba(255, 255, 255, .7); }
+    .pv-addon:active { transform: scale(.98); }
+    .pv-addon-n { color: #a96f45; font: 600 .85rem Georgia, serif; letter-spacing: .12em; }
+    .pv-addon b { font: 500 clamp(1.4rem, 1.5vw + .5rem, 1.9rem)/1.1 Georgia, serif; }
+    .pv-addon small { color: #5a5049; font-size: 1rem; line-height: 1.4; }
+    .pv-addon-p { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+    .pv-addon-p em { font-style: normal; font-weight: 800; font-size: 1.2rem; color: #8c5b3a; }
+    .pv-tick { display: grid; place-items: center; width: 34px; height: 34px; color: transparent; border: 1.5px solid rgba(28, 26, 24, .25); border-radius: 50%; font-style: normal; transition: all .35s cubic-bezier(.2,.7,.15,1); }
+    .pv-addon.selected { background: rgba(240, 246, 242, .85); border-color: #275b49; }
+    .pv-addon.selected .pv-tick { color: #fff; background: #275b49; border-color: #275b49; transform: scale(1.1); }
+    .pv-addon.selected .pv-addon-p em { color: #275b49; }
+
     @keyframes pv-fade { from { opacity: 0; } to { opacity: 1; } }
     @keyframes pv-kb { from { transform: scale(1.12); } to { transform: scale(1); } }
     @keyframes pv-shine { to { background-position: -220% 0; } }
     @keyframes pv-drop { 0% { transform: scaleY(0); opacity: 1; } 70% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
 
     @media (max-width: 980px) {
+      .pv-addons { grid-template-columns: 1fr 1fr; }
       .pv-up2, .pv-day, .pv-day2, .pv-media, .pv-pack, .pv-offer, .pv-steps, .pv-4k-grid, .pv-fhd-grid { grid-template-columns: 1fr; }
       .pv-start-grid { grid-template-columns: 1fr 1fr; }
       .pv-prints { grid-template-columns: 1fr; }
@@ -1008,16 +1037,16 @@
               <li class="pv-stop2"><b>02</b><div><h3>Προετοιμασία νύφης</h3><span data-place="brideHouse"></span></div></li>
               <li class="pv-stop2"><b>03</b><div><h3>Εκκλησία</h3><span data-place="church"></span></div></li>
               <li class="pv-stop2"><b>04</b><div><h3>Δεξίωση</h3><span data-place="reception"></span><small>Έως 3 ώρες μετά την είσοδο<span id="pvExtraHours"></span></small></div></li>
-              <li class="pv-stop2" data-off="Drone εκκλησίας"><b>05</b><div><h3>Drone</h3><small>Εναέριες λήψεις στην εκκλησία</small></div></li>
+              <li class="pv-stop2" data-strike="Drone εκκλησίας"><b>05</b><div><h3>Drone</h3><small>Εναέριες λήψεις στην εκκλησία</small><button class="pv-rm" type="button" data-rm="Drone εκκλησίας"></button></div></li>
             </ol>
             <div class="pv-next" data-r style="--i:3">
               <div class="pv-next-bg" id="pvNextBg"></div>
               <div class="pv-next-in">
                 <h3>Next day</h3>
                 <ul class="pv-items">
-                  <li data-off="Φωτογράφηση next day">Φωτογράφηση</li>
-                  <li data-off="Video next day">Video</li>
-                  <li data-off="Drone next day">Drone</li>
+                  <li class="pv-nd" data-strike="Φωτογράφηση next day"><span>Φωτογράφηση</span><button class="pv-rm" type="button" data-rm="Φωτογράφηση next day"></button></li>
+                  <li class="pv-nd" data-strike="Video next day"><span>Video</span><button class="pv-rm" type="button" data-rm="Video next day"></button></li>
+                  <li class="pv-nd" data-strike="Drone next day"><span>Drone</span><button class="pv-rm" type="button" data-rm="Drone next day"></button></li>
                 </ul>
               </div>
             </div>
@@ -1102,7 +1131,7 @@
           <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span>Wedding Package</span></span></h2>
           <p class="pv-sub" data-r style="--i:2">Σύνοψη όσων περιλαμβάνει το πακέτο.</p>
           <div class="pv-pack">
-            <div class="pv-col" data-r style="--i:2"><h3>Η ημέρα</h3><ul class="pv-items"><li>Προετοιμασία γαμπρού και νύφης</li><li>Εκκλησία</li><li>Δεξίωση<small>Έως και 3 ώρες από την είσοδο</small></li><li data-off="Drone εκκλησίας">Drone στην εκκλησία</li><li data-off="Φωτογράφηση next day">Next day φωτογράφηση</li><li data-off="Video next day">Next day video</li><li data-off="Drone next day">Next day drone</li></ul></div>
+            <div class="pv-col" data-r style="--i:2"><h3>Η ημέρα</h3><ul class="pv-items"><li>Προετοιμασία γαμπρού και νύφης</li><li>Εκκλησία</li><li>Δεξίωση<small>Έως και 3 ώρες από την είσοδο</small></li><li data-strike="Drone εκκλησίας">Drone στην εκκλησία</li><li data-strike="Φωτογράφηση next day">Next day φωτογράφηση</li><li data-strike="Video next day">Next day video</li><li data-strike="Drone next day">Next day drone</li></ul></div>
             <div class="pv-col" data-r style="--i:3"><h3>Album</h3><ul class="pv-items"><li>Μεγάλο album 80×30</li><li class="pv-small-albums">3 μικρά album</li><li>Εκτυπώσεις</li><li>Όλες οι φωτογραφίες<small>Σε πλήρη ανάλυση, σε ηλεκτρονική μορφή</small></li></ul></div>
             <div class="pv-col" data-r style="--i:4"><h3>Video</h3><ul class="pv-items"><li>Wedding short film</li><li>Wedding movie</li><li>Full HD σε USB</li><li>Θήκη USB</li></ul></div>
           </div>
@@ -1115,7 +1144,7 @@
             </div>
           </div>
           <div class="pv-price-meta" data-r style="--i:6">
-            <small>Η τιμή περιλαμβάνει ΦΠΑ</small>
+            <small>Η τιμή περιλαμβάνει ΦΠΑ<span id="pvRemovedNote" hidden></span></small>
             <label class="pv-transport">Μεταφορικά έξοδα <input data-mirror="transportCost" type="number" min="0" step="10" inputmode="numeric" placeholder="0"> €</label>
           </div>
         </div>
@@ -1129,6 +1158,39 @@
           <h2 class="pv-up-title" aria-label="Αναβαθμίσεις"><span style="--l:0">Α</span><span style="--l:1">ν</span><span style="--l:2">α</span><span style="--l:3">β</span><span style="--l:4">α</span><span style="--l:5">θ</span><span style="--l:6">μ</span><span style="--l:7">ί</span><span style="--l:8">σ</span><span style="--l:9">ε</span><span style="--l:10">ι</span><span style="--l:11">ς</span></h2>
           <i class="pv-up-line" aria-hidden="true"></i>
           <p class="pv-sub" data-r style="--i:9">Λεπτομέρειες που κάνουν τη διαφορά.</p>
+        </div>
+      </section>
+
+      <section class="presentation-slide pv-addons-sec">
+        <div class="pv-wrap">
+          <div class="pv-k" data-r>Αναβάθμιση</div>
+          <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span>Προσθήκες</span></span></h2>
+          <div class="pv-addons">
+            <button class="pv-addon" type="button" data-pick="2ο συνεργείο" data-r style="--i:2">
+              <span class="pv-addon-n">01</span>
+              <b>2ο συνεργείο</b>
+              <small>Δεύτερη ομάδα φωτογραφίας και video την ημέρα του γάμου.</small>
+              <span class="pv-addon-p"><em data-price-of="2ο συνεργείο"></em><i class="pv-tick" aria-hidden="true">✓</i></span>
+            </button>
+            <button class="pv-addon" type="button" data-pick="Ευχολόγιο" data-r style="--i:3">
+              <span class="pv-addon-n">02</span>
+              <b>Ευχολόγιο</b>
+              <small>Χειροποίητο ευχολόγιο για τις ευχές των καλεσμένων σας.</small>
+              <span class="pv-addon-p"><em data-price-of="Ευχολόγιο"></em><i class="pv-tick" aria-hidden="true">✓</i></span>
+            </button>
+            <button class="pv-addon" type="button" data-pick="Pre-wedding photo &amp; video" data-r style="--i:4">
+              <span class="pv-addon-n">03</span>
+              <b>Pre-wedding photo &amp; video</b>
+              <small>Φωτογράφηση και video πριν από τον γάμο.</small>
+              <span class="pv-addon-p"><em data-price-of="Pre-wedding photo &amp; video"></em><i class="pv-tick" aria-hidden="true">✓</i></span>
+            </button>
+            <button class="pv-addon" type="button" data-pick="Slide show για τη δεξίωση" data-r style="--i:5">
+              <span class="pv-addon-n">04</span>
+              <b>Slide show για τη δεξίωση</b>
+              <small>Οι φωτογραφίες σας σε προβολή κατά τη δεξίωση.</small>
+              <span class="pv-addon-p"><em data-price-of="Slide show για τη δεξίωση"></em><i class="pv-tick" aria-hidden="true">✓</i></span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -1721,11 +1783,23 @@
         const controls = $$('.add-option, .remove-option');
         const isOn = (label) => controls.some((c) => c.dataset.label === label && c.checked);
         $$('[data-off]').forEach((el) => el.classList.toggle('is-off', isOn(el.dataset.off)));
+        const priceOf = (label) => { const c = controls.find((x) => x.dataset.label === label); return c ? Math.abs(Number(c.dataset.price || 0)) : 0; };
+        $$('[data-strike]').forEach((el) => {
+          const off = isOn(el.dataset.strike);
+          el.classList.toggle('is-removed', off);
+          el.dataset.amt = off ? `−${priceOf(el.dataset.strike)}€` : '';
+        });
+        $$('[data-rm]').forEach((btn) => {
+          const off = isOn(btn.dataset.rm);
+          btn.classList.toggle('restore', off);
+          btn.textContent = off ? 'Επαναφορά' : `Αφαίρεση −${priceOf(btn.dataset.rm)}€`;
+        });
         $$('[data-pick]').forEach((btn) => {
           const on = isOn(btn.dataset.pick);
           btn.classList.toggle('selected', on);
           btn.setAttribute('aria-pressed', String(on));
-          btn.querySelector('span').textContent = on ? '✓ Στην πρότασή σας' : 'Προσθήκη';
+          const lab = btn.classList.contains('pv-add') && btn.querySelector(':scope > span');
+          if (lab) lab.textContent = on ? '✓ Στην πρότασή σας' : 'Προσθήκη';
         });
         const pr = $('input[name="prints"]:checked');
         $$('input[name="pvPrints"]').forEach((r) => { r.checked = !!pr && r.value === pr.value; });
@@ -1759,7 +1833,13 @@
         $('#pvOldPrice').hidden = pvDiscount <= 0;
         $('#pvOldPrice').textContent = pvMoney(base);
 
-        const rows = [['Wedding Package', base]];
+        const rmNames = { 'Drone εκκλησίας': 'Χωρίς drone στην εκκλησία', 'Φωτογράφηση next day': 'Χωρίς next day φωτογράφηση', 'Video next day': 'Χωρίς next day video', 'Drone next day': 'Χωρίς next day drone' };
+        const removedTotal = removed + Math.min(0, smallDiff);
+        $('#pvRemovedNote').hidden = removedTotal >= 0;
+        $('#pvRemovedNote').textContent = removedTotal < 0 ? ` · με αφαιρέσεις ${pvMoney(removedTotal).replace('-', '−')}` : '';
+        const rows = [['Wedding Package', BASE_PRICE]];
+        $$('.remove-option').filter((c) => c.checked).forEach((c) => rows.push([rmNames[c.dataset.label] || `Χωρίς ${c.dataset.label}`, Number(c.dataset.price || 0)]));
+        if (smallDiff < 0) rows.push([`${INCLUDED_SMALL_ALBUMS - small} λιγότερα μικρά album`, smallDiff]);
         if (pvDiscount > 0) rows.push(['Έκπτωση', -pvDiscount]);
         else if (pvDiscount < 0) rows.push(['Προσαρμογή τιμής', -pvDiscount]);
         if (smallDiff > 0) rows.push([`${small - INCLUDED_SMALL_ALBUMS} επιπλέον μικρά album`, smallDiff]);
@@ -1854,6 +1934,20 @@
         }
       });
       shell.addEventListener('mouseleave', () => cursor.classList.remove('on'));
+
+      // αφαιρέσεις (drone, next day)
+      $$('[data-rm]').forEach((btn) => btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const input = $$('.remove-option').find((c) => c.dataset.label === btn.dataset.rm);
+        if (!input) return;
+        input.checked = !input.checked;
+        updateAll();
+      }));
+      // τιμές προσθηκών από τον τιμοκατάλογο του Οδηγού
+      $$('[data-price-of]').forEach((el) => {
+        const c = $$('.add-option').find((x) => x.dataset.label === el.dataset.priceOf);
+        el.textContent = c ? `+${Number(c.dataset.price || 0)}€` : '';
+      });
 
       // τιμή πακέτου: αλλαγή με κλικ (έκπτωση)
       const priceEl = $('#pvBasePrice');
