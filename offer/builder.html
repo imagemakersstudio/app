@@ -407,7 +407,12 @@
 
     /* Πακέτο + τιμή */
     .pv-pack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 3vw, 44px); margin-top: clamp(30px, 6vh, 56px); }
-    .pv-pack .pv-items li { font-size: 1.05rem; padding: 10px 0; }
+    .pv-pack .pv-items li { font-size: 1.02rem; padding: 7px 0; }
+    .pv-pack .pv-items li small { font-size: .85em; }
+    .pv-pack { margin-top: clamp(18px, 3.5vh, 36px) !important; }
+    .pv-pack .pv-col h3 { margin-bottom: 8px; padding-bottom: 10px; }
+    .pv-pack + .pv-price-line { margin-top: clamp(16px, 3vh, 30px); padding-top: 16px; }
+    .pv-pack + .pv-price-line strong { font-size: clamp(3rem, 5vw, 4.8rem); }
     .pv-price-line { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px; margin-top: clamp(30px, 6vh, 60px); padding-top: 26px; border-top: 1px solid rgba(255,255,255,.18); }
     .pv-price-line span { color: #cfc4b8; font-size: 1rem; letter-spacing: .14em; text-transform: uppercase; }
     .pv-price-line strong { font: 400 clamp(3.4rem, 6vw, 6rem)/1 Georgia, serif; letter-spacing: -.03em; }
@@ -549,7 +554,27 @@
     .pv-end { position: relative; }
     .pv-spot { position: absolute; inset: 0; background: radial-gradient(520px circle at var(--cx, 50%) var(--cy, 50%), rgba(226,180,140,.22), transparent 62%); pointer-events: none; }
     .pv-thanks2 span { display: inline-block; opacity: 0; transform: translate3d(0, 40px, 0); transition: opacity 1s ease, transform 1.2s cubic-bezier(.2,.7,.15,1); transition-delay: calc(var(--d) * 80ms); }
-    .in .pv-thanks2 span { opacity: 1; transform: translate3d(calc(var(--mx) * var(--d) * 9px), calc(var(--my) * var(--d) * 6px), 0) rotate(calc(var(--mx) * var(--d) * .8deg)); transition: opacity 1s ease, transform .8s cubic-bezier(.2,.7,.15,1); }
+    .in .pv-thanks2 span { opacity: 1; transform: translate3d(calc(var(--mx) * (2px + var(--d) * .6px)), calc(var(--my) * (1.5px + var(--d) * .4px)), 0); transition: opacity 1s ease, transform .8s cubic-bezier(.2,.7,.15,1); }
+
+    /* Φόντο: ζεστό γκρι σαν τοίχος από σοβά/τσιμέντο (οι σκούρες σελίδες μένουν ίδιες) */
+    .presentation-slide:not(.dark) { background: #d8d4ce; }
+    .presentation-slide:nth-child(even):not(.dark), .pv-video-sec { background: #cdc8c1; }
+    .presentation-slide:not(.dark)::before { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background-image: radial-gradient(900px circle at calc(30% + var(--mx) * 10%) calc(30% + var(--my) * 8%), rgba(255, 246, 232, .55), transparent 60%), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='c'><feTurbulence type='fractalNoise' baseFrequency='.008' numOctaves='4' seed='7'/><feColorMatrix values='0 0 0 0 .25  0 0 0 0 .23  0 0 0 0 .21  0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23c)'/></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .28  0 0 0 0 .26  0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      background-size: auto, 900px 900px, 320px 320px; }
+    .presentation-slide:not(.dark)::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(40, 32, 26, .22) 100%); }
+    .presentation-slide > .pv-wrap, .pv-car { z-index: 2; }
+    .pv-photo.small { border-color: #d8d4ce; }
+    .pv-stop2 b { background: #d8d4ce; }
+    .pv-prints label { background: rgba(255, 255, 255, .6); }
+    /* Μπάρα και τελείες: σκούρα σε ανοιχτές σελίδες, λευκά σε σκούρες */
+    .presentation-bar, .presentation-nav { mix-blend-mode: normal; color: #1c1a18; transition: color .4s; }
+    .presentation-bar .pv-icon-btn { color: inherit; border-color: currentColor; }
+    .slide-dot { background: rgba(28, 26, 24, .35); }
+    .slide-dot.active { background: #1c1a18; }
+    .on-dark .presentation-bar, .on-dark .presentation-nav { color: #fff; }
+    .on-dark .slide-dot { background: rgba(255, 255, 255, .45); }
+    .on-dark .slide-dot.active { background: #fff; }
 
     @keyframes pv-fade { from { opacity: 0; } to { opacity: 1; } }
     @keyframes pv-kb { from { transform: scale(1.12); } to { transform: scale(1); } }
@@ -562,6 +587,19 @@
       .pv-prints { grid-template-columns: 1fr; }
       .pv-media.rev > :first-child { order: 0; }
       .pv-photo.small { display: none; }
+    }
+    @media (max-height: 940px) {
+      .presentation-slide { padding-top: clamp(60px, 9vh, 90px); padding-bottom: clamp(30px, 5vh, 50px); }
+      .pv-h { font-size: clamp(2.8rem, 4.6vw + 1vh, 5.2rem); }
+      .pv-day2 { margin-top: 18px; }
+      .pv-stop2 { padding: 5px 0 8px; gap: 18px; grid-template-columns: 44px minmax(0, 1fr); }
+      .pv-stop2 b { width: 44px; height: 44px; }
+      .pv-route-line { left: 21px; }
+      .pv-stop2 h3 { font-size: clamp(1.3rem, 1.3vw + .6rem, 1.75rem); }
+      .pv-pack .pv-items li { padding: 5px 0; font-size: .98rem; }
+      .pv-media { margin-top: 18px; }
+      .pv-items li { padding: 9px 0; }
+      .pv-incl { margin-top: 18px; }
     }
     @media (prefers-reduced-motion: reduce) {
       [data-r], .pv-mask > span, .pv-names .l > i { opacity: 1 !important; transform: none !important; transition: none !important; }
@@ -1024,7 +1062,7 @@
           <div>
             <div class="pv-k" data-r>05</div>
             <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span>Video</span></span></h2>
-            <p class="pv-sub" data-r style="--i:2">Παραδίδονται δύο ταινίες: το short film της ημέρας σας και ολόκληρος ο γάμος.</p>
+            <p class="pv-sub" data-r style="--i:2">Παραδίδονται δύο αρχεία: το short film και το wedding movie.</p>
             <ul class="pv-items" style="margin-top:28px">
               <li data-r style="--i:2">Wedding short film<small>Trailer</small></li>
               <li data-r style="--i:3">Wedding movie<small>Όλος ο γάμος</small></li>
@@ -1041,8 +1079,8 @@
           <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span>Wedding Package</span></span></h2>
           <p class="pv-sub" data-r style="--i:2">Σύνοψη όσων περιλαμβάνει το πακέτο.</p>
           <div class="pv-pack">
-            <div class="pv-col" data-r style="--i:2"><h3>Η ημέρα</h3><ul class="pv-items"><li>Προετοιμασία γαμπρού και νύφης</li><li>Εκκλησία και δεξίωση</li><li data-off="Drone εκκλησίας">Drone στην εκκλησία</li><li data-off="Φωτογράφηση next day">Next day φωτογράφηση</li><li data-off="Video next day">Next day video</li><li data-off="Drone next day">Next day drone</li></ul></div>
-            <div class="pv-col" data-r style="--i:3"><h3>Album</h3><ul class="pv-items"><li>Μεγάλο album 80×30</li><li class="pv-small-albums">3 μικρά album</li><li>Κουτί album Silver</li><li>Εκτυπώσεις</li><li>Όλες οι φωτογραφίες σε πλήρη ανάλυση</li></ul></div>
+            <div class="pv-col" data-r style="--i:2"><h3>Η ημέρα</h3><ul class="pv-items"><li>Προετοιμασία γαμπρού και νύφης</li><li>Εκκλησία</li><li>Δεξίωση<small>Έως και 3 ώρες από την είσοδο</small></li><li data-off="Drone εκκλησίας">Drone στην εκκλησία</li><li data-off="Φωτογράφηση next day">Next day φωτογράφηση</li><li data-off="Video next day">Next day video</li><li data-off="Drone next day">Next day drone</li></ul></div>
+            <div class="pv-col" data-r style="--i:3"><h3>Album</h3><ul class="pv-items"><li>Μεγάλο album 80×30</li><li class="pv-small-albums">3 μικρά album</li><li>Εκτυπώσεις</li><li>Όλες οι φωτογραφίες<small>Σε πλήρη ανάλυση, σε ηλεκτρονική μορφή</small></li></ul></div>
             <div class="pv-col" data-r style="--i:4"><h3>Video</h3><ul class="pv-items"><li>Wedding short film</li><li>Wedding movie</li><li>Full HD σε USB</li><li>Θήκη USB</li></ul></div>
           </div>
           <div class="pv-price-line" data-r style="--i:5"><span>Τιμή πακέτου</span><strong id="pvBasePrice">2800€</strong></div>
@@ -1729,6 +1767,7 @@
           route.style.setProperty('--fill', fill.toFixed(3));
           $$('.pv-stop2').forEach((stop) => stop.classList.toggle('lit', (stop.offsetTop + 26) / Math.max(1, route.offsetHeight) <= fill + 0.02));
         }
+        shell.classList.toggle('on-dark', pvSections[active].classList.contains('dark'));
         if (active !== currentSlide) {
           currentSlide = active;
           $$('.slide-dot').forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
