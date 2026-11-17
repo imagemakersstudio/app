@@ -579,6 +579,20 @@
     .on-dark .slide-dot { background: rgba(255, 255, 255, .45); }
     .on-dark .slide-dot.active { background: #fff; }
 
+    /* Τιμή πακέτου: αλλαγή με κλικ, ΦΠΑ, μεταφορικά */
+    .pv-price-box { display: flex; align-items: baseline; gap: 18px; }
+    .pv-price-box s { color: #9d9186; font: 400 clamp(1.6rem, 2.4vw, 2.4rem) Georgia, serif; text-decoration-thickness: 2px; }
+    #pvBasePrice { cursor: text; border-bottom: 1px solid transparent; transition: border-color .3s; outline: none; }
+    #pvBasePrice:hover, #pvBasePrice:focus { border-bottom-color: rgba(255, 255, 255, .35); }
+    #pvPriceInput { width: 5.2em; padding: 0; color: #fff; background: transparent; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .45); font: 400 clamp(3rem, 5vw, 4.8rem)/1 Georgia, serif; letter-spacing: -.03em; text-align: right; outline: none; -moz-appearance: textfield; }
+    #pvPriceInput::-webkit-outer-spin-button, #pvPriceInput::-webkit-inner-spin-button, .pv-transport input::-webkit-outer-spin-button, .pv-transport input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .pv-price-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; margin-top: 10px; color: #a99d91; }
+    .pv-price-meta small { font-size: .85rem; letter-spacing: .04em; }
+    .pv-transport { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; }
+    .pv-transport input { width: 70px; padding: 2px 0; color: #f4ece3; background: transparent; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .22); font: 500 1rem inherit; text-align: right; outline: none; -moz-appearance: textfield; transition: border-color .3s; }
+    .pv-transport input:hover, .pv-transport input:focus { border-bottom-color: rgba(255, 255, 255, .55); }
+    .pv-rows li.disc b { color: #275b49; }
+
     @keyframes pv-fade { from { opacity: 0; } to { opacity: 1; } }
     @keyframes pv-kb { from { transform: scale(1.12); } to { transform: scale(1); } }
     @keyframes pv-shine { to { background-position: -220% 0; } }
@@ -603,6 +617,12 @@
       .pv-media { margin-top: 18px; }
       .pv-items li { padding: 9px 0; }
       .pv-incl { margin-top: 18px; }
+    }
+    @media (max-height: 800px) {
+      .pv-pack .pv-items li { padding: 3px 0; font-size: .94rem; }
+      .pv-pack + .pv-price-line { margin-top: 12px; padding-top: 10px; }
+      .pv-pack + .pv-price-line strong, #pvPriceInput { font-size: 2.9rem; }
+      .pv-pack .pv-col h3 { font-size: 1.5rem; }
     }
     @media (prefers-reduced-motion: reduce) {
       [data-r], .pv-mask > span, .pv-names .l > i { opacity: 1 !important; transform: none !important; transition: none !important; }
@@ -1086,7 +1106,18 @@
             <div class="pv-col" data-r style="--i:3"><h3>Album</h3><ul class="pv-items"><li>Μεγάλο album 80×30</li><li class="pv-small-albums">3 μικρά album</li><li>Εκτυπώσεις</li><li>Όλες οι φωτογραφίες<small>Σε πλήρη ανάλυση, σε ηλεκτρονική μορφή</small></li></ul></div>
             <div class="pv-col" data-r style="--i:4"><h3>Video</h3><ul class="pv-items"><li>Wedding short film</li><li>Wedding movie</li><li>Full HD σε USB</li><li>Θήκη USB</li></ul></div>
           </div>
-          <div class="pv-price-line" data-r style="--i:5"><span>Τιμή πακέτου</span><strong id="pvBasePrice">2800€</strong></div>
+          <div class="pv-price-line" data-r style="--i:5">
+            <span>Τιμή πακέτου</span>
+            <div class="pv-price-box">
+              <s id="pvOldPrice" hidden></s>
+              <strong id="pvBasePrice" tabindex="0">2800€</strong>
+              <input id="pvPriceInput" type="number" min="0" step="10" inputmode="numeric" hidden aria-label="Τιμή πακέτου">
+            </div>
+          </div>
+          <div class="pv-price-meta" data-r style="--i:6">
+            <small>Η τιμή περιλαμβάνει ΦΠΑ</small>
+            <label class="pv-transport">Μεταφορικά έξοδα <input data-mirror="transportCost" type="number" min="0" step="10" inputmode="numeric" placeholder="0"> €</label>
+          </div>
         </div>
       </section>
 
@@ -1618,6 +1649,7 @@
       document.addEventListener('keydown', (event) => {
         if (!document.body.classList.contains('presentation-open')) return;
         if (event.key === 'Escape' && !document.fullscreenElement) closePresentation();
+        if (event.target.closest && event.target.closest('input, textarea, select')) return;
         if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) { event.preventDefault(); showSlide(currentSlide - 1); }
         if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(event.key)) { event.preventDefault(); showSlide(currentSlide + 1); }
         if (event.key === ' ' && !event.target.closest('button, input, textarea, select')) { event.preventDefault(); showSlide(currentSlide + 1); }
@@ -1634,6 +1666,8 @@
 
       // τιμές χωρίς τελεία χιλιάδων (π.χ. 2800€)
       const pvMoney = (n) => `${Math.round(Number(n) || 0)}€`;
+      let pvPrevCalc = null;
+      let pvDiscount = 0;
 
       function syncStart() {
         $$('[data-mirror]').forEach((input) => {
@@ -1706,20 +1740,37 @@
         const removed = $$('.remove-option').filter((c) => c.checked).reduce((sum, c) => sum + Number(c.dataset.price || 0), 0);
         const smallDiff = (small - INCLUDED_SMALL_ALBUMS) * SMALL_ALBUM_PRICE;
         const base = BASE_PRICE + removed + Math.min(0, smallDiff);
-        $('#pvBasePrice').textContent = pvMoney(base);
+
+        // έκπτωση = υπολογισμένη τιμή − τιμή πακέτου (μένει σταθερή όταν αλλάζουν οι αναβαθμίσεις)
+        const calc = Number(String($('#calculatedPrice').textContent).replace(/[^\d-]/g, '')) || 0;
+        const finalInput = $('#finalPackagePrice');
+        if (pvPrevCalc !== null && calc !== pvPrevCalc && pvDiscount !== 0) {
+          pvPrevCalc = calc;
+          finalInput.value = String(calc - pvDiscount);
+          finalInput.dispatchEvent(new Event('input', { bubbles: true }));
+          return;
+        }
+        pvPrevCalc = calc;
+        const finalPkg = finalInput.value === '' ? calc : (Number(finalInput.value) || 0);
+        pvDiscount = calc - finalPkg;
+
+        const shown = base - pvDiscount;
+        if ($('#pvPriceInput').hidden) $('#pvBasePrice').textContent = pvMoney(shown);
+        $('#pvOldPrice').hidden = pvDiscount <= 0;
+        $('#pvOldPrice').textContent = pvMoney(base);
 
         const rows = [['Wedding Package', base]];
+        if (pvDiscount > 0) rows.push(['Έκπτωση', -pvDiscount]);
+        else if (pvDiscount < 0) rows.push(['Προσαρμογή τιμής', -pvDiscount]);
         if (smallDiff > 0) rows.push([`${small - INCLUDED_SMALL_ALBUMS} επιπλέον μικρά album`, smallDiff]);
         const nice = { 'Album Platinum series': 'Album Platinum', 'Platinum album case': 'Κουτί Platinum', 'Wooden USB case': 'USB Case Platinum', 'Παράδοση video σε 4K': 'Video σε 4K' };
         $$('.add-option').filter((c) => c.checked).forEach((c) => rows.push([nice[c.dataset.label] || c.dataset.label, Number(c.dataset.price || 0)]));
         $$('.qty').forEach((q) => { const n = Number(q.value) || 0; if (n > 0) rows.push([`${q.dataset.label} × ${n}`, n * Number(q.dataset.unit || 0)]); });
         const transport = Math.max(0, Number($('#transportCost').value) || 0);
         if (transport) rows.push(['Μεταφορικά', transport]);
-        const sum = rows.reduce((s, r) => s + r[1], 0);
-        const total = Math.max(0, Number($('#finalPackagePrice').value) || 0) + transport;
-        if (Math.round(total - sum) !== 0) rows.push(['Ειδική τιμή', total - sum]);
+        const total = finalPkg + transport;
         const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-        $('#pvRows').innerHTML = rows.map((r, i) => `<li><span>${esc(r[0])}</span><b>${i === 0 ? pvMoney(r[1]) : `${r[1] >= 0 ? '+' : '−'}${pvMoney(Math.abs(r[1]))}`}</b></li>`).join('')
+        $('#pvRows').innerHTML = rows.map((r, i) => `<li${r[0] === 'Έκπτωση' ? ' class="disc"' : ''}><span>${esc(r[0])}</span><b>${i === 0 ? pvMoney(r[1]) : `${r[1] >= 0 ? '+' : '−'}${pvMoney(Math.abs(r[1]))}`}</b></li>`).join('')
           + `<li class="total"><span>Σύνολο</span><b>${pvMoney(total)}</b></li>`;
       }
 
@@ -1803,6 +1854,32 @@
         }
       });
       shell.addEventListener('mouseleave', () => cursor.classList.remove('on'));
+
+      // τιμή πακέτου: αλλαγή με κλικ (έκπτωση)
+      const priceEl = $('#pvBasePrice');
+      const priceIn = $('#pvPriceInput');
+      const openPriceEdit = () => {
+        priceIn.value = String(Number(priceEl.textContent.replace(/[^\d-]/g, '')) || '');
+        priceEl.hidden = true; priceIn.hidden = false; priceIn.focus(); priceIn.select();
+      };
+      const closePriceEdit = (apply) => {
+        if (priceIn.hidden) return;
+        priceIn.hidden = true; priceEl.hidden = false;
+        if (!apply) { updateAll(); return; }
+        const removed = $$('.remove-option').filter((c) => c.checked).reduce((sum, c) => sum + Number(c.dataset.price || 0), 0);
+        const small = Math.max(0, Number($('#smallAlbumCount').value) || 0);
+        const base = BASE_PRICE + removed + Math.min(0, (small - INCLUDED_SMALL_ALBUMS) * SMALL_ALBUM_PRICE);
+        const wanted = priceIn.value === '' ? base : Math.max(0, Math.round(Number(priceIn.value) || 0));
+        const disc = base - wanted;
+        const calc = Number(String($('#calculatedPrice').textContent).replace(/[^\d-]/g, '')) || 0;
+        const finalInput = $('#finalPackagePrice');
+        finalInput.value = disc === 0 ? '' : String(calc - disc);
+        finalInput.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      priceEl.addEventListener('click', openPriceEdit);
+      priceEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') openPriceEdit(); });
+      priceIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); closePriceEdit(true); } if (e.key === 'Escape') { e.stopPropagation(); closePriceEdit(false); } });
+      priceIn.addEventListener('blur', () => closePriceEdit(true));
 
       // carousel φωτογραφιών
       $$('.pv-car').forEach((car) => {
