@@ -487,7 +487,6 @@
     .pv-photo.narrow { max-width: 640px; justify-self: center; width: 100%; }
 
     /* Video: FULL HD (ανοιχτόχρωμο, διαφορετικό από το 4K) */
-    .pv-video-sec { background: #efe6da; }
     .pv-fhd-grid { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(30px, 6vw, 100px); align-items: center; }
     .pv-fhd { display: grid; font: 400 clamp(6rem, 15vw, 15rem)/.82 Georgia, serif; letter-spacing: -.05em; transform: translate3d(calc(var(--mx) * 12px), calc(var(--my) * 8px), 0); transition: transform .9s cubic-bezier(.2,.7,.15,1); }
     .pv-fhd span { color: transparent; -webkit-text-stroke: 1.5px #1c1a18; background: linear-gradient(to top, #1c1a18 0 50%, transparent 50% 100%); background-size: 100% 200%; background-position: 0 calc(min(1, var(--p) * 1.9) * 100%); -webkit-background-clip: text; background-clip: text; }
@@ -557,15 +556,19 @@
     .in .pv-thanks2 span { opacity: 1; transform: translate3d(calc(var(--mx) * (2px + var(--d) * .6px)), calc(var(--my) * (1.5px + var(--d) * .4px)), 0); transition: opacity 1s ease, transform .8s cubic-bezier(.2,.7,.15,1); }
 
     /* Φόντο: ζεστό γκρι σαν τοίχος από σοβά/τσιμέντο (οι σκούρες σελίδες μένουν ίδιες) */
-    .presentation-slide:not(.dark) { background: #d8d4ce; }
-    .presentation-slide:nth-child(even):not(.dark), .pv-video-sec { background: #cdc8c1; }
+    .presentation-slide:not(.dark) { background-color: #e3dfd9; }
+    .presentation-slide.tone-b:not(.dark) { background-color: #ada192; }
+    .presentation-slide.tone-b:not(.dark)::before { opacity: .55; }
+    .presentation-slide.tone-b .pv-photo.small { border-color: #ada192; }
+    .presentation-slide.tone-b .pv-stop2 b { background: #ada192; }
+    .presentation-slide + .presentation-slide { box-shadow: 0 -30px 50px -30px rgba(25, 18, 12, .45); }
     .presentation-slide:not(.dark)::before { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
       background-image: radial-gradient(900px circle at calc(30% + var(--mx) * 10%) calc(30% + var(--my) * 8%), rgba(255, 246, 232, .55), transparent 60%), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='c'><feTurbulence type='fractalNoise' baseFrequency='.008' numOctaves='4' seed='7'/><feColorMatrix values='0 0 0 0 .25  0 0 0 0 .23  0 0 0 0 .21  0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23c)'/></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .28  0 0 0 0 .26  0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-      background-size: auto, 900px 900px, 320px 320px; }
+      background-size: auto, cover, 320px 320px; background-repeat: no-repeat, no-repeat, repeat; }
     .presentation-slide:not(.dark)::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(40, 32, 26, .22) 100%); }
     .presentation-slide > .pv-wrap, .pv-car { z-index: 2; }
-    .pv-photo.small { border-color: #d8d4ce; }
-    .pv-stop2 b { background: #d8d4ce; }
+    .pv-photo.small { border-color: #e3dfd9; }
+    .pv-stop2 b { background: #e3dfd9; }
     .pv-prints label { background: rgba(255, 255, 255, .6); }
     /* Μπάρα και τελείες: σκούρα σε ανοιχτές σελίδες, λευκά σε σκούρες */
     .presentation-bar, .presentation-nav { mix-blend-mode: normal; color: #1c1a18; transition: color .4s; }
@@ -1623,6 +1626,8 @@
       // ===== Παρουσίαση v3: οθόνη στοιχείων, σκρολ, κίνηση με ποντίκι =====
       const pvScroll = $('#pvScroll');
       const pvSections = $$('.presentation-slide');
+      // εναλλαγή τόνων στις ανοιχτές σελίδες, ώστε να φαίνεται η αλλαγή σελίδας
+      { let n = 0; pvSections.forEach((s) => { if (s.classList.contains('dark')) { n = 0; return; } s.classList.toggle('tone-b', n++ % 2 === 1); }); }
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       let pvTarget = 0;
       let pvAnimating = false;
