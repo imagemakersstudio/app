@@ -11,8 +11,8 @@ export const RELEASES = [
   {
     v: '1.19.0', date: '17/11/2026',
     items: [
-      ['🎬', 'Νέα παρουσίαση γάμου στο στούντιο: πιο καθαρή σε laptop, με κομψά εφέ και πλήρη οθόνη. Η τιμή δεν φαίνεται πια από την αρχή· εμφανίζεται στο τέλος, μετά τη σελίδα «Όλα όσα περιλαμβάνει», μαζί με τα 40% / 40% / 20%.', 'New wedding presentation in the studio: clearer on laptops, with elegant animations and full screen. The price no longer shows from the start; it appears at the end, after “Everything included”, together with 40% / 40% / 20%.', 'admin'],
-      ['➕', 'Στην παρουσίαση υπάρχει πλέον σελίδα «Προαιρετικές προσθήκες» (2ο συνεργείο, pre-wedding, ευχολόγιο, slide show): πατάτε την κάρτα και προστίθεται.', 'The presentation now has an “Optional add-ons” page (2nd crew, pre-wedding, guest book, slide show): tap a card to add it.', 'admin'],
+      ['🎬', 'Νέα παρουσίαση γάμου: ανοίγει με τα στοιχεία του ζευγαριού και προχωρά με σκρολ, με κίνηση που ακολουθεί το ποντίκι. Η τιμή του πακέτου εμφανίζεται αφού δείξετε τι περιλαμβάνει· μετά ακολουθούν οι αναβαθμίσεις και η πρόταση με 40% / 40% / 20%.', 'New wedding presentation: opens with the couple’s details and moves by scrolling, following the mouse. The package price appears after showing what’s included; then come the upgrades and the proposal with 40% / 40% / 20%.', 'admin'],
+      ['⚙️', 'Οι ρυθμίσεις της προσφοράς (ειδική τιμή, μεταφορικά, σημειώσεις) ανοίγουν από το «Ρυθμίσεις προσφοράς» στην πρώτη οθόνη.', 'Offer settings (special price, transport, notes) open from “Offer settings” on the first screen.', 'admin'],
     ],
   },
   {
