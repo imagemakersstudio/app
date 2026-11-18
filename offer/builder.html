@@ -603,7 +603,7 @@
     [data-strike].is-removed h3, [data-strike].is-removed > span, .pv-items li[data-strike].is-removed:not(.pv-nd) { text-decoration: line-through; text-decoration-thickness: 1.5px; }
     [data-strike].is-removed h3, [data-strike].is-removed small, [data-strike].is-removed > span, .pv-pack li[data-strike].is-removed { opacity: .5; }
     .pv-nd.is-removed .pv-rm, .pv-stop2.is-removed .pv-rm { text-decoration: none; opacity: 1; }
-    .pv-pack li[data-strike].is-removed::after { content: attr(data-amt); float: right; color: #f0b9a8; text-decoration: none; }
+    .pv-pack li[data-strike].is-removed::after { content: none; }
     #pvRemovedNote { margin-left: 10px; color: #f0b9a8; }
 
     /* Προσθήκες */
@@ -650,6 +650,10 @@
     .pv-total-input { width: 5.2em; padding: 2px 8px; font: 400 clamp(2.4rem, 3.8vw, 3.8rem)/1 Georgia, serif; text-align: right; border: 1px solid #b06a43; border-radius: 10px; background: #fff; }
     .pv-total-hint { margin: 8px 0 0; color: #9a8d80; font-size: .78rem; text-align: right; }
     #pvReset.confirm { color: #fff !important; background: #8a3b2c; border-color: #8a3b2c !important; }
+    .pv-prop-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; margin-top: 12px; color: #8a7d71; }
+    .pv-prop-meta small { font-size: .85rem; letter-spacing: .04em; }
+    .pv-prop-meta .pv-transport input { color: #1c1a18; border-bottom-color: rgba(28, 26, 24, .25); }
+    .pv-prop-meta .pv-transport input:hover, .pv-prop-meta .pv-transport input:focus { border-bottom-color: #b06a43; }
     /* Album: πιο μαζεμένη σελίδα */
     .pv-album-sec .pv-h { font-size: clamp(2.6rem, 3.6vw + 1vh, 4.6rem); }
     .pv-album-sec .pv-media { margin-top: 0; align-items: center; }
@@ -1199,14 +1203,11 @@
           <div class="pv-price-line" data-r style="--i:5">
             <span>Τιμή πακέτου</span>
             <div class="pv-price-box">
-              <s id="pvOldPrice" hidden></s>
-              <strong id="pvBasePrice" tabindex="0">2800€</strong>
-              <input id="pvPriceInput" type="number" min="0" step="10" inputmode="numeric" hidden aria-label="Τιμή πακέτου">
+              <strong id="pvBasePrice">2800€</strong>
             </div>
           </div>
           <div class="pv-price-meta" data-r style="--i:6">
-            <small>Η τιμή περιλαμβάνει ΦΠΑ<span id="pvRemovedNote" hidden></span></small>
-            <label class="pv-transport">Μεταφορικά έξοδα <input data-mirror="transportCost" type="number" min="0" step="10" inputmode="numeric" placeholder="0"> €</label>
+            <small>Η τιμή περιλαμβάνει ΦΠΑ</small>
           </div>
         </div>
       </section>
@@ -1323,7 +1324,7 @@
           <div class="pv-k" data-r>Η πρότασή σας</div>
           <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span id="pvFirstNames">—</span></span></h2>
           <div class="pv-offer">
-            <div data-r style="--i:2"><ul class="pv-rows" id="pvRows"></ul><input class="pv-total-input" id="pvTotalInput" type="number" min="0" step="10" inputmode="numeric" hidden aria-label="Τελική τιμή"></div>
+            <div data-r style="--i:2"><ul class="pv-rows" id="pvRows"></ul><div class="pv-prop-meta"><small>Οι τιμές περιλαμβάνουν ΦΠΑ</small><label class="pv-transport">Μεταφορικά έξοδα <input data-mirror="transportCost" type="number" min="0" step="10" inputmode="numeric" placeholder="0"> €</label></div><input class="pv-total-input" id="pvTotalInput" type="number" min="0" step="10" inputmode="numeric" hidden aria-label="Τελική τιμή"></div>
             <div class="pv-pay" data-r style="--i:3">
               <div><strong>40%</strong><span>Κράτηση ημερομηνίας</span></div>
               <div><strong>40%</strong><span>Ημέρα γάμου</span></div>
@@ -1910,14 +1911,9 @@
         pvDiscount = calc - finalPkg;
 
         const shown = base - pvDiscount;
-        if ($('#pvPriceInput').hidden) $('#pvBasePrice').textContent = pvMoney(shown);
-        $('#pvOldPrice').hidden = pvDiscount <= 0;
-        $('#pvOldPrice').textContent = pvMoney(base);
+        $('#pvBasePrice').textContent = pvMoney(BASE_PRICE);
 
         const rmNames = { 'Drone εκκλησίας': 'Χωρίς drone στην εκκλησία', 'Φωτογράφηση next day': 'Χωρίς next day φωτογράφηση', 'Video next day': 'Χωρίς next day video', 'Drone next day': 'Χωρίς next day drone' };
-        const removedTotal = removed + Math.min(0, smallDiff);
-        $('#pvRemovedNote').hidden = removedTotal >= 0;
-        $('#pvRemovedNote').textContent = removedTotal < 0 ? ` · με αφαιρέσεις ${pvMoney(removedTotal).replace('-', '−')}` : '';
         const rows = [['Wedding Package', BASE_PRICE]];
         $$('.remove-option').filter((c) => c.checked).forEach((c) => rows.push([rmNames[c.dataset.label] || `Χωρίς ${c.dataset.label}`, Number(c.dataset.price || 0)]));
         if (smallDiff < 0) rows.push([`${INCLUDED_SMALL_ALBUMS - small === 1 ? '1 μικρό album λιγότερο' : `${INCLUDED_SMALL_ALBUMS - small} μικρά album λιγότερα`}`, smallDiff]);
@@ -1934,7 +1930,7 @@
         const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
         const tiE = $('#pvTotalInput'); if (tiE && !tiE.hidden) return;
         $('#pvRows').innerHTML = rows.map((r, i) => `<li${r[0] === 'Έκπτωση' ? ' class="disc"' : ''}><span>${esc(r[0])}</span><b>${i === 0 ? pvMoney(r[1]) : `${r[1] >= 0 ? '+' : '−'}${pvMoney(Math.abs(r[1]))}`}</b></li>`).join('')
-          + `<li class="total"><span>Σύνολο</span><b>${pvDiscount > 0 ? `<s>${pvMoney(total + pvDiscount)}</s>` : ''}<em id="pvTotal" tabindex="0" role="button" title="Αλλαγή τιμής">${pvMoney(total)}</em></b></li>`;
+          + `<li class="total"><span>Σύνολο</span><b>${pvDiscount > 0 ? `<s>${pvMoney(total + pvDiscount)}</s>` : ''}<em id="pvTotal" tabindex="0" role="button">${pvMoney(total)}</em></b></li>`;
       }
 
       $$('[data-pick]').forEach((btn) => btn.addEventListener('click', () => {
@@ -2043,31 +2039,6 @@
         el.textContent = c ? `+${Number(c.dataset.price || 0)}€` : '';
       });
 
-      // τιμή πακέτου: αλλαγή με κλικ (έκπτωση)
-      const priceEl = $('#pvBasePrice');
-      const priceIn = $('#pvPriceInput');
-      const openPriceEdit = () => {
-        priceIn.value = String(Number(priceEl.textContent.replace(/[^\d-]/g, '')) || '');
-        priceEl.hidden = true; priceIn.hidden = false; priceIn.focus(); priceIn.select();
-      };
-      const closePriceEdit = (apply) => {
-        if (priceIn.hidden) return;
-        priceIn.hidden = true; priceEl.hidden = false;
-        if (!apply) { updateAll(); return; }
-        const removed = $$('.remove-option').filter((c) => c.checked).reduce((sum, c) => sum + Number(c.dataset.price || 0), 0);
-        const small = Math.max(0, Number($('#smallAlbumCount').value) || 0);
-        const base = BASE_PRICE + removed + Math.min(0, (small - INCLUDED_SMALL_ALBUMS) * SMALL_ALBUM_PRICE);
-        const wanted = priceIn.value === '' ? base : Math.max(0, Math.round(Number(priceIn.value) || 0));
-        const disc = base - wanted;
-        const calc = Number(String($('#calculatedPrice').textContent).replace(/[^\d-]/g, '')) || 0;
-        const finalInput = $('#finalPackagePrice');
-        finalInput.value = disc === 0 ? '' : String(calc - disc);
-        finalInput.dispatchEvent(new Event('input', { bubbles: true }));
-      };
-      priceEl.addEventListener('click', openPriceEdit);
-      priceEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') openPriceEdit(); });
-      priceIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); closePriceEdit(true); } if (e.key === 'Escape') { e.stopPropagation(); closePriceEdit(false); } });
-      priceIn.addEventListener('blur', () => closePriceEdit(true));
 
       // σύνολο πρότασης: αλλαγή με κλικ (έκπτωση)
       const totIn = $('#pvTotalInput');
