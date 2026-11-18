@@ -597,7 +597,7 @@
     .pv-rm { white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; margin-top: 8px; padding: 5px 12px; color: #8a3b2c; background: transparent; border: 1px solid rgba(138, 59, 44, .35); border-radius: 999px; font: 700 .76rem inherit; letter-spacing: .03em; cursor: pointer; transition: background .3s, color .3s, border-color .3s; }
     .pv-rm:hover { background: rgba(138, 59, 44, .08); }
     .pv-rm.restore { color: #275b49; border-color: rgba(39, 91, 73, .45); }
-    .pv-next .pv-rm { margin: 0; color: #f0b9a8; border-color: rgba(240, 185, 168, .4); }
+    .pv-next .pv-rm { margin: 0; padding: 3px 10px; color: rgba(240, 185, 168, .85); border-color: rgba(240, 185, 168, .25); font-size: .68rem; font-weight: 600; }
     .pv-next .pv-rm.restore { color: #b8e3cc; border-color: rgba(184, 227, 204, .45); }
     .pv-nd { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     [data-strike].is-removed h3, [data-strike].is-removed > span, .pv-items li[data-strike].is-removed:not(.pv-nd) { text-decoration: line-through; text-decoration-thickness: 1.5px; }
@@ -638,6 +638,18 @@
     .pv-stop2 .pv-step-l { flex-direction: row; display: flex; gap: 6px; align-items: baseline; }
     .pv-stop2 .pv-step-l { justify-items: start; }
 
+    .pv-rm { padding: 3px 10px; font-size: .68rem; font-weight: 600; border-color: rgba(138, 59, 44, .22); }
+    .pv-items.bul li { position: relative; padding-left: 20px; }
+    .pv-items.bul li::before { content: ""; position: absolute; left: 2px; top: calc(8px + .55em); width: 6px; height: 6px; border-radius: 50%; background: #b06a43; }
+    .pv-items.sm.bul li { padding-left: 22px; }
+    .pv-items.sm.bul li::before { top: calc(8px + .5em); }
+    @media (max-height: 800px) { .pv-items.sm.bul li { padding-left: 22px; } .pv-items.sm.bul li::before { top: calc(5px + .5em); } }
+    #pvTotal { cursor: pointer; font-style: normal; border-bottom: 1px dashed rgba(28, 26, 24, .25); }
+    #pvTotal:hover { border-bottom-color: #b06a43; }
+    .pv-rows li.total b s { display: block; margin-bottom: 6px; color: #9a8d80; font: 400 1.3rem/1 Georgia, serif; text-align: right; }
+    .pv-total-input { width: 5.2em; padding: 2px 8px; font: 400 clamp(2.4rem, 3.8vw, 3.8rem)/1 Georgia, serif; text-align: right; border: 1px solid #b06a43; border-radius: 10px; background: #fff; }
+    .pv-total-hint { margin: 8px 0 0; color: #9a8d80; font-size: .78rem; text-align: right; }
+    #pvReset.confirm { color: #fff !important; background: #8a3b2c; border-color: #8a3b2c !important; }
     /* Album: πιο μαζεμένη σελίδα */
     .pv-album-sec .pv-h { font-size: clamp(2.6rem, 3.6vw + 1vh, 4.6rem); }
     .pv-album-sec .pv-media { margin-top: 0; align-items: center; }
@@ -1044,6 +1056,7 @@
     <div class="presentation-bar">
       <strong>IMAGE MAKERS</strong>
       <div class="pv-bar-actions">
+        <button class="pv-icon-btn" id="pvReset" type="button">Επαναφορά πακέτου</button>
         <button class="pv-icon-btn" id="pvFullscreen" type="button" hidden>Πλήρης οθόνη</button>
         <button class="pv-icon-btn" id="closePresentation" type="button">Κλείσιμο</button>
       </div>
@@ -1062,7 +1075,7 @@
         <div class="pv-wrap">
           <div class="pv-k" data-r style="--i:1">Wedding Package</div>
           <h1 class="pv-names" id="pvNames" aria-label="Ονόματα ζευγαριού"></h1>
-          <div class="pv-cover-meta" data-r style="--i:6"><span class="live-date">—</span><span class="live-city">—</span></div>
+          <div class="pv-cover-meta" data-r style="--i:6"><span class="live-date">—</span><span class="live-church">—</span></div>
         </div>
         <div class="pv-hint" aria-hidden="true">Κύλιση<i></i></div>
       </section>
@@ -1070,7 +1083,7 @@
       <section class="presentation-slide pv-day-sec">
         <div class="pv-wrap">
           <div class="pv-k" data-r>01</div>
-          <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span>Η ημέρα του γάμου</span></span></h2>
+          <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span>Η ημέρα του γάμου περιλαμβάνει</span></span></h2>
           <div class="pv-day2">
             <ol class="pv-route" id="pvRoute">
               <li class="pv-route-line" aria-hidden="true"><i></i></li>
@@ -1083,7 +1096,7 @@
             <div class="pv-next" data-r style="--i:3">
               <div class="pv-next-bg" id="pvNextBg"></div>
               <div class="pv-next-in">
-                <div class="pv-k">Το πακέτο περιλαμβάνει</div>
+                <div class="pv-k">Το πακέτο περιλαμβάνει επίσης</div>
                 <h3>Next day</h3>
                 <ul class="pv-items">
                   <li class="pv-nd" data-strike="Φωτογράφηση next day"><span>Φωτογράφηση</span><button class="pv-rm" type="button" data-rm="Φωτογράφηση next day"></button></li>
@@ -1104,8 +1117,8 @@
             <div>
               <div class="pv-k" data-r style="--i:1">02</div>
               <h2 class="pv-h"><span class="pv-mask" style="--i:2"><span>Album</span></span></h2>
-              <ul class="pv-items sm" style="margin-top:18px">
-                <li data-r style="--i:3">Μεγάλο album 80×30 cm<small><span id="pvLargeSp">25 σαλόνια · 50 σελίδες</span> · Silver / Gold</small></li>
+              <ul class="pv-items sm bul" style="margin-top:18px">
+                <li data-r style="--i:3">1 μεγάλο album 80×30 cm<small id="pvLargeSp">Περιλαμβάνει 25 σαλόνια</small></li>
                 <li data-r style="--i:4"><span id="pvSmallAlbums">3 μικρά album</span><small id="pvSmallSp">25 σαλόνια το καθένα</small></li>
                 <li data-r style="--i:5">Εκτυπώσεις · επιλέξτε ένα
                   <div class="pv-prints">
@@ -1310,7 +1323,7 @@
           <div class="pv-k" data-r>Η πρότασή σας</div>
           <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span id="pvFirstNames">—</span></span></h2>
           <div class="pv-offer">
-            <ul class="pv-rows" id="pvRows" data-r style="--i:2"></ul>
+            <div data-r style="--i:2"><ul class="pv-rows" id="pvRows"></ul><input class="pv-total-input" id="pvTotalInput" type="number" min="0" step="10" inputmode="numeric" hidden aria-label="Τελική τιμή"><p class="pv-total-hint">Πατήστε στο σύνολο για να αλλάξει η τιμή</p></div>
             <div class="pv-pay" data-r style="--i:3">
               <div><strong>40%</strong><span>Κράτηση ημερομηνίας</span></div>
               <div><strong>40%</strong><span>Ημέρα γάμου</span></div>
@@ -1861,7 +1874,7 @@
         $$('.pv-extra-h').forEach((el) => { el.textContent = hours ? ` · +${hours} ${hours === 1 ? 'ώρα' : 'ώρες'}` : ''; });
         const lsp = Math.max(0, Number($('#largeSpreads').value) || 0);
         const ssp = Math.max(0, Number($('#smallSpreads').value) || 0);
-        $('#pvLargeSp').textContent = `${25 + lsp} σαλόνια · ${(25 + lsp) * 2} σελίδες`;
+        $('#pvLargeSp').textContent = `Περιλαμβάνει ${25 + lsp} σαλόνια`;
         $$('.pv-large-sp').forEach((el) => { el.textContent = `${25 + lsp} σαλόνια`; });
         $('#pvSmallSp').textContent = ssp ? `+${ssp} επιπλέον σαλόνια` : '';
         $('#pvSmallSp').hidden = !ssp;
@@ -1919,8 +1932,9 @@
         if (transport) rows.push(['Μεταφορικά', transport]);
         const total = finalPkg + transport;
         const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const tiE = $('#pvTotalInput'); if (tiE && !tiE.hidden) return;
         $('#pvRows').innerHTML = rows.map((r, i) => `<li${r[0] === 'Έκπτωση' ? ' class="disc"' : ''}><span>${esc(r[0])}</span><b>${i === 0 ? pvMoney(r[1]) : `${r[1] >= 0 ? '+' : '−'}${pvMoney(Math.abs(r[1]))}`}</b></li>`).join('')
-          + `<li class="total"><span>Σύνολο</span><b>${pvMoney(total)}</b></li>`;
+          + `<li class="total"><span>Σύνολο</span><b>${pvDiscount > 0 ? `<s>${pvMoney(total + pvDiscount)}</s>` : ''}<em id="pvTotal" tabindex="0" role="button" title="Αλλαγή τιμής">${pvMoney(total)}</em></b></li>`;
       }
 
       $$('[data-pick]').forEach((btn) => btn.addEventListener('click', () => {
@@ -2054,6 +2068,54 @@
       priceEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') openPriceEdit(); });
       priceIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); closePriceEdit(true); } if (e.key === 'Escape') { e.stopPropagation(); closePriceEdit(false); } });
       priceIn.addEventListener('blur', () => closePriceEdit(true));
+
+      // σύνολο πρότασης: αλλαγή με κλικ (έκπτωση)
+      const totIn = $('#pvTotalInput');
+      const totHome = totIn.parentElement;
+      ['input', 'change'].forEach((ev) => totIn.addEventListener(ev, (e) => e.stopPropagation()));
+      const openTotalEdit = () => {
+        const t = $('#pvTotal'); if (!t) return;
+        totIn.value = String(Number(t.textContent.replace(/[^\d-]/g, '')) || '');
+        t.hidden = true; t.parentElement.appendChild(totIn); totIn.hidden = false; totIn.focus(); totIn.select();
+      };
+      const closeTotalEdit = (apply) => {
+        if (totIn.hidden) return;
+        totIn.hidden = true; totHome.insertBefore(totIn, totHome.querySelector('.pv-total-hint'));
+        const transport = Math.max(0, Number($('#transportCost').value) || 0);
+        const calc = Number(String($('#calculatedPrice').textContent).replace(/[^\d-]/g, '')) || 0;
+        const finalInput = $('#finalPackagePrice');
+        if (apply && totIn.value !== '') {
+          const pkg = Math.max(0, Math.round(Number(totIn.value) || 0)) - transport;
+          finalInput.value = pkg === calc ? '' : String(Math.max(0, pkg));
+          finalInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        updateAll();
+      };
+      $('#pvRows').addEventListener('click', (e) => { if (e.target.closest('#pvTotal')) openTotalEdit(); });
+      $('#pvRows').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest('#pvTotal')) openTotalEdit(); });
+      totIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); closeTotalEdit(true); } if (e.key === 'Escape') { e.stopPropagation(); closeTotalEdit(false); } });
+      totIn.addEventListener('blur', () => closeTotalEdit(true));
+
+      // επαναφορά πακέτου στα αρχικά (δεύτερο πάτημα για επιβεβαίωση)
+      const resetBtn = $('#pvReset');
+      let resetTimer = null;
+      resetBtn.addEventListener('click', () => {
+        if (!resetBtn.classList.contains('confirm')) {
+          resetBtn.classList.add('confirm'); resetBtn.textContent = 'Σίγουρα; Πατήστε ξανά';
+          clearTimeout(resetTimer);
+          resetTimer = setTimeout(() => { resetBtn.classList.remove('confirm'); resetBtn.textContent = 'Επαναφορά πακέτου'; }, 3500);
+          return;
+        }
+        clearTimeout(resetTimer);
+        resetBtn.classList.remove('confirm'); resetBtn.textContent = 'Επαναφορά πακέτου';
+        $$('.add-option, .remove-option').forEach((c) => { c.checked = false; });
+        $$('.qty').forEach((q) => { q.value = '0'; });
+        $('#smallAlbumCount').value = String(INCLUDED_SMALL_ALBUMS);
+        $$('input[name="prints"]').forEach((r) => { r.checked = r.defaultChecked; });
+        $('#finalPackagePrice').value = '';
+        pvDiscount = 0; pvPrevCalc = null;
+        updateAll();
+      });
 
       // carousel φωτογραφιών
       $$('.pv-car').forEach((car) => {
