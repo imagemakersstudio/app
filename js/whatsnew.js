@@ -9,6 +9,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.20.0', date: '18/11/2026',
+    items: [
+      ['📲', 'Η σελίδα προσφοράς για τον πελάτη είναι πλέον η νέα παρουσίαση γάμου. Με το προσωπικό link μετά το ραντεβού ανοίγει με τις επιλογές του μαγαζιού· ο πελάτης αλλάζει επιλογές και πατά «Αποστολή», αλλά δεν αλλάζει τιμή, έκπτωση ή μεταφορικά και δεν βλέπει τα σχόλιά σας.', 'The client offer page is now the new wedding presentation. With the personal link after the appointment it opens with the in-store choices; the client changes choices and taps “Send”, but cannot change the price, discount or transport and does not see your comments.', 'admin'],
+      ['🔗', 'Το link ηλεκτρονικού ραντεβού (γάμος) ανοίγει κι αυτό τη νέα παρουσίαση: ο πελάτης γράφει τα στοιχεία του, διαμορφώνει το πακέτο και το στέλνει. Πιο ελαφριά σελίδα, γρήγορη στο κινητό.', 'The online appointment link (wedding) also opens the new presentation: the client fills in details, builds the package and sends it. Lighter page, fast on mobile.', 'admin'],
+    ],
+  },
+  {
     v: '1.19.0', date: '18/11/2026',
     items: [
       ['🎬', 'Νέα παρουσίαση γάμου: ανοίγει με τα στοιχεία του ζευγαριού και προχωρά με σκρολ, σε υπολογιστή, tablet και κινητό. Δείχνει τι περιλαμβάνει το πακέτο, μετά τις αναβαθμίσεις και στο τέλος την πρόταση με 40% / 40% / 20%.', 'New wedding presentation: opens with the couple’s details and moves by scrolling, on computer, tablet and phone. It shows what the package includes, then the upgrades and finally the proposal with 40% / 40% / 20%.', 'admin'],
