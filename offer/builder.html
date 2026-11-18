@@ -671,6 +671,19 @@
     .pv-prints small { font-size: .78rem; }
     .pv-prints i { flex-basis: 16px; width: 16px; height: 16px; }
 
+    /* μπάρα: εικονίδιο + κείμενο */
+    .pv-icon-btn { display: inline-flex; align-items: center; gap: 8px; }
+    .pv-icon-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+    .pv-icon-btn .t { white-space: nowrap; }
+    .pv-w { display: inline-block; font-weight: inherit; white-space: nowrap; }
+    /* σελίδα 6: αφαιρέσεις */
+    .pv-pack li.pv-pk-rm { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .pv-pack li.pv-pk-rm.is-removed { opacity: 1 !important; text-decoration: none !important; }
+    .pv-pack li.pv-pk-rm.is-removed > span { opacity: .5; text-decoration: line-through; text-decoration-thickness: 1.5px; }
+    .pv-pack .pv-rm { margin: 0; padding: 2px 9px; color: rgba(240, 185, 168, .8); border-color: rgba(240, 185, 168, .22); font-size: .66rem; font-weight: 600; }
+    .pv-pack .pv-rm:hover { background: rgba(240, 185, 168, .08); }
+    .pv-pack .pv-rm.restore { color: #b8e3cc; border-color: rgba(184, 227, 204, .4); }
+
     @keyframes pv-fade { from { opacity: 0; } to { opacity: 1; } }
     @keyframes pv-kb { from { transform: scale(1.12); } to { transform: scale(1); } }
     @keyframes pv-shine { to { background-position: -220% 0; } }
@@ -709,6 +722,57 @@
       .pv-pack + .pv-price-line { margin-top: 12px; padding-top: 10px; }
       .pv-pack + .pv-price-line strong, #pvPriceInput { font-size: 2.9rem; }
       .pv-pack .pv-col h3 { font-size: 1.5rem; }
+    }
+
+    /* ===== Κινητό ===== */
+    @media (max-width: 640px) {
+      .presentation-bar { padding: 12px 14px; }
+      .presentation-bar strong { font-size: .68rem; letter-spacing: .18em; white-space: nowrap; }
+      .pv-bar-actions { gap: 6px; }
+      .pv-icon-btn { min-height: 34px; min-width: 34px; padding: 0 9px; justify-content: center; }
+      .pv-icon-btn .t { display: none; }
+      #pvReset.confirm .t { display: inline; font-size: .72rem; }
+      .presentation-nav { display: none !important; }
+      .presentation-slide { padding: 74px 20px 44px !important; }
+      .pv-h { font-size: clamp(2.1rem, 9.6vw, 2.9rem) !important; line-height: 1.08; letter-spacing: -.03em; }
+      .pv-end .pv-h { font-size: clamp(2.4rem, 11vw, 3.2rem) !important; }
+      .pv-album-sec .pv-h { font-size: clamp(2.1rem, 9.6vw, 2.9rem) !important; }
+      .pv-up-title { font-size: clamp(2.4rem, 11.5vw, 3.4rem) !important; }
+      .pv-thanks2 { font-size: clamp(2.3rem, 11vw, 3.1rem) !important; line-height: 1.12; }
+      .pv-names { font-size: clamp(2.4rem, 11.5vw, 3.4rem) !important; line-height: 1.08 !important; overflow-wrap: anywhere; }
+      .pv-lead, .pv-wrap > p { font-size: 1rem; line-height: 1.55; }
+      .pv-items li { font-size: 1rem; line-height: 1.4; }
+      .pv-items li small { font-size: .84rem; line-height: 1.45; margin-top: 3px; }
+      /* σελίδα 1 */
+      .pv-stop2 { grid-template-columns: 38px minmax(0, 1fr) !important; gap: 14px !important; }
+      .pv-stop2 > b { width: 38px !important; height: 38px !important; font-size: .78rem; }
+      .pv-route-line { left: 18px !important; }
+      .pv-stop2 h3 { font-size: 1.25rem !important; line-height: 1.2; }
+      .pv-stop2 small { font-size: .86rem; line-height: 1.45; }
+      .pv-stop2 .pv-step { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; width: 100%; margin-top: 10px; }
+      .pv-stop2 .pv-step-l { font-size: .74rem; }
+      .pv-next { padding: 22px 18px !important; }
+      /* σελίδα 6 */
+      .pv-pack { gap: 26px !important; }
+      .pv-pack .pv-col h3 { font-size: 1.45rem !important; }
+      .pv-pack .pv-items li { font-size: .98rem !important; padding: 8px 0 !important; }
+      .pv-pack + .pv-price-line { gap: 6px; align-items: baseline; }
+      .pv-pack + .pv-price-line strong { font-size: 2.6rem !important; }
+      /* προσθήκες */
+      .pv-addons { grid-template-columns: 1fr !important; gap: 12px; }
+      .pv-addon { min-height: 0 !important; padding: 18px 18px 16px !important; gap: 6px !important; }
+      /* album / προσαρμογή */
+      .pv-adjust { padding: 12px 14px; gap: 12px; }
+      .pv-adjust .pv-step-l { font-size: .72rem; }
+      .pv-prints label { padding: 8px 10px; }
+      /* πρόταση */
+      .pv-rows li { font-size: .95rem; gap: 12px; }
+      .pv-rows li span { min-width: 0; }
+      .pv-rows li.total b { font-size: 2.6rem !important; }
+      .pv-prop-meta { flex-direction: column; align-items: flex-start; }
+      .pv-pay div { grid-template-columns: 80px 1fr; padding: 12px 0; }
+      .pv-pay strong { font-size: 1.9rem; }
+      .pv-pay span { font-size: 1rem; }
     }
     @media (prefers-reduced-motion: reduce) {
       [data-r], .pv-mask > span, .pv-names .l > i { opacity: 1 !important; transform: none !important; transition: none !important; }
@@ -1060,9 +1124,9 @@
     <div class="presentation-bar">
       <strong>IMAGE MAKERS</strong>
       <div class="pv-bar-actions">
-        <button class="pv-icon-btn" id="pvReset" type="button">Επαναφορά πακέτου</button>
-        <button class="pv-icon-btn" id="pvFullscreen" type="button" hidden>Πλήρης οθόνη</button>
-        <button class="pv-icon-btn" id="closePresentation" type="button">Κλείσιμο</button>
+        <button class="pv-icon-btn" aria-label="Επαναφορά πακέτου" title="Επαναφορά πακέτου" id="pvReset" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg><span class="t">Επαναφορά πακέτου</span></button>
+        <button class="pv-icon-btn" aria-label="Πλήρης οθόνη" title="Πλήρης οθόνη" id="pvFullscreen" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="t">Πλήρης οθόνη</span></button>
+        <button class="pv-icon-btn" aria-label="Κλείσιμο" title="Κλείσιμο" id="closePresentation" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="t">Κλείσιμο</span></button>
       </div>
     </div>
     <nav class="presentation-nav" aria-label="Πλοήγηση παρουσίασης">
@@ -1095,7 +1159,7 @@
               <li class="pv-stop2"><b>02</b><div><h3>Προετοιμασία νύφης</h3><span data-place="brideHouse"></span></div></li>
               <li class="pv-stop2"><b>03</b><div><h3>Εκκλησία</h3><span data-place="church"></span></div></li>
               <li class="pv-stop2"><b>04</b><div><h3>Δεξίωση</h3><span data-place="reception"></span><small>Το πακέτο περιλαμβάνει 3 ώρες από την είσοδο<span id="pvExtraHours"></span></small><span class="pv-step" data-step="extraHours"><span class="pv-step-l">Επιπλέον ώρες<em>+100€ / ώρα</em></span><span class="pv-step-c"><button type="button" data-d="-1" aria-label="Λιγότερα">−</button><b>0</b><button type="button" data-d="1" aria-label="Περισσότερα">+</button></span></span></div></li>
-              <li class="pv-stop2" data-strike="Drone εκκλησίας"><b>05</b><div><h3>Drone</h3><small>Το πακέτο περιλαμβάνει εναέριες λήψεις στην εκκλησία</small><button class="pv-rm" type="button" data-rm="Drone εκκλησίας"></button></div></li>
+              <li class="pv-stop2" data-strike="Drone εκκλησίας"><b>05</b><div><h3>Drone</h3><small>Το πακέτο περιλαμβάνει εναέριες λήψεις στην εκκλησία</small></div></li>
             </ol>
             <div class="pv-next" data-r style="--i:3">
               <div class="pv-next-bg" id="pvNextBg"></div>
@@ -1103,9 +1167,9 @@
                 <div class="pv-k">Το πακέτο περιλαμβάνει επίσης</div>
                 <h3>Next day</h3>
                 <ul class="pv-items">
-                  <li class="pv-nd" data-strike="Φωτογράφηση next day"><span>Φωτογράφηση</span><button class="pv-rm" type="button" data-rm="Φωτογράφηση next day"></button></li>
-                  <li class="pv-nd" data-strike="Video next day"><span>Video</span><button class="pv-rm" type="button" data-rm="Video next day"></button></li>
-                  <li class="pv-nd" data-strike="Drone next day"><span>Drone</span><button class="pv-rm" type="button" data-rm="Drone next day"></button></li>
+                  <li class="pv-nd" data-strike="Φωτογράφηση next day"><span>Φωτογράφηση</span></li>
+                  <li class="pv-nd" data-strike="Video next day"><span>Video</span></li>
+                  <li class="pv-nd" data-strike="Drone next day"><span>Drone</span></li>
                 </ul>
               </div>
             </div>
@@ -1196,7 +1260,7 @@
           <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span>Wedding Package</span></span></h2>
           <p class="pv-sub" data-r style="--i:2">Σύνοψη όσων περιλαμβάνει το πακέτο.</p>
           <div class="pv-pack">
-            <div class="pv-col" data-r style="--i:2"><h3>Η ημέρα</h3><ul class="pv-items"><li>Προετοιμασία γαμπρού και νύφης</li><li>Εκκλησία</li><li>Δεξίωση<small>Έως και 3 ώρες από την είσοδο<span class="pv-extra-h"></span></small></li><li data-strike="Drone εκκλησίας">Drone στην εκκλησία</li><li data-strike="Φωτογράφηση next day">Next day φωτογράφηση</li><li data-strike="Video next day">Next day video</li><li data-strike="Drone next day">Next day drone</li></ul></div>
+            <div class="pv-col" data-r style="--i:2"><h3>Η ημέρα</h3><ul class="pv-items"><li>Προετοιμασία γαμπρού και νύφης</li><li>Εκκλησία</li><li>Δεξίωση<small>Έως και 3 ώρες από την είσοδο<span class="pv-extra-h"></span></small></li><li class="pv-pk-rm" data-strike="Drone εκκλησίας"><span>Drone στην εκκλησία</span><button class="pv-rm" type="button" data-rm="Drone εκκλησίας"></button></li><li class="pv-pk-rm" data-strike="Φωτογράφηση next day"><span>Next day φωτογράφηση</span><button class="pv-rm" type="button" data-rm="Φωτογράφηση next day"></button></li><li class="pv-pk-rm" data-strike="Video next day"><span>Next day video</span><button class="pv-rm" type="button" data-rm="Video next day"></button></li><li class="pv-pk-rm" data-strike="Drone next day"><span>Next day drone</span><button class="pv-rm" type="button" data-rm="Drone next day"></button></li></ul></div>
             <div class="pv-col" data-r style="--i:3"><h3>Album</h3><ul class="pv-items"><li>Μεγάλο album 80×30<small class="pv-large-sp">25 σαλόνια</small></li><li class="pv-small-albums">3 μικρά album</li><li>Εκτυπώσεις</li><li>Όλες οι φωτογραφίες<small>Σε πλήρη ανάλυση, σε ηλεκτρονική μορφή</small></li></ul></div>
             <div class="pv-col" data-r style="--i:4"><h3>Video</h3><ul class="pv-items"><li>Wedding short film</li><li>Wedding movie</li><li>Full HD σε USB</li><li>Θήκη USB</li></ul></div>
           </div>
@@ -1217,7 +1281,7 @@
         <div class="pv-particles" aria-hidden="true"><i style="--x:12%;--y:70%;--d:0s;--s:3px"></i><i style="--x:22%;--y:30%;--d:1.2s;--s:2px"></i><i style="--x:35%;--y:80%;--d:2.4s;--s:4px"></i><i style="--x:48%;--y:20%;--d:0.6s;--s:2px"></i><i style="--x:58%;--y:75%;--d:1.8s;--s:3px"></i><i style="--x:70%;--y:35%;--d:3s;--s:2px"></i><i style="--x:82%;--y:65%;--d:0.9s;--s:4px"></i><i style="--x:90%;--y:25%;--d:2.1s;--s:2px"></i><i style="--x:28%;--y:55%;--d:3.4s;--s:3px"></i><i style="--x:64%;--y:50%;--d:1.4s;--s:2px"></i><i style="--x:42%;--y:40%;--d:2.8s;--s:2px"></i><i style="--x:76%;--y:85%;--d:0.3s;--s:3px"></i></div>
         <div class="pv-wrap">
           <div class="pv-k" data-r>Image Makers · Premium</div>
-          <h2 class="pv-up-title" aria-label="Αναβαθμίσεις"><span style="--l:0">Α</span><span style="--l:1">ν</span><span style="--l:2">α</span><span style="--l:3">β</span><span style="--l:4">α</span><span style="--l:5">θ</span><span style="--l:6">μ</span><span style="--l:7">ί</span><span style="--l:8">σ</span><span style="--l:9">ε</span><span style="--l:10">ι</span><span style="--l:11">ς</span></h2>
+          <h2 class="pv-up-title" aria-label="Αναβαθμίσεις"><b class="pv-w"><span style="--l:0">Α</span><span style="--l:1">ν</span><span style="--l:2">α</span><span style="--l:3">β</span><span style="--l:4">α</span><span style="--l:5">θ</span><span style="--l:6">μ</span><span style="--l:7">ί</span><span style="--l:8">σ</span><span style="--l:9">ε</span><span style="--l:10">ι</span><span style="--l:11">ς</span></b></h2>
           <i class="pv-up-line" aria-hidden="true"></i>
           <p class="pv-sub" data-r style="--i:9">Λεπτομέρειες που κάνουν τη διαφορά.</p>
         </div>
@@ -1349,7 +1413,7 @@
       <section class="presentation-slide dark pv-end">
         <div class="pv-spot" aria-hidden="true"></div>
         <div class="pv-wrap">
-          <h2 class="pv-h pv-thanks2" aria-label="Σας ευχαριστούμε."><span style="--d:1">Σ</span><span style="--d:2">α</span><span style="--d:3">ς</span><span style="--d:4">&nbsp;</span><span style="--d:5">ε</span><span style="--d:1">υ</span><span style="--d:2">χ</span><span style="--d:3">α</span><span style="--d:4">ρ</span><span style="--d:5">ι</span><span style="--d:1">σ</span><span style="--d:2">τ</span><span style="--d:3">ο</span><span style="--d:4">ύ</span><span style="--d:5">μ</span><span style="--d:1">ε</span><span style="--d:2">.</span></h2>
+          <h2 class="pv-h pv-thanks2" aria-label="Σας ευχαριστούμε."><b class="pv-w"><span style="--d:1">Σ</span><span style="--d:2">α</span><span style="--d:3">ς</span></b> <b class="pv-w"><span style="--d:5">ε</span><span style="--d:1">υ</span><span style="--d:2">χ</span><span style="--d:3">α</span><span style="--d:4">ρ</span><span style="--d:5">ι</span><span style="--d:1">σ</span><span style="--d:2">τ</span><span style="--d:3">ο</span><span style="--d:4">ύ</span><span style="--d:5">μ</span><span style="--d:1">ε</span><span style="--d:2">.</span></b></h2>
           <div class="pv-contact" data-r style="--i:2"><span>2410 550361</span><span>digital.imagemakers@gmail.com</span><span>imagemakers.gr</span><span>28ης Οκτωβρίου 40</span></div>
         </div>
       </section>
@@ -2074,13 +2138,13 @@
       let resetTimer = null;
       resetBtn.addEventListener('click', () => {
         if (!resetBtn.classList.contains('confirm')) {
-          resetBtn.classList.add('confirm'); resetBtn.textContent = 'Σίγουρα; Πατήστε ξανά';
+          resetBtn.classList.add('confirm'); resetBtn.querySelector('.t').textContent = 'Σίγουρα; Πατήστε ξανά';
           clearTimeout(resetTimer);
-          resetTimer = setTimeout(() => { resetBtn.classList.remove('confirm'); resetBtn.textContent = 'Επαναφορά πακέτου'; }, 3500);
+          resetTimer = setTimeout(() => { resetBtn.classList.remove('confirm'); resetBtn.querySelector('.t').textContent = 'Επαναφορά πακέτου'; }, 3500);
           return;
         }
         clearTimeout(resetTimer);
-        resetBtn.classList.remove('confirm'); resetBtn.textContent = 'Επαναφορά πακέτου';
+        resetBtn.classList.remove('confirm'); resetBtn.querySelector('.t').textContent = 'Επαναφορά πακέτου';
         $$('.add-option, .remove-option').forEach((c) => { c.checked = false; });
         $$('.qty').forEach((q) => { q.value = '0'; });
         $('#smallAlbumCount').value = String(INCLUDED_SMALL_ALBUMS);
