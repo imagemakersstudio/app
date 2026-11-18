@@ -9,10 +9,10 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
-    v: '1.19.0', date: '17/11/2026',
+    v: '1.19.0', date: '18/11/2026',
     items: [
-      ['🎬', 'Νέα παρουσίαση γάμου: ανοίγει με τα στοιχεία του ζευγαριού και προχωρά με σκρολ, με κίνηση που ακολουθεί το ποντίκι. Η τιμή του πακέτου εμφανίζεται αφού δείξετε τι περιλαμβάνει· μετά ακολουθούν οι αναβαθμίσεις και η πρόταση με 40% / 40% / 20%.', 'New wedding presentation: opens with the couple’s details and moves by scrolling, following the mouse. The package price appears after showing what’s included; then come the upgrades and the proposal with 40% / 40% / 20%.', 'admin'],
-      ['⚙️', 'Οι ρυθμίσεις της προσφοράς (ειδική τιμή, μεταφορικά, σημειώσεις) ανοίγουν από το «Ρυθμίσεις προσφοράς» στην πρώτη οθόνη.', 'Offer settings (special price, transport, notes) open from “Offer settings” on the first screen.', 'admin'],
+      ['🎬', 'Νέα παρουσίαση γάμου: ανοίγει με τα στοιχεία του ζευγαριού και προχωρά με σκρολ, σε υπολογιστή, tablet και κινητό. Δείχνει τι περιλαμβάνει το πακέτο, μετά τις αναβαθμίσεις και στο τέλος την πρόταση με 40% / 40% / 20%.', 'New wedding presentation: opens with the couple’s details and moves by scrolling, on computer, tablet and phone. It shows what the package includes, then the upgrades and finally the proposal with 40% / 40% / 20%.', 'admin'],
+      ['🧾', 'Στη σελίδα «Wedding Package» αφαιρείτε Drone και Next day· η τιμή πακέτου ενημερώνεται μόνη της. Στο τέλος («Η πρότασή σας») πατάτε στο σύνολο για έκπτωση, συμπληρώνετε μεταφορικά και σχόλια. «Επαναφορά πακέτου» πάνω δεξιά.', 'On the “Wedding Package” page you remove Drone and Next day; the package price updates by itself. At the end (“Your proposal”) tap the total for a discount, and fill in transport and comments. “Reset package” at the top right.', 'admin'],
     ],
   },
   {
