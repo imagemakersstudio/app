@@ -644,7 +644,7 @@
     .pv-items.sm.bul li { padding-left: 22px; }
     .pv-items.sm.bul li::before { top: calc(8px + .5em); }
     @media (max-height: 800px) { .pv-items.sm.bul li { padding-left: 22px; } .pv-items.sm.bul li::before { top: calc(5px + .5em); } }
-    #pvTotal { cursor: pointer; font-style: normal; border-bottom: 1px dashed rgba(28, 26, 24, .25); }
+    #pvTotal { cursor: pointer; font-style: normal; border-bottom: 1px dashed transparent; }
     #pvTotal:hover { border-bottom-color: #b06a43; }
     .pv-rows li.total b s { display: block; margin-bottom: 6px; color: #9a8d80; font: 400 1.3rem/1 Georgia, serif; text-align: right; }
     .pv-total-input { width: 5.2em; padding: 2px 8px; font: 400 clamp(2.4rem, 3.8vw, 3.8rem)/1 Georgia, serif; text-align: right; border: 1px solid #b06a43; border-radius: 10px; background: #fff; }
@@ -1118,7 +1118,7 @@
               <div class="pv-k" data-r style="--i:1">02</div>
               <h2 class="pv-h"><span class="pv-mask" style="--i:2"><span>Album</span></span></h2>
               <ul class="pv-items sm bul" style="margin-top:18px">
-                <li data-r style="--i:3">1 μεγάλο album 80×30 cm<small id="pvLargeSp">Περιλαμβάνει 25 σαλόνια</small></li>
+                <li data-r style="--i:3">1 μεγάλο album 80×30 cm<small id="pvLargeSp">25 σαλόνια</small></li>
                 <li data-r style="--i:4"><span id="pvSmallAlbums">3 μικρά album</span><small id="pvSmallSp">25 σαλόνια το καθένα</small></li>
                 <li data-r style="--i:5">Εκτυπώσεις · επιλέξτε ένα
                   <div class="pv-prints">
@@ -1323,7 +1323,7 @@
           <div class="pv-k" data-r>Η πρότασή σας</div>
           <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span id="pvFirstNames">—</span></span></h2>
           <div class="pv-offer">
-            <div data-r style="--i:2"><ul class="pv-rows" id="pvRows"></ul><input class="pv-total-input" id="pvTotalInput" type="number" min="0" step="10" inputmode="numeric" hidden aria-label="Τελική τιμή"><p class="pv-total-hint">Πατήστε στο σύνολο για να αλλάξει η τιμή</p></div>
+            <div data-r style="--i:2"><ul class="pv-rows" id="pvRows"></ul><input class="pv-total-input" id="pvTotalInput" type="number" min="0" step="10" inputmode="numeric" hidden aria-label="Τελική τιμή"></div>
             <div class="pv-pay" data-r style="--i:3">
               <div><strong>40%</strong><span>Κράτηση ημερομηνίας</span></div>
               <div><strong>40%</strong><span>Ημέρα γάμου</span></div>
@@ -1874,7 +1874,7 @@
         $$('.pv-extra-h').forEach((el) => { el.textContent = hours ? ` · +${hours} ${hours === 1 ? 'ώρα' : 'ώρες'}` : ''; });
         const lsp = Math.max(0, Number($('#largeSpreads').value) || 0);
         const ssp = Math.max(0, Number($('#smallSpreads').value) || 0);
-        $('#pvLargeSp').textContent = `Περιλαμβάνει ${25 + lsp} σαλόνια`;
+        $('#pvLargeSp').textContent = `${25 + lsp} σαλόνια`;
         $$('.pv-large-sp').forEach((el) => { el.textContent = `${25 + lsp} σαλόνια`; });
         $('#pvSmallSp').textContent = ssp ? `+${ssp} επιπλέον σαλόνια` : '';
         $('#pvSmallSp').hidden = !ssp;
@@ -2080,7 +2080,7 @@
       };
       const closeTotalEdit = (apply) => {
         if (totIn.hidden) return;
-        totIn.hidden = true; totHome.insertBefore(totIn, totHome.querySelector('.pv-total-hint'));
+        totIn.hidden = true; totHome.appendChild(totIn);
         const transport = Math.max(0, Number($('#transportCost').value) || 0);
         const calc = Number(String($('#calculatedPrice').textContent).replace(/[^\d-]/g, '')) || 0;
         const finalInput = $('#finalPackagePrice');
