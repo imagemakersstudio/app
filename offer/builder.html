@@ -1911,7 +1911,9 @@
         pvDiscount = calc - finalPkg;
 
         const shown = base - pvDiscount;
-        $('#pvBasePrice').textContent = pvMoney(BASE_PRICE);
+        // τιμή σελίδας 6: βασικό πακέτο με τις αλλαγές του (αφαιρέσεις, μικρά album, σαλόνια, ώρες) — χωρίς αναβαθμίσεις, έκπτωση, μεταφορικά
+        const qtySum = $$('.qty').reduce((sum, q) => sum + (Number(q.value) || 0) * Number(q.dataset.unit || 0), 0);
+        $('#pvBasePrice').textContent = pvMoney(BASE_PRICE + removed + smallDiff + qtySum);
 
         const rmNames = { 'Drone εκκλησίας': 'Χωρίς drone στην εκκλησία', 'Φωτογράφηση next day': 'Χωρίς next day φωτογράφηση', 'Video next day': 'Χωρίς next day video', 'Drone next day': 'Χωρίς next day drone' };
         const rows = [['Wedding Package', BASE_PRICE]];
