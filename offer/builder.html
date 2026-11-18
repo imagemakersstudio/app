@@ -311,14 +311,14 @@
     .pv-start h1 { max-width: none; margin: 14px 0 28px; font: 500 clamp(2.4rem, 4vw, 3.6rem)/1 Georgia, serif; letter-spacing: -.03em; }
     .pv-start-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; }
     .pv-start label { display: grid; gap: 7px; color: #b9ada1; font-size: .85rem; font-weight: 600; letter-spacing: .04em; }
-    .pv-start input { min-height: 48px; padding: 0 16px; color: #fff; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); border-radius: 12px; font: 500 1.05rem/1 inherit; outline: none; transition: border-color .25s, background .25s; color-scheme: dark; }
+    .pv-start input { min-height: 48px; padding: 0 16px; color: #fff; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); border-radius: 12px; font-weight: 500; font-size: 1.05rem; line-height: 1; outline: none; transition: border-color .25s, background .25s; color-scheme: dark; }
     .pv-start input:focus { border-color: #d6a77f; background: rgba(255,255,255,.1); }
     .pv-start-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-top: 28px; }
-    .pv-go { display: inline-flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 28px; color: #17130f; background: linear-gradient(120deg, #f3e3d2, #d9a77d); border: 0; border-radius: 999px; font: 700 1.05rem inherit; cursor: pointer; transition: transform .3s cubic-bezier(.2,.7,.15,1), box-shadow .3s; }
+    .pv-go { display: inline-flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 28px; color: #17130f; background: linear-gradient(120deg, #f3e3d2, #d9a77d); border: 0; border-radius: 999px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: transform .3s cubic-bezier(.2,.7,.15,1), box-shadow .3s; }
     .pv-go:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(217,167,125,.28); }
     .pv-go span { transition: transform .3s; }
     .pv-go:hover span { transform: translateX(4px); }
-    .pv-settings-link { color: #9d9186; background: none; border: 0; font: 500 .9rem inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .pv-settings-link { color: #9d9186; background: none; border: 0; font-weight: 500; font-size: .9rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
     /* Παρουσίαση */
     .presentation-shell {
@@ -336,7 +336,7 @@
     .presentation-bar > * { pointer-events: auto; }
     .presentation-bar strong { font: 700 .82rem Georgia, serif; letter-spacing: .22em; }
     .pv-bar-actions { display: flex; gap: 8px; }
-    .pv-icon-btn { min-height: 34px; padding: 0 14px; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.5); border-radius: 999px; font: 600 .8rem inherit; letter-spacing: .04em; cursor: pointer; }
+    .pv-icon-btn { min-height: 34px; padding: 0 14px; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.5); border-radius: 999px; font-weight: 600; font-size: .8rem; letter-spacing: .04em; cursor: pointer; }
     .pv-progress { position: fixed; z-index: 6; left: 0; top: 0; height: 2px; width: 0; background: linear-gradient(90deg, #a96f45, #e2b48c); }
 
     .presentation-nav { position: fixed; z-index: 5; right: clamp(16px, 2vw, 30px); top: 50%; transform: translateY(-50%); display: grid; gap: 10px; justify-items: center; mix-blend-mode: difference; }
@@ -388,7 +388,7 @@
     /* Η ημέρα */
     .pv-day { display: grid; grid-template-columns: 1.3fr 1fr; gap: clamp(30px, 6vw, 90px); margin-top: clamp(36px, 7vh, 70px); }
     .pv-col h3 { display: flex; align-items: baseline; gap: 16px; margin: 0 0 18px; padding-bottom: 16px; border-bottom: 1px solid #ddd0c2; font: 500 clamp(1.8rem, 2.2vw, 2.4rem) Georgia, serif; }
-    .pv-col h3 small { color: #a96f45; font: 700 .85rem inherit; letter-spacing: .14em; }
+    .pv-col h3 small { color: #a96f45; font-weight: 700; font-size: .85rem; letter-spacing: .14em; }
     .pv-items { margin: 0; padding: 0; list-style: none; }
     .pv-items li { padding: 13px 0; border-bottom: 1px solid #e8ddd1; font-size: clamp(1.1rem, .5vw + .95rem, 1.32rem); }
     .dark .pv-items li { border-color: rgba(255,255,255,.12); }
@@ -421,7 +421,7 @@
     .pv-up-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 24px; }
     .pv-strip { display: flex; gap: 18px; width: max-content; margin-top: clamp(30px, 6vh, 56px); transform: translate3d(calc((.5 - var(--p)) * 30vw + var(--mx) * -10px), 0, 0); transition: transform .9s cubic-bezier(.2,.7,.15,1); }
     .pv-strip img { height: clamp(300px, 52vh, 520px); width: auto; border-radius: 6px; box-shadow: 0 30px 70px rgba(30, 20, 10, .18); }
-    .pv-add { display: inline-flex; align-items: center; gap: 14px; min-height: 58px; padding: 0 12px 0 26px; color: #fff; background: #1c1a18; border: 0; border-radius: 999px; font: 700 1.05rem inherit; cursor: pointer; transition: background .35s, transform .3s var(--pv-ease); }
+    .pv-add { display: inline-flex; align-items: center; gap: 14px; min-height: 58px; padding: 0 12px 0 26px; color: #fff; background: #1c1a18; border: 0; border-radius: 999px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: background .35s, transform .3s var(--pv-ease); }
     .pv-add b { display: grid; place-items: center; min-width: 74px; height: 40px; padding: 0 12px; color: #1c1a18; background: #efe3d6; border-radius: 999px; font-weight: 800; }
     .pv-add:hover { transform: translateY(-2px); }
     .pv-add:active { transform: scale(.97); }
@@ -589,12 +589,12 @@
     .pv-price-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; margin-top: 10px; color: #a99d91; }
     .pv-price-meta small { font-size: .85rem; letter-spacing: .04em; }
     .pv-transport { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; }
-    .pv-transport input { width: 70px; padding: 2px 0; color: #f4ece3; background: transparent; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .22); font: 500 1rem inherit; text-align: right; outline: none; -moz-appearance: textfield; transition: border-color .3s; }
+    .pv-transport input { width: 70px; padding: 2px 0; color: #f4ece3; background: transparent; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .22); font-weight: 500; font-size: 1rem; text-align: right; outline: none; -moz-appearance: textfield; transition: border-color .3s; }
     .pv-transport input:hover, .pv-transport input:focus { border-bottom-color: rgba(255, 255, 255, .55); }
     .pv-rows li.disc b { color: #275b49; }
 
     /* Αφαιρέσεις (drone, next day) */
-    .pv-rm { white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; margin-top: 8px; padding: 5px 12px; color: #8a3b2c; background: transparent; border: 1px solid rgba(138, 59, 44, .35); border-radius: 999px; font: 700 .76rem inherit; letter-spacing: .03em; cursor: pointer; transition: background .3s, color .3s, border-color .3s; }
+    .pv-rm { white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; margin-top: 8px; padding: 5px 12px; color: #8a3b2c; background: transparent; border: 1px solid rgba(138, 59, 44, .35); border-radius: 999px; font-weight: 700; font-size: .76rem; letter-spacing: .03em; cursor: pointer; transition: background .3s, color .3s, border-color .3s; }
     .pv-rm:hover { background: rgba(138, 59, 44, .08); }
     .pv-rm.restore { color: #275b49; border-color: rgba(39, 91, 73, .45); }
     .pv-next .pv-rm { margin: 0; padding: 3px 10px; color: rgba(240, 185, 168, .85); border-color: rgba(240, 185, 168, .25); font-size: .68rem; font-weight: 600; }
@@ -628,7 +628,7 @@
     .pv-step-l { display: grid; justify-items: center; color: #5a5049; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; line-height: 1.2; }
     .pv-step-l em { color: #8c5b3a; font-style: normal; font-weight: 600; letter-spacing: 0; text-transform: none; }
     .pv-step-c { display: inline-flex; align-items: center; background: rgba(255, 255, 255, .55); border: 1px solid rgba(28, 26, 24, .14); border-radius: 999px; }
-    .pv-step-c button { width: 32px; height: 32px; padding: 0; color: #1c1a18; background: transparent; border: 0; border-radius: 50%; font: 600 1.05rem inherit; cursor: pointer; transition: background .25s, transform .2s; }
+    .pv-step-c button { width: 32px; height: 32px; padding: 0; color: #1c1a18; background: transparent; border: 0; border-radius: 50%; font-weight: 600; font-size: 1.05rem; cursor: pointer; transition: background .25s, transform .2s; }
     .pv-step-c button:hover { background: rgba(28, 26, 24, .08); }
     .pv-step-c button:active { transform: scale(.88); }
     .pv-step-c button:disabled { opacity: .3; cursor: default; }
@@ -654,6 +654,17 @@
     .pv-prop-meta small { font-size: .85rem; letter-spacing: .04em; }
     .pv-prop-meta .pv-transport input { color: #1c1a18; border-bottom-color: rgba(28, 26, 24, .25); }
     .pv-prop-meta .pv-transport input:hover, .pv-prop-meta .pv-transport input:focus { border-bottom-color: #b06a43; }
+    .pv-rows li.total b { display: flex; flex-direction: column; align-items: flex-end; }
+    .pv-rows li.total b em { display: block; }
+    .pv-vat { display: block; margin-top: 6px; color: #8a7d71; font-weight: 500; font-size: .74rem; line-height: 1.2; font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: .04em; }
+    .pv-prop-meta { justify-content: flex-end !important; }
+    .pv-comments { display: grid; gap: 6px; margin-top: 16px; }
+    .pv-comments span { color: #8a7d71; font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+    .pv-comments textarea { width: 100%; min-height: 64px; padding: 10px 12px; color: #1c1a18; background: rgba(255, 255, 255, .45); border: 1px solid rgba(28, 26, 24, .14); border-radius: 10px; font-weight: 400; font-size: .95rem; line-height: 1.45; resize: vertical; outline: none; transition: border-color .3s, background .3s; }
+    .pv-comments textarea:focus { border-color: #b06a43; background: rgba(255, 255, 255, .7); }
+    /* πάνω μπάρα: ήπια «θολή» λωρίδα ώστε το περιεχόμενο να μη μπλέκεται με το λογότυπο */
+    .presentation-bar::before { content: ""; position: absolute; inset: 0 0 -18px; z-index: -1; pointer-events: none; background: linear-gradient(to bottom, rgba(208, 201, 192, .94) 0%, rgba(208, 201, 192, .82) 62%, rgba(208, 201, 192, 0) 100%); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); -webkit-mask: linear-gradient(#000 70%, transparent); mask: linear-gradient(#000 70%, transparent); transition: background .4s; }
+    .on-dark .presentation-bar::before { background: linear-gradient(to bottom, rgba(18, 17, 16, .94) 0%, rgba(18, 17, 16, .8) 62%, rgba(18, 17, 16, 0) 100%); }
     /* Album: πιο μαζεμένη σελίδα */
     .pv-album-sec .pv-h { font-size: clamp(2.6rem, 3.6vw + 1vh, 4.6rem); }
     .pv-album-sec .pv-media { margin-top: 0; align-items: center; }
@@ -1388,7 +1399,7 @@
           <div class="pv-k" data-r>Η πρότασή σας</div>
           <h2 class="pv-h"><span class="pv-mask" style="--i:1"><span id="pvFirstNames">—</span></span></h2>
           <div class="pv-offer">
-            <div data-r style="--i:2"><ul class="pv-rows" id="pvRows"></ul><div class="pv-prop-meta"><small>Οι τιμές περιλαμβάνουν ΦΠΑ</small><label class="pv-transport">Μεταφορικά έξοδα <input data-mirror="transportCost" type="number" min="0" step="10" inputmode="numeric" placeholder="0"> €</label></div><input class="pv-total-input" id="pvTotalInput" type="number" min="0" step="10" inputmode="numeric" hidden aria-label="Τελική τιμή"></div>
+            <div data-r style="--i:2"><ul class="pv-rows" id="pvRows"></ul><div class="pv-prop-meta"><label class="pv-transport">Μεταφορικά έξοδα <input data-mirror="transportCost" type="number" min="0" step="10" inputmode="numeric" placeholder="0"> €</label></div><label class="pv-comments"><span>Σχόλια</span><textarea data-mirror="notes" rows="3" placeholder="Γράψτε τυχόν σχόλια…"></textarea></label><input class="pv-total-input" id="pvTotalInput" type="number" min="0" step="10" inputmode="numeric" hidden aria-label="Τελική τιμή"></div>
             <div class="pv-pay" data-r style="--i:3">
               <div><strong>40%</strong><span>Κράτηση ημερομηνίας</span></div>
               <div><strong>40%</strong><span>Ημέρα γάμου</span></div>
@@ -1996,7 +2007,7 @@
         const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
         const tiE = $('#pvTotalInput'); if (tiE && !tiE.hidden) return;
         $('#pvRows').innerHTML = rows.map((r, i) => `<li${r[0] === 'Έκπτωση' ? ' class="disc"' : ''}><span>${esc(r[0])}</span><b>${i === 0 ? pvMoney(r[1]) : `${r[1] >= 0 ? '+' : '−'}${pvMoney(Math.abs(r[1]))}`}</b></li>`).join('')
-          + `<li class="total"><span>Σύνολο</span><b>${pvDiscount > 0 ? `<s>${pvMoney(total + pvDiscount)}</s>` : ''}<em id="pvTotal" tabindex="0" role="button">${pvMoney(total)}</em></b></li>`;
+          + `<li class="total"><span>Σύνολο</span><b>${pvDiscount > 0 ? `<s>${pvMoney(total + pvDiscount)}</s>` : ''}<em id="pvTotal" tabindex="0" role="button">${pvMoney(total)}</em><small class="pv-vat">Οι τιμές περιλαμβάνουν ΦΠΑ</small></b></li>`;
       }
 
       $$('[data-pick]').forEach((btn) => btn.addEventListener('click', () => {
