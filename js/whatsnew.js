@@ -9,6 +9,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.19.0', date: '18/11/2026',
+    items: [
+      ['🎬', 'Νέα παρουσίαση γάμου: ανοίγει με τα στοιχεία του ζευγαριού και προχωρά με σκρολ, σε υπολογιστή, tablet και κινητό. Δείχνει τι περιλαμβάνει το πακέτο, μετά τις αναβαθμίσεις και στο τέλος την πρόταση με 40% / 40% / 20%.', 'New wedding presentation: opens with the couple’s details and moves by scrolling, on computer, tablet and phone. It shows what the package includes, then the upgrades and finally the proposal with 40% / 40% / 20%.', 'admin'],
+      ['🧾', 'Στη σελίδα «Wedding Package» αφαιρείτε Drone και Next day· η τιμή πακέτου ενημερώνεται μόνη της. Στο τέλος («Η πρότασή σας») πατάτε στο σύνολο για έκπτωση, συμπληρώνετε μεταφορικά και σχόλια. «Επαναφορά πακέτου» πάνω δεξιά.', 'On the “Wedding Package” page you remove Drone and Next day; the package price updates by itself. At the end (“Your proposal”) tap the total for a discount, and fill in transport and comments. “Reset package” at the top right.', 'admin'],
+    ],
+  },
+  {
     v: '1.18.3', date: '16/11/2026',
     items: [
       ['💍', 'Ηλεκτρονική προσφορά γάμου και γαμοβάπτισης: όπως και στη βάπτιση, ο πελάτης συμπληρώνει πρώτα τα στοιχεία και μετά βλέπει το βασικό πακέτο, τις επιλογές και τη σύνοψη.', 'Online wedding and wedding & christening offer: as with christenings, the client first fills in the details, then sees the basic package, options and summary.', 'admin'],
