@@ -3301,6 +3301,8 @@ language sql stable security definer set search_path = public, private as $$
     'client', a.client_selections,
     'total', case when a.client_selections is not null and a.client_changed_at > coalesce(a.client_applied_at, '-infinity')
                   then a.client_total else a.total end,
+    'transport', case when coalesce(a.offer_data->>'transportCost', '') ~ '^[0-9]+(\.[0-9]+)?$'
+                      then (a.offer_data->>'transportCost')::numeric else 0 end,
     'locked', (a.status <> 'pending' or a.event_id is not null),
     'expires_at', a.share_expires_at)
   from public.appointments a
