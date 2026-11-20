@@ -9,6 +9,13 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.21.0', date: '20/11/2026',
+    items: [
+      ['🧩', 'Νέα προσφορά γάμου: η σελίδα «Οι Image Makers σας προτείνουν» δείχνει σταθερά το πακέτο σας. Στο τέλος, στη σελίδα «Ας διαμορφώσουμε το πακέτο», ο πελάτης βλέπει όλες τις παροχές, αφαιρεί Drone / Next day, αλλάζει album και προσθέτει αναβαθμίσεις με ένα κλικ, με την τιμή να αλλάζει αμέσως. Ακολουθεί η τελική τιμή με τις δόσεις 40 / 40 / 20 σε ποσά.', 'New wedding offer: the “Image Makers suggest” page shows your package as is. At the end, on the “Let’s build your package” page, the client sees everything included, removes Drone / Next day, changes albums and adds upgrades with one click, with the price updating instantly. Then the final price with the 40 / 40 / 20 instalments in amounts.', 'admin'],
+      ['🔽', 'Φύλλα (Dimitris και εκδηλώσεων): τα φίλτρα δεν χάνονται πια όταν η σελίδα ανανεώνεται μόνη της· καθαρίζουν μόνο όταν μπαίνετε ξανά στο φύλλο.', 'Sheets (Dimitris and events): filters are no longer lost when the page refreshes by itself; they clear only when you enter the sheet again.', 'admin'],
+    ],
+  },
+  {
     v: '1.20.0', date: '18/11/2026',
     items: [
       ['📲', 'Η σελίδα προσφοράς για τον πελάτη είναι πλέον η νέα παρουσίαση γάμου. Με το προσωπικό link μετά το ραντεβού ανοίγει με τις επιλογές του μαγαζιού· ο πελάτης αλλάζει επιλογές και πατά «Αποστολή», αλλά δεν αλλάζει τιμή, έκπτωση ή μεταφορικά και δεν βλέπει τα σχόλιά σας.', 'The client offer page is now the new wedding presentation. With the personal link after the appointment it opens with the in-store choices; the client changes choices and taps “Send”, but cannot change the price, discount or transport and does not see your comments.', 'admin'],

@@ -47,11 +47,14 @@ const st = { year: null, q: '', month: '', cat: '', groups: null, mitsosFilter: 
 export function renderSheets(root, params = {}) {
   if (!isAdmin()) return;
   const tab = params.tab || 'main';
-  // Dimitris: κάθε νέα είσοδος ξεκινά στο «Όλα», χωρίς φίλτρα (μένουν μόνο όσο δουλεύετε μέσα στο φύλλο)
-  if (tab === 'mitsos' && !root.querySelector('.dim-grid')) { st.mitsosFilter = 'all'; st.q = ''; resetGridFilters('mitsos'); }
+  // Νέα είσοδος στη σελίδα (όχι ανανέωση δεδομένων): μόνο τότε καθαρίζουν τα φίλτρα.
+  // Η αυτόματη ανανέωση (όταν αλλάζει κάτι στα δεδομένα) κρατά τα φίλτρα όπως τα αφήσατε.
+  const fresh = params._fresh !== false;
+  // Dimitris: κάθε νέα είσοδος ξεκινά στο «Όλα», χωρίς φίλτρα (μένουν όσο δουλεύετε μέσα στο φύλλο)
+  if (tab === 'mitsos' && fresh) { st.mitsosFilter = 'all'; st.q = ''; resetGridFilters('mitsos'); }
   // Φύλλα εκδηλώσεων: κάθε νέα είσοδος (ή άλλη καρτέλα) ξεκινά χωρίς φίλτρα στήλων
   const EVTABS = ['main', 'clients', 'payments', 'photos'];
-  if (EVTABS.includes(tab) && root.querySelector('#grid')?.dataset.tab !== tab) {
+  if (EVTABS.includes(tab) && fresh) {
     resetGridFilters('ev-' + tab);
     // από την Αρχική («εκδηλώσεις με υπόλοιπο»): ξεκινά με φίλτρο Εξόφληση OK = Όχι
     if (params.unpaid) setGridFilter('ev-' + tab, 'paidok', [L('Όχι', 'No')]);
