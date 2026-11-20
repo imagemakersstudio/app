@@ -4,7 +4,7 @@
 //  · Ηλεκτρονική παρουσίαση (το ζευγάρι συμπληρώνει τη σελίδα προσφοράς)
 //  Confirm → δημιουργία εκδήλωσης · Reject → μένει ως στατιστικό
 // =====================================================================
-import { fmtDateLong, fmtTime, normTime, timeInputAttrs, L, esc, icon, money, fmtDate, todayISO, daysBetween, matches, lbl, sum, CATEGORIES, APPT_MODES, REJECT_REASONS, MONTHS_EL_UP, monthShort, sheet, actionSheet, confirmBox, toast, toastErr, busy, copyText, smsUrl, mailUrl, waUrl, viberUrl, telUrl, segmented, initSegmented, parseMoney } from '../core.js';
+import { fmtDateLong, fmtTime, normTime, timeInputAttrs, L, esc, icon, money, fmtDate, todayISO, daysBetween, matches, lbl, sum, CATEGORIES, APPT_MODES, REJECT_REASONS, MONTHS_EL_UP, monthShort, sheet, actionSheet, confirmBox, toast, toastErr, busy, copyText, smsUrl, mailUrl, gmailUrl, waUrl, viberUrl, telUrl, segmented, initSegmented, parseMoney } from '../core.js';
 import { S, isStaleAppt, STALE_DAYS, saveAppointment, deleteAppointment, uploadAppointmentOffer, openOffer, offerUrl, business, eventView } from '../data.js';
 import { pageHead, emptyState, setTopActions, go, backBtn } from '../layout.js';
 import { catPill, catShort, packageNameFrom, offerSummaryHTML, pickYear, yearOf, yearSelect, bindYear } from '../components.js';
@@ -43,6 +43,7 @@ function offerPrefill(a) {
   return {
     ...base,
     partner1: a.name1 || '', partner2: a.name2 || '', phone1: a.phone || '', phone2: base.phone2 || '',
+    email: a.email || base.email || '',
     eventDate: a.event_date || '', church: [a.church, a.church_time].filter(Boolean).join(' · '),
     reception: [a.reception, a.reception_time].filter(Boolean).join(' · '),
     city: base.city || (a.church || '').split(',').slice(1).join(',').trim(),
@@ -369,11 +370,18 @@ async function revertClientChange(a) {
   if (!prev) return;
   if (!await confirmBox(L('Επαναφορά στις επιλογές του μαγαζιού;', 'Restore the in-store choices?'), L(`Η προσφορά επιστρέφει όπως ήταν στην παρουσίαση (${money(a.client_prev.total, { dec: 0 })}). Αν ο πελάτης ανοίξει ξανά το link, θα δει αυτή την προσφορά.`, `The offer goes back to the in-store version (${money(a.client_prev.total, { dec: 0 })}). If the client opens the link again, they will see this offer.`), { ok: L('Επαναφορά', 'Restore') })) return;
   try {
-    const res = await generateOfferPdf({ ...prev, partner1: a.name1 || '', partner2: a.name2 || '', phone1: a.phone || '' }, offerKindOf(prev));
+    const res = await generateOfferPdf({ ...prev, partner1: a.name1 || '', partner2: a.name2 || '', phone1: a.phone || '', email: a.email || prev.email || '' }, offerKindOf(prev));
     const path = await uploadAppointmentOffer(a.id, new File([res.pdf], 'offer.pdf', { type: 'application/pdf' }));
     await saveAppointment({ id: a.id, offer_path: path, offer_data: res.state, total: a.client_prev.total ?? res.total, ...SHOP_TAKES_OVER });
     toast(L('Η προσφορά επανήλθε', 'Offer restored'));
   } catch (e) { console.error(e); toastErr(L('Η επαναφορά δεν έγινε', 'Restore failed'), e.message); }
+}
+
+/** Gmail στον browser σε νέα καρτέλα (η καρτέλα ανοίγει πριν από κάθε αναμονή, για να μη μπλοκαριστεί) */
+function openGmail(w, to, subject, body) {
+  const url = gmailUrl(to, subject, body);
+  if (w && !w.closed) { try { w.opener = null; } catch (e) { /* τίποτα */ } w.location.href = url; }
+  else window.open(url, '_blank', 'noopener');
 }
 
 /** Αποστολή της προσφοράς του μαγαζιού στον πελάτη, με προσωπικό link */
@@ -401,6 +409,8 @@ export async function openShareOffer(a, { renew = false } = {}) {
       <button class="btn primary" data-send="email">${icon('mail')} Email</button>
       <button class="btn" data-send="viber">${icon('message')} Viber</button>
       <button class="btn" data-send="whatsapp">${icon('message')} WhatsApp</button>
+      <button class="btn" data-send="gmail">${icon('mail')} Gmail</button>
+      <button class="btn" data-send="copy">${icon('copy')} ${esc(L('Αντιγραφή μηνύματος', 'Copy message'))}</button>
       <a class="btn" href="${esc(url)}" target="_blank" rel="noopener">${icon('eye')} ${esc(L('Προβολή όπως ο πελάτης', 'View as the client'))}</a>
       <button class="btn" data-renew>${icon('refresh')} ${esc(L('Νέο link (ακυρώνει το παλιό)', 'New link (cancels the old one)'))}</button>
     </div>`;
@@ -414,11 +424,15 @@ export async function openShareOffer(a, { renew = false } = {}) {
   s.body.querySelectorAll('[data-send]').forEach((b) => b.addEventListener('click', async () => {
     const how = b.dataset.send;
     if ((how === 'sms' || how === 'whatsapp') && !f.phone) return toastErr(L('Γράψτε κινητό', 'Enter a mobile'));
-    if (how === 'email' && !f.email) return toastErr(L('Γράψτε email', 'Enter an email'));
+    if ((how === 'email' || how === 'gmail') && !f.email) return toastErr(L('Γράψτε email', 'Enter an email'));
+    if (how === 'copy') { await copyText(msg()); return toast(L('Το μήνυμα αντιγράφηκε', 'Message copied'), { body: L('Επικολλήστε το όπου θέλετε (email, Viber, Messenger).', 'Paste it wherever you like (email, Viber, Messenger).') }); }
+    // το Gmail ανοίγει αμέσως σε νέα καρτέλα (αλλιώς ο browser μπορεί να το μπλοκάρει)
+    const gw = how === 'gmail' ? window.open('about:blank', '_blank') : null;
     try { a = await saveAppointment({ id: a.id, share_sent_at: new Date().toISOString() }); } catch (e) { console.warn('share_sent_at', e); }
     if (how === 'sms') window.location.href = smsUrl(f.phone, msg());
     if (how === 'whatsapp') window.location.href = waUrl(f.phone, msg());
     if (how === 'email') window.location.href = mailUrl(f.email, L(`Image Makers · Η προσφορά ${k.gen} σας`, `Image Makers · Your ${k.en.toLowerCase()} offer`), msg());
+    if (how === 'gmail') openGmail(gw, f.email, L(`Image Makers · Η προσφορά ${k.gen} σας`, `Image Makers · Your ${k.en.toLowerCase()} offer`), msg());
     if (how === 'viber') { await copyText(msg()); window.location.href = viberUrl(msg()); }
   }));
 }
@@ -444,7 +458,7 @@ export async function ensurePdf(a, btn) {
 async function editOffer(a) {
   const kind = offerKindFor(a.category);
   const pre = offerPrefill(a);
-  if (!offerFits(a.offer_data, kind)) { Object.keys(pre).forEach((k) => { if (!['partner1', 'partner2', 'phone1', 'phone2', 'eventDate', 'church', 'reception', 'city'].includes(k)) delete pre[k]; }); }
+  if (!offerFits(a.offer_data, kind)) { Object.keys(pre).forEach((k) => { if (!['partner1', 'partner2', 'phone1', 'phone2', 'email', 'eventDate', 'church', 'reception', 'city'].includes(k)) delete pre[k]; }); }
   const res = await openOfferBuilder({ kind, prefill: { ...pre, finalPrice: offerFits(a.offer_data, kind) ? a.offer_data?.finalPrice ?? undefined : undefined }, saveLabel: L('Αποθήκευση στο ραντεβού', 'Save to appointment') });
   if (!res) return;
   try {
@@ -580,6 +594,8 @@ function openSendLinkFor(kind) {
       <button class="btn primary" data-send="email">${icon('mail')} Email</button>
       <button class="btn" data-send="viber">${icon('message')} Viber</button>
       <button class="btn" data-send="whatsapp">${icon('message')} WhatsApp</button>
+      <button class="btn" data-send="gmail">${icon('mail')} Gmail</button>
+      <button class="btn" data-send="copy">${icon('copy')} ${esc(L('Αντιγραφή μηνύματος', 'Copy message'))}</button>
       <a class="btn" href="${esc(clientPagePath(k.v))}" target="_blank" rel="noopener">${icon('eye')} ${esc(L('Προβολή σελίδας', 'Preview page'))}</a>
       <button class="btn" data-file>${icon('download')} ${esc(L('Αρχείο για email', 'File for email'))}</button>
     </div>`;
@@ -590,10 +606,14 @@ function openSendLinkFor(kind) {
   s.body.querySelectorAll('[data-send]').forEach((b) => b.addEventListener('click', async () => {
     const how = b.dataset.send;
     if ((how === 'sms' || how === 'whatsapp') && !f.phone) return toastErr(L('Γράψτε κινητό', 'Enter a mobile'));
-    if (how === 'email' && !f.email) return toastErr(L('Γράψτε email', 'Enter an email'));
+    if ((how === 'email' || how === 'gmail') && !f.email) return toastErr(L('Γράψτε email', 'Enter an email'));
+    if (how === 'copy') { await copyText(msg()); return toast(L('Το μήνυμα αντιγράφηκε', 'Message copied'), { body: L('Επικολλήστε το όπου θέλετε (email, Viber, Messenger).', 'Paste it wherever you like (email, Viber, Messenger).') }); }
+    // το Gmail ανοίγει αμέσως σε νέα καρτέλα (αλλιώς ο browser μπορεί να το μπλοκάρει)
+    const gw = how === 'gmail' ? window.open('about:blank', '_blank') : null;
     if (how === 'sms') window.location.href = smsUrl(f.phone, msg());
     if (how === 'whatsapp') window.location.href = waUrl(f.phone, msg());
     if (how === 'email') window.location.href = mailUrl(f.email, L(`Image Makers · Προσφορά ${k.gen}`, `Image Makers · ${k.en} offer`), msg());
+    if (how === 'gmail') openGmail(gw, f.email, L(`Image Makers · Προσφορά ${k.gen}`, `Image Makers · ${k.en} offer`), msg());
     if (how === 'viber') { await copyText(msg()); window.location.href = viberUrl(msg()); }
   }));
 }
@@ -642,7 +662,7 @@ export function renderAppointmentForm(root, params = {}) {
   root.querySelectorAll('[data-cat]').forEach((b) => b.addEventListener('click', () => { F.category = b.dataset.cat; root.querySelectorAll('[data-cat]').forEach((x) => x.classList.toggle('on', x === b)); }));
   root.querySelector('[data-builder]').addEventListener('click', async () => {
     const kind = offerKindFor(F.category);
-    const res = await openOfferBuilder({ kind, prefill: { ...(F.offer_data && offerFits(F.offer_data, kind) ? F.offer_data : {}), partner1: F.name1, partner2: F.name2, phone1: F.phone, eventDate: F.event_date, church: F.church, reception: F.reception, city: (F.church || '').split(',').slice(1).join(',').trim(), finalPrice: offerKindOf(F.offer_data) === kind ? F.offer_data?.finalPrice ?? undefined : undefined }, saveLabel: L('Αποθήκευση στο ραντεβού', 'Save to appointment') });
+    const res = await openOfferBuilder({ kind, prefill: { ...(F.offer_data && offerFits(F.offer_data, kind) ? F.offer_data : {}), partner1: F.name1, partner2: F.name2, phone1: F.phone, email: F.email || '', eventDate: F.event_date, church: F.church, reception: F.reception, city: (F.church || '').split(',').slice(1).join(',').trim(), finalPrice: offerKindOf(F.offer_data) === kind ? F.offer_data?.finalPrice ?? undefined : undefined }, saveLabel: L('Αποθήκευση στο ραντεβού', 'Save to appointment') });
     if (!res) return;
     F.pdf = res.pdf; F.pdfName = res.fileName; F.offer_data = res.state; F.total = res.total; F._offerChanged = true;
     // ό,τι γράφτηκε στον Οδηγό περνά και στη φόρμα, ώστε φόρμα και PDF να συμφωνούν

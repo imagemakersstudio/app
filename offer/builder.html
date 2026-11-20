@@ -1017,6 +1017,7 @@
     body.embedded #resetTop { display: none; }
     body.embedded .app-header { position: static; }
   </style>
+<style>.p-amt{font:600 9pt/1 Inter,ui-sans-serif,sans-serif;font-style:normal;color:#8c5b3a;margin-left:4px}.p-table tr.p-disc td{color:#275b49}</style>
 </head>
 <body class="pv-starting">
   <div class="pv-start" id="pvStart" aria-label="Στοιχεία ζευγαριού">
@@ -1598,7 +1599,7 @@
 
     <article class="print-page p-pad">
       <div class="p-brand">IMAGE MAKERS</div><div class="p-kicker">Διαδικασία</div><h2 class="p-title">Από την κράτηση έως την παράδοση.</h2>
-      <div class="p-process"><div class="p-process-card"><strong>40%</strong><b>ΚΡΑΤΗΣΗ ΗΜΕΡΟΜΗΝΙΑΣ</b><span>Με την επιβεβαίωση και την υπογραφή της συνεργασίας.</span></div><div class="p-process-card"><strong>40%</strong><b>ΗΜΕΡΑ ΓΑΜΟΥ</b><span>Με την ολοκλήρωση της φωτογράφησης του γάμου.</span></div><div class="p-process-card"><strong>20%</strong><b>ΤΕΛΙΚΗ ΠΑΡΑΔΟΣΗ</b><span>Με την παράδοση του συμφωνημένου πακέτου.</span></div></div>
+      <div class="p-process"><div class="p-process-card"><strong>40% <em class="p-amt" id="printPay1"></em></strong><b>ΚΡΑΤΗΣΗ ΗΜΕΡΟΜΗΝΙΑΣ</b><span>Με την επιβεβαίωση και την υπογραφή της συνεργασίας.</span></div><div class="p-process-card"><strong>40% <em class="p-amt" id="printPay2"></em></strong><b>ΗΜΕΡΑ ΓΑΜΟΥ</b><span>Με την ολοκλήρωση της φωτογράφησης του γάμου.</span></div><div class="p-process-card"><strong>20% <em class="p-amt" id="printPay3"></em></strong><b>ΤΕΛΙΚΗ ΠΑΡΑΔΟΣΗ</b><span>Με την παράδοση του συμφωνημένου πακέτου.</span></div></div>
       <div class="p-card"><h3>Χρονοδιάγραμμα παράδοσης</h3><table class="p-table"><tbody><tr><td><strong>01 · Πρώτη επιλογή</strong><br><span class="p-muted">25 ημέρες μετά την εκδήλωση: φωτογραφίες και πρώτο προσχέδιο album.</span></td></tr><tr><td><strong>02 · Διορθώσεις</strong><br><span class="p-muted">Απάντηση εντός 15 ημερών, ώστε να προχωρήσει η εκτύπωση.</span></td></tr><tr><td><strong>03 · Παραγωγή</strong><br><span class="p-muted">Μετά την έγκριση, η παραγωγή εκτιμάται σε 15 εργάσιμες ημέρες.</span></td></tr><tr><td><strong>04 · Ολοκλήρωση</strong></td></tr></tbody></table></div>
       <div class="p-card" style="margin-top:6mm;background:#1c1a18;color:white"><h3>Οριστικοποίηση πριν από την παραγωγή</h3><p style="color:#ddd5cc;font-size:8.5pt;margin:0">Τυχόν αλλαγές ή ειδικές απαιτήσεις οριστικοποιούνται πριν από την έναρξη της παραγωγής, ώστε κάθε στάδιο να υλοποιείται βάσει της εγκεκριμένης πρότασης.</p></div>
       <div class="p-footer"><span>IMAGE MAKERS · Διαδικασία συνεργασίας</span><span class="print-page-index"></span></div>
@@ -1606,7 +1607,7 @@
 
     <article class="print-page p-pad">
       <div class="p-brand">IMAGE MAKERS</div><div class="p-kicker">Στοιχεία & επικοινωνία</div><h2 class="p-title">Τα στοιχεία της συμφωνίας.</h2>
-      <div class="p-details"><div class="p-detail"><small>Ονοματεπώνυμο 1</small><strong id="printPartner1">—</strong></div><div class="p-detail"><small>Ονοματεπώνυμο 2</small><strong id="printPartner2">—</strong></div><div class="p-detail"><small>Τηλέφωνο 1</small><strong id="printPhone1">—</strong></div><div class="p-detail"><small>Τηλέφωνο 2</small><strong id="printPhone2">—</strong></div><div class="p-detail"><small>Ημερομηνία γάμου</small><strong class="live-date">—</strong></div><div class="p-detail"><small>Πόλη / περιοχή</small><strong class="live-city">—</strong></div><div class="p-detail full"><small>Εκκλησία / ώρα</small><strong id="printChurch">—</strong></div><div class="p-detail full"><small>Χώρος δεξίωσης / ώρα</small><strong id="printReception">—</strong></div></div>
+      <div class="p-details"><div class="p-detail"><small>Ονοματεπώνυμο 1</small><strong id="printPartner1">—</strong></div><div class="p-detail"><small>Ονοματεπώνυμο 2</small><strong id="printPartner2">—</strong></div><div class="p-detail"><small>Τηλέφωνο 1</small><strong id="printPhone1">—</strong></div><div class="p-detail"><small>Email</small><strong id="printEmail">—</strong></div><div class="p-detail"><small>Τηλέφωνο 2</small><strong id="printPhone2">—</strong></div><div class="p-detail"><small>Ημερομηνία γάμου</small><strong class="live-date">—</strong></div><div class="p-detail"><small>Πόλη / περιοχή</small><strong class="live-city">—</strong></div><div class="p-detail full"><small>Εκκλησία / ώρα</small><strong id="printChurch">—</strong></div><div class="p-detail full"><small>Χώρος δεξίωσης / ώρα</small><strong id="printReception">—</strong></div></div>
       <div class="p-price-box"><div><small>Τελική συμφωνημένη αξία</small><span class="live-couple">—</span></div><strong class="live-total">2.800€</strong></div>
       <div class="p-contact"><div><strong style="font:600 12pt Georgia,serif">IMAGE MAKERS</strong><br>Studio Photography & Cinematography</div><div style="text-align:right">2410 550361<br>digital.imagemakers@gmail.com<br>www.imagemakers.gr<br>28ης Οκτωβρίου 40</div></div>
       <div class="p-footer"><span>IMAGE MAKERS · Στοιχεία συμφωνίας</span><span class="print-page-index"></span></div>
@@ -1649,7 +1650,7 @@
       const $ = (selector) => document.querySelector(selector);
       const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-      const formatMoney = (value) => `${Math.round(value).toLocaleString('el-GR')}€`;
+      const formatMoney = (value) => `${Math.round(value)}€`;
 
       const cleanNumber = (input) => {
         const min = Number(input.min || 0);
@@ -1671,7 +1672,7 @@
       const setText = (selector, value) => $$(selector).forEach((node) => { node.textContent = value; });
 
       function getCalculation() {
-        const rows = [{ label: 'Βασικό πακέτο On Season', value: BASE_PRICE, type: 'base' }];
+        const rows = [{ label: 'Βασικό πακέτο', value: BASE_PRICE, type: 'base' }];
         let total = BASE_PRICE;
 
         $$('.add-option:checked, .remove-option:checked').forEach((input) => {
@@ -1720,6 +1721,7 @@
         $('#printPartner2').textContent = safeText($('#partner2').value);
         $('#printPhone1').textContent = safeText($('#phone1').value);
         $('#printPhone2').textContent = safeText($('#phone2').value);
+        $('#printEmail').textContent = safeText($('#offerEmail').value);
         $('#printChurch').textContent = safeText($('#church').value);
         $('#printReception').textContent = safeText($('#reception').value);
         $('#printNotes').textContent = safeText($('#notes').value, 'Δεν υπάρχουν πρόσθετες σημειώσεις.');
@@ -1864,10 +1866,15 @@
 
         const printRows = rows.map((row) => `<tr><td>${row.label}</td><td>${row.type === 'base' ? formatMoney(row.value) : `${row.value > 0 ? '+' : '−'}${formatMoney(Math.abs(row.value))}`}</td></tr>`);
         if (finalPriceManual && packageTotal !== calculatedTotal) {
-          printRows.push(`<tr><td>Συμφωνημένη τιμή πακέτου</td><td>${formatMoney(packageTotal)}</td></tr>`);
+          const diff = packageTotal - calculatedTotal;
+          printRows.push(diff < 0 ? `<tr class="p-disc"><td>Έκπτωση</td><td>−${formatMoney(-diff)}</td></tr>` : `<tr><td>Προσαρμογή τιμής</td><td>+${formatMoney(diff)}</td></tr>`);
         }
         if (transportCost) printRows.push(`<tr><td>Μεταφορικά έξοδα</td><td>+${formatMoney(transportCost)}</td></tr>`);
         $('#printBreakdown').innerHTML = printRows.join('');
+        // δόσεις 40 / 40 / 20 σε ποσά (όπως στην παρουσίαση)
+        const payTotal = Math.round(packageTotal + transportCost);
+        const pay1 = Math.round(payTotal * 0.4), pay2 = Math.round(payTotal * 0.4);
+        [pay1, pay2, payTotal - pay1 - pay2].forEach((v, i) => { const el = document.getElementById('printPay' + (i + 1)); if (el) el.textContent = `(${formatMoney(v)})`; });
       }
 
       function updatePresentationActions() {

@@ -220,6 +220,8 @@ export const isAndroid = () => /Android/i.test(navigator.userAgent);
 export const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 export const telUrl = (p) => `tel:${cleanPhone(p)}`;
 export const smsUrl = (p, body = '') => `sms:${cleanPhone(p)}${body ? (isIOS() ? '&' : '?') + 'body=' + encodeURIComponent(body) : ''}`;
+// Gmail στον browser (για υπολογιστές χωρίς ρυθμισμένη εφαρμογή email)
+export const gmailUrl = (to, subject = '', body = '') => `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to || '')}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 export const mailUrl = (to, subject = '', body = '') => `mailto:${encodeURIComponent(to || '')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 export const waUrl = (p, body = '') => `https://wa.me/${cleanPhone(p).replace('+', '')}?text=${encodeURIComponent(body)}`;
 export const viberUrl = (body = '') => `viber://forward?text=${encodeURIComponent(body)}`;

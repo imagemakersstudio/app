@@ -225,6 +225,7 @@ export async function editOfferForEvent(id) {
   const prefill = {
     ...prev,
     partner1: c?.name1 || '', partner2: c?.name2 || '', phone1: c?.phone1 || '', phone2: c?.phone2 || '',
+    email: c?.email1 || c?.email2 || prev.email || '',
     eventDate: e.event_date, church: [e.church_location, (e.event_time || '').slice(0, 5)].filter(Boolean).join(' · '),
     reception: e.reception_location || '',
     finalPrice: prev.finalPrice ?? (f.package_price && !e.offer_data ? f.package_price : undefined),
