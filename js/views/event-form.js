@@ -529,7 +529,7 @@ function stepOffer(body, root, params) {
   body.querySelector('[data-builder]')?.addEventListener('click', async () => {
     const kind = offerKind();
     const same = W.offer.data && offerFits(W.offer.data, kind);
-    const res = await openOfferBuilder({ kind, prefill: { ...(same ? W.offer.data : {}), partner1: c?.name1 || '', partner2: c?.name2 || '', phone1: c?.phone1 || '', phone2: c?.phone2 || '', eventDate: W.ev.event_date, church: [W.ev.church_location, W.ev.event_time].filter(Boolean).join(' · '), reception: kind === 'baptism' ? '' : W.ev.reception_location, city: (W.ev.church_location || '').split(',').pop().trim(), finalPrice: same ? (W.fin.package_price || undefined) : undefined } });
+    const res = await openOfferBuilder({ kind, prefill: { ...(same ? W.offer.data : {}), partner1: c?.name1 || '', partner2: c?.name2 || '', phone1: c?.phone1 || '', phone2: c?.phone2 || '', email: c?.email1 || c?.email2 || '', eventDate: W.ev.event_date, church: [W.ev.church_location, W.ev.event_time].filter(Boolean).join(' · '), reception: kind === 'baptism' ? '' : W.ev.reception_location, city: (W.ev.church_location || '').split(',').pop().trim(), finalPrice: same ? (W.fin.package_price || undefined) : undefined } });
     if (!res) return;
     W.offer.pdf = res.pdf; W.offer.pdfName = res.fileName; W.offer.data = res.state;
     if (W.custMode === 'new') { W.cust.name1 = res.state.partner1 || W.cust.name1; W.cust.name2 = res.state.partner2 || ''; W.cust.phone1 = res.state.phone1 || W.cust.phone1; }

@@ -9,6 +9,14 @@ import { pageHead } from './layout.js';
 
 export const RELEASES = [
   {
+    v: '1.21.1', date: '20/11/2026',
+    items: [
+      ['🔽', 'Dimitris workflow: τα φίλτρα (Όλα / Εκκρεμή / SOS, αναζήτηση, φίλτρα στηλών) μένουν όπως τα αφήσατε, ακόμα κι αν αλλάξετε σελίδα ή κλείσετε την εφαρμογή, μέχρι να τα καθαρίσετε εσείς.', 'Dimitris workflow: filters (All / Pending / SOS, search, column filters) stay as you left them, even if you change page or close the app, until you clear them.', 'admin'],
+      ['✉️', 'Αποστολή προσφοράς στον πελάτη: νέο κουμπί «Gmail» (ανοίγει έτοιμο το μήνυμα στο Gmail του browser) και «Αντιγραφή μηνύματος».', 'Sending the offer: new “Gmail” button (opens the ready message in browser Gmail) and “Copy message”.', 'admin'],
+      ['🧾', 'Προσφορά: το email του πελάτη περνά αυτόματα από το ραντεβού / την εκδήλωση. Το PDF δείχνει πλέον την έκπτωση, τις δόσεις 40 / 40 / 20 σε ποσά και το email.', 'Offer: the client email carries over from the appointment / event automatically. The PDF now shows the discount, the 40 / 40 / 20 instalments in amounts and the email.', 'admin'],
+    ],
+  },
+  {
     v: '1.21.0', date: '20/11/2026',
     items: [
       ['🧩', 'Νέα προσφορά γάμου: η σελίδα «Οι Image Makers σας προτείνουν» δείχνει σταθερά το πακέτο σας. Στο τέλος, στη σελίδα «Ας διαμορφώσουμε το πακέτο», ο πελάτης βλέπει όλες τις παροχές, αφαιρεί Drone / Next day, αλλάζει album και προσθέτει αναβαθμίσεις με ένα κλικ, με την τιμή να αλλάζει αμέσως. Ακολουθεί η τελική τιμή με τις δόσεις 40 / 40 / 20 σε ποσά.', 'New wedding offer: the “Image Makers suggest” page shows your package as is. At the end, on the “Let’s build your package” page, the client sees everything included, removes Drone / Next day, changes albums and adds upgrades with one click, with the price updating instantly. Then the final price with the 40 / 40 / 20 instalments in amounts.', 'admin'],

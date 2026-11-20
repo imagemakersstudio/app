@@ -43,6 +43,11 @@ const PRESETS = {
 };
 
 const st = { year: null, q: '', month: '', cat: '', groups: null, mitsosFilter: 'all' };
+// Dimitris: τα φίλτρα (Όλα / Εκκρεμή / SOS, αναζήτηση, φίλτρα στηλών) μένουν μέχρι να τα καθαρίσει ο χρήστης
+let lastTab = null;
+const DIM_KEY = 'im.dim.v1';
+const loadDim = () => { try { return JSON.parse(localStorage.getItem(DIM_KEY) || '{}') || {}; } catch { return {}; } };
+const saveDim = () => { try { localStorage.setItem(DIM_KEY, JSON.stringify({ mf: st.mitsosFilter, q: st.q })); } catch { /* τίποτα */ } };
 
 export function renderSheets(root, params = {}) {
   if (!isAdmin()) return;
@@ -50,8 +55,10 @@ export function renderSheets(root, params = {}) {
   // Νέα είσοδος στη σελίδα (όχι ανανέωση δεδομένων): μόνο τότε καθαρίζουν τα φίλτρα.
   // Η αυτόματη ανανέωση (όταν αλλάζει κάτι στα δεδομένα) κρατά τα φίλτρα όπως τα αφήσατε.
   const fresh = params._fresh !== false;
-  // Dimitris: κάθε νέα είσοδος ξεκινά στο «Όλα», χωρίς φίλτρα (μένουν όσο δουλεύετε μέσα στο φύλλο)
-  if (tab === 'mitsos' && fresh) { st.mitsosFilter = 'all'; st.q = ''; resetGridFilters('mitsos'); }
+  // Dimitris: τα φίλτρα επανέρχονται όπως τα αφήσατε (μέχρι να τα καθαρίσετε εσείς)
+  if (tab === 'mitsos' && fresh) { const d = loadDim(); st.mitsosFilter = ['all', 'open', 'sos'].includes(d.mf) ? d.mf : 'all'; st.q = typeof d.q === 'string' ? d.q : ''; }
+  if (tab !== 'mitsos' && lastTab === 'mitsos') st.q = ''; // η αναζήτηση του Dimitris δεν περνά στα άλλα φύλλα
+  lastTab = tab;
   // Φύλλα εκδηλώσεων: κάθε νέα είσοδος (ή άλλη καρτέλα) ξεκινά χωρίς φίλτρα στήλων
   const EVTABS = ['main', 'clients', 'payments', 'photos'];
   if (EVTABS.includes(tab) && fresh) {
@@ -62,7 +69,7 @@ export function renderSheets(root, params = {}) {
   // χρονιές μόνο όπου υπάρχει κάτι (εκδηλώσεις, πληρωμές, έξοδα) · η ίδια επιλογή σε όλα τα tabs
   const { ys: years, y: selY } = pickYear([...[...S.events.values()].map((e) => yearOf(e.event_date)), ...S.payments.map((p) => yearOf(p.paid_on)), ...S.expenses.map((x) => yearOf(x.paid_on))]);
   st.year = selY;
-  if (st.fYear !== st.year) { if (st.fYear) ['mitsos', 'ev-main', 'ev-clients', 'ev-payments', 'ev-photos'].forEach(resetGridFilters); st.fYear = st.year; } // άλλη χρονιά → χωρίς φίλτρα
+  if (st.fYear !== st.year) { if (st.fYear) ['ev-main', 'ev-clients', 'ev-payments', 'ev-photos'].forEach(resetGridFilters); st.fYear = st.year; } // άλλη χρονιά → χωρίς φίλτρα
   const tabs = TABS();
   // Το Mitsos είναι ξεχωριστή σελίδα (μενού), χωρίς τις καρτέλες των υπόλοιπων φύλλων
   const cur = tab === 'mitsos' ? { v: 'mitsos', t: 'Dimitris' } : (tabs.find((t) => t.v === tab) || tabs[0]);
@@ -237,7 +244,8 @@ function mitsosSheet(body, tab, redraw) {
   body.innerHTML = toolbar({ months: false, cats: false, hint, extra: segmented('mf', [{ v: 'all', label: L('Όλα', 'All') }, { v: 'open', label: L(`Εκκρεμή (${counts.open})`, `Pending (${counts.open})`) }, { v: 'sos', label: `SOS (${counts.sos})` }], st.mitsosFilter) }) + '<div id="grid" class="dim-grid"></div>';
   bindToolbar(body, redraw, hint);
   initSegmented(body, (_, v) => { st.mitsosFilter = v; redraw(); });
-  renderGrid(body.querySelector('#grid'), cols, { id: 'mitsos', filters: true, rows: views, rowKey: (v) => v.e.id, rowClass: (v) => (isSOS(v.e) ? 'sos' : ''), onEdit: (v, c, val) => c.set(v, val), empty: L('Δεν υπάρχουν εκδηλώσεις εδώ', 'No events here') });
+  saveDim();
+  renderGrid(body.querySelector('#grid'), cols, { id: 'mitsos', persist: true, filters: true, rows: views, rowKey: (v) => v.e.id, rowClass: (v) => (isSOS(v.e) ? 'sos' : ''), onEdit: (v, c, val) => c.set(v, val), empty: L('Δεν υπάρχουν εκδηλώσεις εδώ', 'No events here') });
   body.querySelector('#sx').addEventListener('click', () => exportGrid(`Dimitris ${st.year}`, cols, views));
 }
 

@@ -125,6 +125,13 @@ export function renderGrid(container, cols, opts) {
   let { empty = L('Καμία εγγραφή', 'No rows') } = opts;
   const allRows = opts.rows;
   const mem = (memory[id] ||= { scrollLeft: 0, scrollTop: 0, sel: null });
+  // persist: τα φίλτρα/ταξινόμηση μένουν και μετά από αλλαγή σελίδας ή επανεκκίνηση, μέχρι να τα καθαρίσει ο χρήστης
+  const PKEY = opts.persist ? 'im.grid.' + id : null;
+  if (PKEY && !mem._loaded) {
+    mem._loaded = true;
+    try { const sv = JSON.parse(localStorage.getItem(PKEY) || 'null'); if (sv && typeof sv === 'object') { mem.filters = sv.filters && typeof sv.filters === 'object' ? sv.filters : {}; mem.sort = sv.sort || null; } } catch { /* τίποτα */ }
+  }
+  const saveMem = () => { if (PKEY) { try { localStorage.setItem(PKEY, JSON.stringify({ filters: mem.filters || {}, sort: mem.sort || null })); } catch { /* τίποτα */ } } };
   const isEditable = (c, r) => (typeof c.editable === 'function' ? c.editable(r) : !!c.editable);
   const raw = (c, r) => (c.get ? c.get(r) : r[c.key]);
 
@@ -218,7 +225,7 @@ export function renderGrid(container, cols, opts) {
   fitWrap(wrap); wheelPass(wrap); floatingBar(wrap);
   pinCols(wrap, cols);
   if (useFilters) {
-    const again = () => { document.querySelector('.xf-menu')?.remove(); renderGrid(container, cols, opts); };
+    const again = () => { saveMem(); document.querySelector('.xf-menu')?.remove(); renderGrid(container, cols, opts); };
     container.querySelector('[data-fclear]')?.addEventListener('click', () => { Object.keys(F).forEach((k) => delete F[k]); mem.sort = null; again(); });
     wrap.querySelectorAll('.xl-fbtn').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); filterMenu(b, cols[+b.dataset.f], again); }));
   }
